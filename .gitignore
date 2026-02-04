@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+reports/
+playwright-report/
+.env
+fixtures/auth/storageState.json
+.DS_Store

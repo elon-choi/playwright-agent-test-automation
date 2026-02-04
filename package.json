@@ -1,0 +1,18 @@
+{
+  "name": "playwright-agent-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@zerostep/playwright": "latest",
+    "dotenv": "latest",
+    "playwright-bdd": "^8.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "latest"
+  }
+}
