@@ -1,7 +1,11 @@
 node_modules/
-test-results/
-reports/
-playwright-report/
 .env
-fixtures/auth/storageState.json
-.DS_Store
+.env.local
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+dom_dumps/
+dom_logs/
+.playwright-browsers/
+**/.DS_Store

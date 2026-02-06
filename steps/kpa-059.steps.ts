@@ -4,15 +4,6 @@ import { Given, When, Then, expect } from "./fixtures.js";
 
 let selectedShortcutUrl: string | null = null;
 
-Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
-  await loginPage.goto(url);
-  await expect(page).toHaveURL(url);
-});
-
-Given("사용자는 로그인하지 않은 상태이다", async ({ loginPage }) => {
-  await loginPage.ensureLoggedOut();
-});
-
 When("사용자가 웹 페이지 하단의 바로가기 메뉴를 클릭한다", async ({ page }) => {
   const shortcutLink = page.locator('a[href="/shortcut/list"]');
   if (await shortcutLink.count()) {

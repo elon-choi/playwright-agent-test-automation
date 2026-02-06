@@ -2,15 +2,6 @@
 // Scenario: 비로그인 상태에서 보관함 아이콘 클릭 시 로그인 페이지로 이동
 import { Given, When, Then, expect } from "./fixtures.js";
 
-Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
-  await loginPage.goto(url);
-  await expect(page).toHaveURL(url);
-});
-
-Given("사용자가 비로그인 상태이다", async ({ loginPage }) => {
-  await loginPage.ensureLoggedOut();
-});
-
 When("사용자가 우측 상단의 보관함 아이콘을 클릭한다", async ({ page }) => {
   const savedIcon = page.getByRole("button", { name: /보관함/i });
   await savedIcon.first().click();

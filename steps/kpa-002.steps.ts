@@ -2,15 +2,6 @@
 // Scenario: 사용자가 카카오 페이지에 로그인하여 추천홈에 진입
 import { Given, When, Then, expect, test } from "./fixtures.js";
 
-Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
-  await loginPage.goto(url);
-  await expect(page).toHaveURL(url);
-});
-
-Given("사용자가 미로그인 상태이다", async ({ loginPage }) => {
-  await loginPage.ensureLoggedOut();
-});
-
 When("사용자가 우측 상단 프로필 아이콘을 클릭한다", async ({ loginPage }) => {
   await loginPage.openLogin();
 });

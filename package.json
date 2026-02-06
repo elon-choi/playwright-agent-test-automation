@@ -4,11 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "pw:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install",
+    "test": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
+    "bddgen": "playwright-bdd",
+    "test:ui": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui",
+    "test:ui:regen": "npx bddgen && PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui"
   },
   "devDependencies": {
-    "@playwright/test": "latest",
+    "@playwright/test": "1.58.1",
     "@zerostep/playwright": "latest",
     "dotenv": "latest",
     "playwright-bdd": "^8.4.2",
