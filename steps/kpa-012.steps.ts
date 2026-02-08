@@ -31,7 +31,7 @@ When('사용자가 임의의 "기다무" BM 작품 카드 하나를 클릭한다
   );
 });
 
-When("사용자가 회차탭 하단의 최신 유료 회차를 클릭한다", async ({ page, ai }) => {
+When("사용자가 홈 탭 하단의 최신 유료 회차를 클릭한다", async ({ page, ai }) => {
   await withAiFallback(
     async () => {
       const episodeTabCandidates = [

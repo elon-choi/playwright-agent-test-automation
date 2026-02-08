@@ -1,0 +1,30 @@
+// Generated from: features/kpa-036.feature
+import { test } from "../../steps/fixtures.ts";
+
+test.describe('KPA-036 시나리오 검증', () => {
+
+  test('사용자가 좋아요 선택한 작품을 확인하고 알림 설정을 변경한다', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자가 좋아요를 선택한 작품이 존재한다', null, { ai, loginPage, page }); 
+    await When('사용자가 웹 페이지에 진입한 후 하단의 보관함 메뉴를 클릭한다', null, { ai, loginPage, page }); 
+    await And('사용자가 좋아요 탭 하단의 작품 리스트를 확인한다', null, { ai, loginPage, page }); 
+    await And('사용자가 임의의 작품을 클릭한다', null, { ai, loginPage, page }); 
+    await And('사용자가 알림 토글을 On 또는 Off로 설정한다', null, { ai, loginPage, page }); 
+    await Then('사용자가 좋아요를 선택한 작품이 정렬 기준에 맞춰 노출된다', null, { ai, loginPage, page }); 
+    await And('사용자가 해당 작품의 홈으로 이동한다', null, { ai, loginPage, page }); 
+    await And('알림 토글 설정에 따라 알림 설정이 올바르게 동작한다', null, { ai, loginPage, page }); 
+  });
+
+});
+
+// == technical section ==
+
+test.use({
+  $test: [({}, use) => use(test), { scope: 'test', box: true }],
+  $uri: [({}, use) => use('features/kpa-036.feature'), { scope: 'test', box: true }],
+  $bddFileData: [({}, use) => use(bddFileData), { scope: "test", box: true }],
+});
+
+const bddFileData = [ // bdd-data-start
+  {"pwTestLine":6,"pickleLine":3,"tags":[],"steps":[{"pwStepLine":7,"gherkinStepLine":4,"keywordType":"Context","textWithKeyword":"Given 사용자가 \"https://page.kakao.com/\" 사이트에 접속한다","stepMatchArguments":[{"group":{"start":5,"value":"\"https://page.kakao.com/\"","children":[{"start":6,"value":"https://page.kakao.com/","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":8,"gherkinStepLine":5,"keywordType":"Context","textWithKeyword":"And 사용자가 좋아요를 선택한 작품이 존재한다","stepMatchArguments":[]},{"pwStepLine":9,"gherkinStepLine":6,"keywordType":"Action","textWithKeyword":"When 사용자가 웹 페이지에 진입한 후 하단의 보관함 메뉴를 클릭한다","stepMatchArguments":[]},{"pwStepLine":10,"gherkinStepLine":7,"keywordType":"Action","textWithKeyword":"And 사용자가 좋아요 탭 하단의 작품 리스트를 확인한다","stepMatchArguments":[]},{"pwStepLine":11,"gherkinStepLine":8,"keywordType":"Action","textWithKeyword":"And 사용자가 임의의 작품을 클릭한다","stepMatchArguments":[]},{"pwStepLine":12,"gherkinStepLine":9,"keywordType":"Action","textWithKeyword":"And 사용자가 알림 토글을 On 또는 Off로 설정한다","stepMatchArguments":[]},{"pwStepLine":13,"gherkinStepLine":10,"keywordType":"Outcome","textWithKeyword":"Then 사용자가 좋아요를 선택한 작품이 정렬 기준에 맞춰 노출된다","stepMatchArguments":[]},{"pwStepLine":14,"gherkinStepLine":11,"keywordType":"Outcome","textWithKeyword":"And 사용자가 해당 작품의 홈으로 이동한다","stepMatchArguments":[]},{"pwStepLine":15,"gherkinStepLine":12,"keywordType":"Outcome","textWithKeyword":"And 알림 토글 설정에 따라 알림 설정이 올바르게 동작한다","stepMatchArguments":[]}]},
+]; // bdd-data-end

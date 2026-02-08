@@ -3,12 +3,12 @@ import { test } from "../../steps/fixtures.ts";
 
 test.describe('KPA-008 시나리오 검증', () => {
 
-  test('비로그인 상태에서 프로필 아이콘 클릭 시 로그인 페이지로 이동', async ({ Given, When, Then, And, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자가 비로그인 상태이다', null, { loginPage }); 
-    await When('사용자가 우측 상단의 프로필 아이콘을 클릭한다', null, { loginPage }); 
-    await Then('사용자는 카카오 로그인 페이지로 리다이렉트된다', null, { page }); 
-    await And('로그인 페이지의 URL이 "https://accounts.kakao.com/login"인지 확인한다', null, { page }); 
+  test('비로그인 상태에서 프로필 아이콘 클릭 시 로그인 페이지로 이동', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자가 비로그인 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 우측 상단의 프로필 아이콘을 클릭한다', null, { ai, loginPage, page }); 
+    await Then('사용자는 카카오 로그인 페이지로 리다이렉트된다', null, { ai, loginPage, page }); 
+    await And('로그인 페이지의 URL이 "https://accounts.kakao.com/login"인지 확인한다', null, { ai, loginPage, page }); 
   });
 
 });

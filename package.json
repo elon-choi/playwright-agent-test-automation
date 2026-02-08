@@ -8,7 +8,11 @@
     "test": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "bddgen": "playwright-bdd",
     "test:ui": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui",
-    "test:ui:regen": "npx bddgen && PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui"
+    "test:ui:regen": "npx bddgen && PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui",
+    "last-failure": "npx ts-node --esm scripts/last-failure.ts",
+    "notify-slack": "npx ts-node --esm scripts/notify-slack.ts",
+    "test:ci": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test; e=$?; TEST_EXIT_CODE=$e npm run notify-slack; exit $e",
+    "overnight": "node scripts/overnight-generate-remaining.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.58.1",

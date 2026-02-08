@@ -1,4 +1,4 @@
-import { Given, When, expect, withAiFallback } from "./fixtures.js";
+import { Given, When, expect, withAiFallback, getBaseUrl } from "./fixtures.js";
 
 const ensureContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
@@ -34,7 +34,7 @@ const ensureContentPage = async (page: any) => {
 Given("사용자가 특정 작품홈에 진입한다", async ({ page }) => {
   const url = page.url();
   if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
-    await page.goto("https://page.kakao.com/", { waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
     await page.waitForTimeout(300);
   }
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
@@ -47,7 +47,7 @@ When("사용자가 회차 탭을 클릭한다", async ({ page, ai }) => {
     async () => {
       const url = page.url();
       if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
-        await page.goto("https://page.kakao.com/", { waitUntil: "domcontentloaded", timeout: 15000 });
+        await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
         await page.waitForTimeout(300);
       }
       if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
@@ -60,7 +60,7 @@ When("사용자가 회차 탭을 클릭한다", async ({ page, ai }) => {
       ];
       for (const locator of episodeTabCandidates) {
         if (await locator.count()) {
-          await locator.first().click();
+          await locator.first().click({ force: true });
           await page.waitForTimeout(400);
           return;
         }
@@ -74,15 +74,22 @@ When("사용자가 회차 탭을 클릭한다", async ({ page, ai }) => {
 When("사용자가 정렬 메뉴를 클릭한다", async ({ page, ai }) => {
   await withAiFallback(
     async () => {
-      const sortTrigger = page.getByRole("button", { name: /첫화부터|최신순|최신\s*순/i });
-      if (await sortTrigger.count()) {
-        await sortTrigger.first().click();
-        return;
-      }
-      const sortFallback = page.getByText(/첫화부터|최신순|최신\s*순/);
-      if (await sortFallback.count()) {
-        await sortFallback.first().click();
-        return;
+      const sortCandidates = [
+        page.getByRole("button", { name: /첫화부터|최신순|최신\s*순|정렬/i }),
+        page.getByRole("combobox", { name: /첫화|최신|정렬/i }),
+        page.getByRole("listbox", { name: /첫화|최신|정렬/i }),
+        page.getByText(/첫화부터|최신순|최신\s*순/).first(),
+        page.locator("button").filter({ hasText: /첫화|최신|정렬/ }).first(),
+        page.locator("[role='button']").filter({ hasText: /첫화|최신|정렬/ }).first()
+      ];
+      for (const locator of sortCandidates) {
+        if (await locator.count()) {
+          const el = locator.first();
+          if (await el.isVisible().catch(() => false)) {
+            await el.click({ force: true });
+            return;
+          }
+        }
       }
       throw new Error("정렬 메뉴를 찾지 못했습니다.");
     },

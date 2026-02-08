@@ -6,9 +6,36 @@ import { LoginPage } from "../pages/LoginPage.js";
 import { mkdir, access, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
-const STORAGE_STATE_PATH = path.resolve(process.cwd(), ".auth", "storageState.json");
+const DEFAULT_BASE_URL = "https://page.kakao.com/";
+
+export const getBaseUrl = (): string => {
+  const u = (process.env.BASE_URL || DEFAULT_BASE_URL).trim();
+  return u.replace(/\/+$/, "") + "/";
+};
+
+export const getBaseUrlOrigin = (): string => {
+  return new URL(getBaseUrl()).origin;
+};
+
+const AUTH_DIR = path.resolve(process.cwd(), ".auth");
+const STORAGE_STATE_NON_ADULT_PATH = path.join(AUTH_DIR, "storageState-nonAdult.json");
+const STORAGE_STATE_ADULT_PATH = path.join(AUTH_DIR, "storageState-adult.json");
+
+const DOM_READY_WAIT_MS = 400;
+const SCENARIO_INTERVAL_MS = 1500;
+
+export const ensurePageReady = async (page: any): Promise<void> => {
+  if (!page || page.isClosed?.()) return;
+  try {
+    await page.waitForLoadState("domcontentloaded", { timeout: 10000 });
+    await page.waitForLoadState("load", { timeout: 15000 });
+    await page.waitForTimeout(DOM_READY_WAIT_MS);
+  } catch {
+    // 페이지 종료/이동 중이면 무시
+  }
+};
 const DOM_DUMP_DIR = path.resolve(process.cwd(), "dom_dumps");
 const DOM_LOG_DIR = path.resolve(process.cwd(), "dom_logs");
 const SELF_HEAL_DIR = path.resolve(process.cwd(), "self_heal");
@@ -190,6 +217,7 @@ export const test = base.extend<MyFixtures>({
       testInfo.title.includes("공통 로그인 시나리오") ||
       (testInfo.file && testInfo.file.includes("login.feature"));
     const skipAuthByTitle =
+      testInfo.title.includes("KPA-002") ||
       testInfo.title.includes("KPA-061") ||
       testInfo.title.includes("KPA-008") ||
       testInfo.title.includes("KPA-009") ||
@@ -207,7 +235,8 @@ export const test = base.extend<MyFixtures>({
       testInfo.title.includes("KPA-103");
     const skipAuthByFile =
       testInfo.file &&
-      (testInfo.file.includes("kpa-061") ||
+      (testInfo.file.includes("kpa-002") ||
+        testInfo.file.includes("kpa-061") ||
         testInfo.file.includes("kpa-008") ||
         testInfo.file.includes("kpa-009") ||
         testInfo.file.includes("kpa-010") ||
@@ -227,7 +256,7 @@ export const test = base.extend<MyFixtures>({
       const context = await browser.newContext();
       try {
         await context.grantPermissions(["local-network-access"], {
-          origin: "https://page.kakao.com"
+          origin: getBaseUrlOrigin()
         });
         await context.grantPermissions(["local-network-access"], {
           origin: "https://accounts.kakao.com"
@@ -238,20 +267,13 @@ export const test = base.extend<MyFixtures>({
       await use(context);
       await context.close();
       return;
-    }
-
-    let hasStorageState = true;
-    try {
-      await access(STORAGE_STATE_PATH);
-    } catch (error) {
-      hasStorageState = false;
     }
 
     if (isLoginScenario) {
       const context = await browser.newContext();
       try {
         await context.grantPermissions(["local-network-access"], {
-          origin: "https://page.kakao.com"
+          origin: getBaseUrlOrigin()
         });
         await context.grantPermissions(["local-network-access"], {
           origin: "https://accounts.kakao.com"
@@ -260,21 +282,34 @@ export const test = base.extend<MyFixtures>({
         // 브라우저/버전에 따라 미지원 시 무시
       }
       await use(context);
-      await context.storageState({ path: STORAGE_STATE_PATH });
+      const isAdultLogin = /성인\s*인증/.test(testInfo.title);
+      const savePath = isAdultLogin ? STORAGE_STATE_ADULT_PATH : STORAGE_STATE_NON_ADULT_PATH;
+      await mkdir(AUTH_DIR, { recursive: true });
+      await context.storageState({ path: savePath });
       await context.close();
       return;
     }
 
-    if (!hasStorageState) {
-      throw new Error(
-        "저장된 로그인 상태가 없습니다. 먼저 login.feature를 실행해 로그인 상태를 생성해 주세요."
-      );
+    const isAdultProject = testInfo.project.name === "chromium-adult";
+    const storagePath = isAdultProject ? STORAGE_STATE_ADULT_PATH : STORAGE_STATE_NON_ADULT_PATH;
+    let hasStorageState = true;
+    try {
+      await access(storagePath);
+    } catch {
+      hasStorageState = false;
     }
 
-    const context = await browser.newContext({ storageState: STORAGE_STATE_PATH });
+    if (!hasStorageState) {
+      const hint = isAdultProject
+        ? "login.feature에서 '성인 인증 계정으로 로그인 성공' 시나리오를 실행해 주세요."
+        : "login.feature에서 '미인증 계정으로 로그인 성공' 시나리오를 실행해 주세요.";
+      throw new Error(`저장된 로그인 상태가 없습니다. 먼저 ${hint}`);
+    }
+
+    const context = await browser.newContext({ storageState: storagePath });
     try {
       await context.grantPermissions(["local-network-access"], {
-        origin: "https://page.kakao.com"
+        origin: getBaseUrlOrigin()
       });
       await context.grantPermissions(["local-network-access"], {
         origin: "https://accounts.kakao.com"
@@ -360,6 +395,29 @@ export const test = base.extend<MyFixtures>({
   ]
 });
 
-// BDD Step 함수 바인딩
-export const { Given, When, Then } = createBdd(test);
+try {
+  test.beforeEach(async ({ page }) => {
+    await ensurePageReady(page);
+  });
+  test.afterEach(async () => {
+    await new Promise((r) => setTimeout(r, SCENARIO_INTERVAL_MS));
+  });
+} catch {
+  // bddgen 등 스텝 로드 전용 실행 시 beforeEach/afterEach 미지원
+}
+
+const bdd = createBdd(test);
+const wrapStepHandler = (fn: (deps: any, ...args: any[]) => any) =>
+  async ({ page, ai, loginPage }: any, ...args: any[]) => {
+    if (page) await ensurePageReady(page);
+    return fn({ page, ai, loginPage }, ...args);
+  };
+export const Given = (text: string, fn: (deps: any, ...args: any[]) => any) =>
+  bdd.Given(text, wrapStepHandler(fn));
+export const When = (text: string, fn: (deps: any, ...args: any[]) => any) =>
+  bdd.When(text, wrapStepHandler(fn));
+export const Then = (text: string, fn: (deps: any, ...args: any[]) => any) =>
+  bdd.Then(text, wrapStepHandler(fn));
+export const And = (text: string, fn: (deps: any, ...args: any[]) => any) =>
+  bdd.Given(text, wrapStepHandler(fn));
 export { expect };

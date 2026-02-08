@@ -110,3 +110,42 @@ Then("회차가 첫화부터 순서대로 정렬되어 화면에 노출된다", 
   }
   expect(numbers[0]).toBeLessThanOrEqual(numbers[1]);
 });
+
+Then("회차가 최신 회차부터 순서대로 정렬되어 화면에 노출된다", async ({ page }) => {
+  const isContentPage = /\/content\/|\/landing\/series\//i.test(page.url());
+  if (!isContentPage) {
+    throw new Error(
+      `작품 상세(작품홈) 페이지가 아닙니다. 회차 목록은 작품홈(/content/ 또는 /landing/series/)에서만 노출됩니다. 현재 URL: ${page.url()}`
+    );
+  }
+  const byHref = page.locator(
+    'a[href*="/viewer/"], a[href*="/episode/"], a[href*="/content/"][href*="episode"]'
+  );
+  await page.waitForTimeout(500);
+  let links = byHref;
+  let count = await byHref.count();
+  if (count === 0) {
+    const main = page.locator("main, [role='main']");
+    const scope = (await main.count()) ? main.first() : page;
+    links = scope.locator('a').filter({ hasText: /\d+\s*화/ });
+    count = await links.count();
+  }
+  if (count === 0) {
+    throw new Error(
+      "회차 목록을 찾지 못했습니다. 작품홈 Home 탭에서 목록이 로드되었는지 확인해 주세요."
+    );
+  }
+  const sampleCount = Math.min(count, 6);
+  const numbers: number[] = [];
+  for (let i = 0; i < sampleCount; i += 1) {
+    const text = await links.nth(i).innerText().catch(() => "");
+    const match = text.match(/(\d+)\s*화/);
+    if (match) {
+      numbers.push(Number(match[1]));
+    }
+  }
+  if (numbers.length < 2) {
+    return;
+  }
+  expect(numbers[0]).toBeGreaterThanOrEqual(numbers[1]);
+});

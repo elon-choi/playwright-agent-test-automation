@@ -4,13 +4,13 @@ import { test } from "../../steps/fixtures.ts";
 test.describe('KPA-091 시나리오 검증', () => {
 
   test('회차 정렬 기능 검증', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자는 로그인하지 않은 상태이다', null, { loginPage }); 
-    await When('사용자가 회차 탭을 클릭한다', null, { ai, page }); 
-    await And('사용자가 정렬 메뉴를 클릭한다', null, { ai, page }); 
-    await And('사용자가 "첫화부터" 정렬 옵션을 클릭한다', null, { ai, page }); 
-    await Then('"첫화부터" 옵션이 화면에 노출된다', null, { page }); 
-    await And('회차가 1화부터 순서대로 정렬되어 화면에 노출된다', null, { page }); 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자는 로그인하지 않은 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 회차 탭을 클릭한다', null, { ai, loginPage, page }); 
+    await And('사용자가 정렬 메뉴를 클릭한다', null, { ai, loginPage, page }); 
+    await And('사용자가 "첫화부터" 정렬 옵션을 클릭한다', null, { ai, loginPage, page }); 
+    await Then('"첫화부터" 옵션이 화면에 노출된다', null, { ai, loginPage, page }); 
+    await And('회차가 1화부터 순서대로 정렬되어 화면에 노출된다', null, { ai, loginPage, page }); 
   });
 
 });

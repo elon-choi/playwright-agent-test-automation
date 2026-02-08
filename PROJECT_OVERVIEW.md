@@ -52,10 +52,22 @@ Playwright Agent Test Automation
 - `npm run test:ui:regen`: BDD 재생성 후 UI 실행
 - `npm run test:ui`: UI만 실행
 
+## 로그인 쿠키 저장/로드 (미인증·성인 인증 분리)
+
+- **저장:** `login.feature` 실행 시 시나리오별로 쿠키가 분리 저장된다.
+  - "미인증 계정으로 로그인 성공" → `.auth/storageState-nonAdult.json`
+  - "성인 인증 계정으로 로그인 성공" → `.auth/storageState-adult.json`
+- **로드:** 로그인이 필요한 시나리오( skipAuth 목록에 없는 feature)는 실행 시 저장된 쿠키를 사용한다.
+  - 프로젝트 **chromium** → 미인증 쿠키(`storageState-nonAdult.json`) 사용
+  - 프로젝트 **chromium-adult** → 성인 인증 쿠키(`storageState-adult.json`) 사용
+- **사전 조건:** 로그인 필요 시나리오를 돌리기 전에 `login.feature`에서 해당 계정 시나리오를 한 번 실행해 두어야 한다. (`.auth/`는 `.gitignore`에 포함되어 커밋되지 않는다.)
+
 ## DOM 덤프 수집
 
 - 실패 시 자동으로 `dom_dumps/`와 `dom_logs/`에 저장된다.
 - `scripts/dump-dom.ts`는 수동 실행 도구이며 자동 파이프라인에 연결되어 있지 않다.
+- 마지막 실패 한 건만 빠르게 보려면: `npm run last-failure` (덤프를 브라우저로 열려면 `npm run last-failure -- --open`).
+- 실패 대응 절차·신규 시나리오 추가·셀렉터 권장 사항: `docs/STABILITY_GUIDE.md` 참고.
 
 ## 시퀀스 다이어그램
 

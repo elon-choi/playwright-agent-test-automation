@@ -1,8 +1,8 @@
 // Feature: KPA-101 시나리오 검증
 // Scenario: 웹툰의 관련 소설 영역으로 이동
-import { Given, When, Then, expect, withAiFallback, dismissPermissionPopup } from "./fixtures.js";
+import { Given, When, Then, expect, withAiFallback, dismissPermissionPopup, getBaseUrl } from "./fixtures.js";
 
-const targetContentUrl = "https://page.kakao.com/content/58095657?tab_type=about";
+const targetContentUrl = getBaseUrl() + "content/58095657?tab_type=about";
 
 const ensureContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {

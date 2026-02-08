@@ -3,16 +3,16 @@ import { test } from "../../steps/fixtures.ts";
 
 test.describe('KPA-065 시나리오 검증', () => {
 
-  test('작품 카드 클릭 후 이미지 확대 및 닫기 기능 검증', async ({ Given, When, Then, And, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자는 로그인하지 않은 상태이다', null, { loginPage }); 
-    await When('사용자가 카카오페이지 웹에 접속한다', null, { page }); 
-    await And('사용자가 임의의 작품 카드를 클릭한다', null, { page }); 
-    await Then('메인 대표 이미지 영역이 화면에 표시된다', null, { page }); 
-    await When('사용자가 대표 이미지를 클릭한다', null, { page }); 
-    await Then('대표 이미지가 화면 전체 사이즈로 확대된다', null, { page }); 
-    await When('사용자가 확대된 이미지를 닫기 버튼을 클릭한다', null, { page }); 
-    await Then('이전 화면으로 돌아가고, 대표 섬네일 이미지가 노출된다', null, { page }); 
+  test('작품 카드 클릭 후 이미지 확대 및 닫기 기능 검증', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자는 로그인하지 않은 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 카카오페이지 웹에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자가 임의의 작품 카드를 클릭한다', null, { ai, loginPage, page }); 
+    await Then('메인 대표 이미지 영역이 화면에 표시된다', null, { ai, loginPage, page }); 
+    await When('사용자가 대표 이미지를 클릭한다', null, { ai, loginPage, page }); 
+    await Then('대표 이미지가 화면 전체 사이즈로 확대된다', null, { ai, loginPage, page }); 
+    await When('사용자가 확대된 이미지를 닫기 버튼을 클릭한다', null, { ai, loginPage, page }); 
+    await Then('이전 화면으로 돌아가고, 대표 섬네일 이미지가 노출된다', null, { ai, loginPage, page }); 
   });
 
 });

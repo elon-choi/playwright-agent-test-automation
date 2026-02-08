@@ -4,6 +4,11 @@ import { BasePage } from "./BasePage";
 type AiOptions = Record<string, unknown>;
 type AiFn = (prompt: string, options?: AiOptions) => Promise<unknown>;
 
+const getBaseUrlFromEnv = (): string => {
+  const u = (process.env.BASE_URL || "https://page.kakao.com/").trim();
+  return u.replace(/\/+$/, "") + "/";
+};
+
 export class LoginPage extends BasePage {
   constructor(page: Page, ai: AiFn, browserName?: string) {
     super(page, ai, browserName);
@@ -13,7 +18,7 @@ export class LoginPage extends BasePage {
     await this.page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
   }
 
-  async openLogin() {
+  async clickProfileIcon() {
     const header = this.page.getByRole("banner");
     const candidates = [
       this.page.locator('[data-test="header-login-button"]'),
@@ -27,42 +32,40 @@ export class LoginPage extends BasePage {
       this.page.getByRole("link", { name: /로그인/i }),
       this.page.getByRole("button", { name: /로그인/i })
     ];
-
     for (const locator of candidates) {
       if (await locator.count()) {
         await this.smartClick(locator.first(), "우측 상단 프로필 아이콘");
-        const loginForm = this.page.locator(
-          [
-            'input[name="loginId"]',
-            "input#loginId--1",
-            'input[placeholder*="카카오메일"]'
-          ].join(", ")
-        );
-        try {
-          await this.page.waitForURL(/accounts\.kakao\.com|login/i, { timeout: 5000 });
-          return;
-        } catch (error) {
-          if (await loginForm.count()) {
-            return;
-          }
-        }
-        await this.page.goto(
-          "https://accounts.kakao.com/login?continue=https%3A%2F%2Fpage.kakao.com%2F",
-          { waitUntil: "domcontentloaded", timeout: 15000 }
-        );
         return;
       }
     }
-
     const result = await this.safeAi("우측 상단 프로필 아이콘을 클릭해줘");
     if (result === null) {
       throw new Error(
         "우측 상단 프로필 아이콘을 찾지 못했습니다. 지원되는 locator 후보를 확인해 주세요."
       );
     }
+  }
 
+  async openLogin() {
+    await this.clickProfileIcon();
+    const loginForm = this.page.locator(
+      [
+        'input[name="loginId"]',
+        "input#loginId--1",
+        'input[placeholder*="카카오메일"]'
+      ].join(", ")
+    );
+    try {
+      await this.page.waitForURL(/accounts\.kakao\.com|login/i, { timeout: 5000 });
+      return;
+    } catch {
+      if (await loginForm.count()) {
+        return;
+      }
+    }
+    const continueUrl = encodeURIComponent(getBaseUrlFromEnv());
     await this.page.goto(
-      "https://accounts.kakao.com/login?continue=https%3A%2F%2Fpage.kakao.com%2F",
+      `https://accounts.kakao.com/login?continue=${continueUrl}`,
       { waitUntil: "domcontentloaded", timeout: 15000 }
     );
   }
@@ -123,9 +126,15 @@ export class LoginPage extends BasePage {
     }
   }
 
-  async fillCredentialsFromEnv() {
-    const username = process.env.AUTH_USERNAME || "";
-    const password = process.env.AUTH_PASSWORD || "";
+  async fillCredentialsFromEnv(accountType: "adult" | "nonAdult" = "nonAdult") {
+    const username =
+      accountType === "adult"
+        ? (process.env.AUTH_ADULT_USERNAME || "")
+        : (process.env.AUTH_NON_ADULT_USERNAME || process.env.AUTH_USERNAME || "");
+    const password =
+      accountType === "adult"
+        ? (process.env.AUTH_ADULT_PASSWORD || "")
+        : (process.env.AUTH_NON_ADULT_PASSWORD || process.env.AUTH_PASSWORD || "");
     await this.fillCredentials(username, password);
   }
 
@@ -150,8 +159,9 @@ export class LoginPage extends BasePage {
   }
 
   async verifyRecommendationHome() {
+    const baseOrigin = new URL(getBaseUrlFromEnv()).origin;
     await this.page.waitForURL(
-      (url) => /page\.kakao\.com/i.test(url.toString()) && !/accounts\.kakao\.com|login/i.test(url.toString()),
+      (url) => new URL(url).origin === baseOrigin && !/accounts\.kakao\.com|login/i.test(url.toString()),
       { timeout: 30000 }
     );
     await this.page.waitForLoadState("domcontentloaded");

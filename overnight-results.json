@@ -1,0 +1,474 @@
+{
+  "started": "2026-02-08T15:56:33.132Z",
+  "scenarios": [
+    {
+      "id": "kpa-027",
+      "status": "passed"
+    },
+    {
+      "id": "kpa-028",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-029",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-030",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-031",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-032",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-033",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-034",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-035",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-036",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-037",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-038",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-039",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-040",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-041",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-042",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-043",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-044",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-045",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-046",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-049",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-051",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-052",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-054",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-055",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-057",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-058",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-060",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-062",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-063",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-064",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-066",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-067",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-068",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-069",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-070",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-071",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-072",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-073",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-074",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-075",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-076",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-077",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-078",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-079",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-081",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-082",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-083",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-084",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-085",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-086",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-087",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-088",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-089",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-090",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-093",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-097",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-098",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-100",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-102",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-104",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-105",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-106",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-107",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-108",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-109",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-111",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-112",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-113",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-114",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-115",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-116",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-117",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-118",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-119",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-120",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-121",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-122",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-123",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-124",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-125",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-126",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-127",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-128",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-130",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-131",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-132",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-133",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-134",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-135",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-136",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-137",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-138",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    },
+    {
+      "id": "kpa-139",
+      "status": "bddgen_fail",
+      "reason": "npm warn Unknown env config \"devdir\". This will stop working in the next major version of npm.\n/Volumes/Project/playwright-agent-test-automation/node_modules/@cucumber/cucumber-expressions/dist/cjs/src/CucumberExpressionError.js:21\n        return _super !== null && _super.apply(this, arguments) || this;\n                                         ^\n\nError: This Cucumber Expression has a problem at column 25:\n\n사용자가 웹 페이지에 진입한 후 우 상단의 {검색} 아이콘을 클릭한다\n                        ^--^\nUndefined parameter ty"
+    }
+  ]
+}

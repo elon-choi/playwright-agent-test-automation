@@ -4,12 +4,12 @@ import { test } from "../../steps/fixtures.ts";
 test.describe('KPA-103 시나리오 검증', () => {
 
   test('소식 탭 UI 검증', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자는 로그인하지 않은 상태이다', null, { loginPage }); 
-    await When('사용자가 "소식" 탭을 클릭한다', null, { ai, page }); 
-    await Then('페이지는 "소식" 탭의 내용을 표시한다', null, { page }); 
-    await And('페이지 하단에 "DA 광고 영역"이 있을 경우 노출된다', null, { page }); 
-    await And('페이지 하단에 "작품 소식 영역" 또는 안내 문구가 노출된다', null, { page }); 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자는 로그인하지 않은 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 "소식" 탭을 클릭한다', null, { ai, loginPage, page }); 
+    await Then('페이지는 "소식" 탭의 내용을 표시한다', null, { ai, loginPage, page }); 
+    await And('페이지 하단에 "DA 광고 영역"이 있을 경우 노출된다', null, { ai, loginPage, page }); 
+    await And('페이지 하단에 "작품 소식 영역" 또는 안내 문구가 노출된다', null, { ai, loginPage, page }); 
   });
 
 });

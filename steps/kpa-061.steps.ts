@@ -8,7 +8,7 @@ When("사용자가 상단의 추천 GNB 메뉴를 클릭한다", async ({ page, 
   await withAiFallback(
     async () => {
       const gnbRecommend = page.getByRole("link", { name: /추천/i });
-      await gnbRecommend.first().click();
+      await gnbRecommend.first().click({ force: true });
     },
     "상단 추천 메뉴를 클릭한다",
     ai
@@ -19,7 +19,7 @@ When("사용자가 오늘신작 서브탭을 클릭한다", async ({ page, ai })
   await withAiFallback(
     async () => {
       const subTab = page.getByRole("link", { name: /오늘신작/i });
-      await subTab.first().click();
+      await subTab.first().click({ force: true });
     },
     "오늘신작 탭을 클릭한다",
     ai

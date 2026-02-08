@@ -3,11 +3,11 @@ import { test } from "../../steps/fixtures.ts";
 
 test.describe('KPA-099 시나리오 검증', () => {
 
-  test('정보 탭 UI 요소 검증', async ({ Given, When, Then, And, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자는 로그인하지 않은 상태이다', null, { loginPage }); 
-    await When('사용자가 정보 탭을 클릭한다', null, { page }); 
-    await Then('정보 탭 하단에 다음 요소들이 노출된다:', {"dataTable":{"rows":[{"cells":[{"value":"요소"}]},{"cells":[{"value":"DA 광고 영역"}]},{"cells":[{"value":"줄거리"}]},{"cells":[{"value":"키워드"}]},{"cells":[{"value":"티저 영상 (티저 영상이 있을 경우에만)"}]},{"cells":[{"value":"이 작품과 함께보는 웹툰"}]},{"cells":[{"value":"이 작가의 다른 작품 (다른 작품이 있을 경우에만)"}]},{"cells":[{"value":"동일작 (동일작이 있을 경우에만)"}]},{"cells":[{"value":"상세 정보"}]}]}}, { page }); 
+  test('정보 탭 UI 요소 검증', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자는 로그인하지 않은 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 정보 탭을 클릭한다', null, { ai, loginPage, page }); 
+    await Then('정보 탭 하단에 다음 요소들이 노출된다:', {"dataTable":{"rows":[{"cells":[{"value":"요소"}]},{"cells":[{"value":"DA 광고 영역"}]},{"cells":[{"value":"줄거리"}]},{"cells":[{"value":"키워드"}]},{"cells":[{"value":"티저 영상 (티저 영상이 있을 경우에만)"}]},{"cells":[{"value":"이 작품과 함께보는 웹툰"}]},{"cells":[{"value":"이 작가의 다른 작품 (다른 작품이 있을 경우에만)"}]},{"cells":[{"value":"동일작 (동일작이 있을 경우에만)"}]},{"cells":[{"value":"상세 정보"}]}]}}, { ai, loginPage, page }); 
   });
 
 });

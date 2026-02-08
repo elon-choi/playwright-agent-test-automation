@@ -38,22 +38,33 @@ const getFirstVisibleBannerLink = async (page: any) => {
   return null;
 };
 
-const getActiveBannerLink = async (page: any) => {
-  const candidates = [
-    page.locator(".swiper-slide-active a[href]"),
-    page.locator('[aria-current="true"] a[href]'),
-    page.locator(bannerLinkSelector),
-    page.getByRole("link", { name: /대표 이미지/i })
-  ];
-  for (const candidate of candidates) {
-    if (!(await candidate.count())) {
-      continue;
-    }
-    const firstCandidate = candidate.first();
-    if (await firstCandidate.isVisible()) {
-      return firstCandidate;
+const getFirstBannerLinkInViewport = async (page: any) => {
+  const links = await getBannerLinks(page);
+  const count = await links.count();
+  for (let i = 0; i < count; i += 1) {
+    const candidate = links.nth(i);
+    if (await candidate.isVisible().catch(() => false) && (await isLocatorInViewport(candidate))) {
+      return candidate;
     }
   }
+  return null;
+};
+
+const getActiveBannerLink = async (page: any) => {
+  const activeSlideSelectors = [
+    page.locator(".swiper-slide-active a[href]"),
+    page.locator('[aria-current="true"] a[href]')
+  ];
+  for (const candidate of activeSlideSelectors) {
+    if (!(await candidate.count())) continue;
+    const firstCandidate = candidate.first();
+    if (await firstCandidate.isVisible().catch(() => false)) {
+      const inView = await isLocatorInViewport(firstCandidate).catch(() => false);
+      if (inView) return firstCandidate;
+    }
+  }
+  const inViewportLink = await getFirstBannerLinkInViewport(page);
+  if (inViewportLink) return inViewportLink;
   return getFirstVisibleBannerLink(page);
 };
 
@@ -296,12 +307,6 @@ When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한�
       }
       targetBannerUrl = new URL(bannerHref, page.url()).toString();
 
-      const slideContainingBanner = bannerLink.locator(
-        'xpath=ancestor::*[contains(@class,"swiper-slide")][1]'
-      );
-      const escaped = bannerHref.replace(/"/g, '\\"');
-      const specificBannerToClick = slideContainingBanner.locator(`a[href*="${escaped}"]`).first();
-
       const mainUrlBefore = page.url();
       const targetPath = new URL(targetBannerUrl).pathname;
       const targetSearch = new URL(targetBannerUrl).search;
@@ -309,7 +314,10 @@ When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한�
       const popupPromise = page.waitForEvent("popup", { timeout: 8000 }).catch(() => null);
       const newPagePromise = page.context().waitForEvent("page", { timeout: 8000 }).catch(() => null);
 
-      await specificBannerToClick.click({ force: true });
+      const bannerRoot = await ensureBannerVisibleOnce(page);
+      await bannerRoot.scrollIntoViewIfNeeded().catch(() => null);
+      await bannerLink.scrollIntoViewIfNeeded().catch(() => null);
+      await bannerLink.click({ force: true });
 
       const [popup, newPage] = await Promise.all([popupPromise, newPagePromise]);
       let targetPage = popup || (newPage && newPage !== page ? newPage : null);

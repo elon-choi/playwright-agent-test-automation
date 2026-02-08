@@ -4,11 +4,11 @@ import { test } from "../../steps/fixtures.ts";
 test.describe('KPA-101 시나리오 검증', () => {
 
   test('웹툰의 관련 소설 영역으로 이동', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/content/58095657?tab_type=about" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자는 로그인하지 않은 상태이다', null, { loginPage }); 
-    await When('사용자가 상단 메뉴에서 "정보" 탭을 클릭한다', null, { ai, page }); 
-    await And('사용자가 정보 탭 하단의 "동일작" 섹션에서 원작 소설 작품을 클릭한다', null, { ai, page }); 
-    await Then('사용자는 해당 작품홈 페이지로 이동한다', null, { page }); 
+    await Given('사용자가 "https://page.kakao.com/content/58095657?tab_type=about" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자는 로그인하지 않은 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 상단 메뉴에서 "정보" 탭을 클릭한다', null, { ai, loginPage, page }); 
+    await And('사용자가 정보 탭 하단의 "동일작" 섹션에서 원작 소설 작품을 클릭한다', null, { ai, loginPage, page }); 
+    await Then('사용자는 해당 작품홈 페이지로 이동한다', null, { ai, loginPage, page }); 
   });
 
 });

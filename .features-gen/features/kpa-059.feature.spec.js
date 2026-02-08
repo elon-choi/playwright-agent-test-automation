@@ -3,13 +3,13 @@ import { test } from "../../steps/fixtures.ts";
 
 test.describe('KPA-059 시나리오 검증', () => {
 
-  test('바로가기 메뉴를 통한 페이지 이동 및 구성 요소 확인', async ({ Given, When, Then, And, loginPage, page }) => { 
-    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { loginPage, page }); 
-    await And('사용자는 로그인하지 않은 상태이다', null, { loginPage }); 
-    await When('사용자가 웹 페이지 하단의 바로가기 메뉴를 클릭한다', null, { page }); 
-    await Then('바로가기 메뉴 화면이 다음과 같이 구성되어 있는지 확인한다:', {"dataTable":{"rows":[{"cells":[{"value":"항목"}]},{"cells":[{"value":"\"웹툰\", \"웹소설\", \"책\" 버튼"}]},{"cells":[{"value":"\"추천\" 섹션"}]},{"cells":[{"value":"\"웹툰\" 섹션"}]},{"cells":[{"value":"\"웹소설\" 섹션"}]},{"cells":[{"value":"\"책\" 섹션"}]}]}}, { page }); 
-    await When('사용자가 임의의 바로가기 메뉴를 클릭한다', null, { page }); 
-    await Then('사용자는 클릭한 메뉴에 해당하는 페이지로 이동한다', null, { page }); 
+  test('바로가기 메뉴를 통한 페이지 이동 및 구성 요소 확인', async ({ Given, When, Then, And, ai, loginPage, page }) => { 
+    await Given('사용자가 "https://page.kakao.com/" 사이트에 접속한다', null, { ai, loginPage, page }); 
+    await And('사용자는 로그인하지 않은 상태이다', null, { ai, loginPage, page }); 
+    await When('사용자가 웹 페이지 하단의 바로가기 메뉴를 클릭한다', null, { ai, loginPage, page }); 
+    await Then('바로가기 메뉴 화면이 다음과 같이 구성되어 있는지 확인한다:', {"dataTable":{"rows":[{"cells":[{"value":"항목"}]},{"cells":[{"value":"\"웹툰\", \"웹소설\", \"책\" 버튼"}]},{"cells":[{"value":"\"추천\" 섹션"}]},{"cells":[{"value":"\"웹툰\" 섹션"}]},{"cells":[{"value":"\"웹소설\" 섹션"}]},{"cells":[{"value":"\"책\" 섹션"}]}]}}, { ai, loginPage, page }); 
+    await When('사용자가 임의의 바로가기 메뉴를 클릭한다', null, { ai, loginPage, page }); 
+    await Then('사용자는 클릭한 메뉴에 해당하는 페이지로 이동한다', null, { ai, loginPage, page }); 
   });
 
 });
