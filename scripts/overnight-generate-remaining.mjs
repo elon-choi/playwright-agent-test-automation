@@ -86,6 +86,15 @@ function getAlreadyDefinedStepTexts() {
   return defined;
 }
 
+/**
+ * steps 파일이 스텁만 있는지 판별. 실제 구현(선택자/클릭/입력/expect 등)이 하나라도 있으면 false.
+ */
+function isStepsFileStubOnly(content) {
+  const realImplementationPattern =
+    /getByRole|getByText|getByLabel|getByPlaceholder|locator\s*\(|\.click\s*\(|\.fill\s*\(|\.press\s*\(|expect\s*\(|page\.goto|waitForSelector|zerostep/;
+  return !realImplementationPattern.test(content);
+}
+
 function escapeStepText(text) {
   return text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
@@ -168,6 +177,16 @@ function main() {
       if (!existsSync(featureFullPath)) {
         results.scenarios.push({ id, status: "skip", reason: "feature file not found" });
         continue;
+      }
+
+      const stepFullPath = join(ROOT, stepPath);
+      if (existsSync(stepFullPath)) {
+        const existingContent = readFileSync(stepFullPath, "utf-8");
+        if (!isStepsFileStubOnly(existingContent)) {
+          results.scenarios.push({ id, status: "skip", reason: "already implemented (non-stub)" });
+          console.log(`${id}: skip (already implemented)`);
+          continue;
+        }
       }
 
       const featureContent = readFileSync(featureFullPath, "utf-8");

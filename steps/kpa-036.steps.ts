@@ -2,11 +2,15 @@
 import { Given, When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
 
 And("사용자가 좋아요를 선택한 작품이 존재한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  await page.waitForLoadState("domcontentloaded").catch(() => null);
+  await page.waitForTimeout(300);
 });
 
 When("사용자가 웹 페이지에 진입한 후 하단의 보관함 메뉴를 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(400);
+  const storageMenu = page.getByRole("link", { name: /보관함/i }).or(page.getByRole("button", { name: /보관함/i }));
+  await storageMenu.first().click({ timeout: 8000 });
+  await page.waitForTimeout(600);
 });
 
 And("사용자가 좋아요 탭 하단의 작품 리스트를 확인한다", async ({ page }) => {

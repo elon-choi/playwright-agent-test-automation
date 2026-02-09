@@ -2,7 +2,6 @@ Feature: KPA-027 시나리오 검증
 
   Scenario: 검색 기능 및 작품 상세 페이지 이동 검증
     Given 사용자가 "https://page.kakao.com/" 사이트에 접속한다
-    And 사전 조건이 없다
     When 사용자가 웹 페이지에 진입하여 우 상단의 검색 아이콘을 클릭한다
     And 임의의 텍스트를 입력하고 엔터 키를 누른다
     Then 검색 결과 화면이 표시된다

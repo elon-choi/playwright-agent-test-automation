@@ -5,10 +5,6 @@ And("사용자가 {string} 정렬 상태를 선택한다", async ({ page }, _par
   await page.waitForTimeout(500);
 });
 
-When("사용자가 웹 페이지에 진입한 후 하단의 {string} 메뉴를 클릭한다", async ({ page }, _param: string) => {
-  await page.waitForTimeout(500);
-});
-
 And("사용자가 {string} 탭 하단의 작품 리스트를 확인한다", async ({ page }, _param: string) => {
   await page.waitForTimeout(500);
 });

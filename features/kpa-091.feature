@@ -3,6 +3,7 @@ Feature: KPA-091 시나리오 검증
   Scenario: 회차 정렬 기능 검증
     Given 사용자가 "https://page.kakao.com/" 사이트에 접속한다
     And 사용자는 로그인하지 않은 상태이다
+    And 사용자가 특정 작품홈에 진입한다
     When 사용자가 회차 탭을 클릭한다
     And 사용자가 정렬 메뉴를 클릭한다
     And 사용자가 "첫화부터" 정렬 옵션을 클릭한다

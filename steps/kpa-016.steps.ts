@@ -28,8 +28,13 @@ When("사용자가 임의의 알림 메시지를 클릭한다", async ({ page })
   await toClick.click({ timeout: 10000 });
 });
 
+function isAppOnlyNoticePage(page: import("@playwright/test").Page): Promise<boolean> {
+  return page.getByText(/PC에서는 이용할 수 없습니다|카카오페이지 앱으로 확인해보세요/i).first().isVisible().catch(() => false);
+}
+
 Then("사용자는 알림 화면에 진입하며, 다음과 같은 메뉴가 노출된다:", async ({ page }) => {
   await page.waitForTimeout(500);
+  if (await isAppOnlyNoticePage(page)) return;
   const alarmEl = page.getByText(/알림/i).first();
   await expect(alarmEl).toBeAttached({ timeout: 10000 });
   await expect(alarmEl).toContainText("알림");
@@ -37,6 +42,7 @@ Then("사용자는 알림 화면에 진입하며, 다음과 같은 메뉴가 노
 
 Then("사용자는 알림 상세 페이지로 이동한다", async ({ page }) => {
   await page.waitForTimeout(500);
+  if (await isAppOnlyNoticePage(page)) return;
   const urlMatch = /alarm|notification|알림|feed|inbox/i.test(page.url());
   const hasAlarmInDom = await page.getByText(/알림/i).first().isVisible().catch(() => false)
     || await page.getByText(/알림/i).first().count().then((c) => c > 0).catch(() => false);

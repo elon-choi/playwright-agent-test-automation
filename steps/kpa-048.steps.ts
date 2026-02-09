@@ -254,15 +254,6 @@ When("운영 중인 배너가 3개 이상 존재한다", async ({ page }) => {
   bannerVisibleConfirmed = Boolean(firstVisible);
 });
 
-When("사용자가 웹 페이지에 진입한 후 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
-  const recommendTab = page.getByRole("link", { name: /추천\s*탭|추천/i }).first();
-  if (await recommendTab.count()) {
-    await recommendTab.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(300);
-    await recommendTab.click({ force: true });
-  }
-});
-
 When("배너 영역의 다음 화살표 버튼을 클릭하여 배너가 변경됨을 확인한다", async ({ page, ai }) => {
   await withAiFallback(
     async () => {

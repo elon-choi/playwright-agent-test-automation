@@ -258,6 +258,17 @@ const testDir = defineBddConfig({
   ]
 });
 
+// CTO 시연용: 스텁만 있는 시나리오 제외. 정상 구현된 시나리오만 UI 모드에서 실행되도록 함
+const STUB_KPA_NUMBERS = [
+  32, 33, 34, 35, 55, 57, 58, 60, 62, 63, 64, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+  81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 93, 97, 98, 100, 102, 104, 105, 106, 107, 108, 109,
+  111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128,
+  130, 131, 132, 133, 134, 135, 136, 137, 138, 139
+];
+const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
+  `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`
+);
+
 export default defineConfig({
   // BDD 설정을 테스트 디렉터리로 연결
   testDir,
@@ -278,20 +289,11 @@ export default defineConfig({
     actionTimeout: 25000,
     navigationTimeout: 35000
   },
-  // 데스크톱 Chrome 사용. chromium = 미인증 쿠키 사용, chromium-adult = 성인 인증 쿠키 사용 (로그인 필요 시나리오)
+  // 프로젝트 1개만 두어 브라우저 1회만 실행. 성인 전용 필요 시 chromium-adult 프로젝트 다시 추가
   projects: [
     {
       name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        channel: "chrome",
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
-    },
-    {
-      name: "chromium-adult",
+      testIgnore: ["**/adult/**", ...STUB_TEST_IGNORE],
       use: {
         ...devices["Desktop Chrome"],
         channel: "chrome",

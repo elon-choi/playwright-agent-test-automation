@@ -1,4 +1,13 @@
-import { Given, Then, expect, ensurePageReady, getBaseUrl, getBaseUrlOrigin } from "./fixtures.js";
+import { Given, When, Then, expect, ensurePageReady, getBaseUrl, getBaseUrlOrigin, dismissPermissionPopup } from "./fixtures.js";
+
+When("사용자가 웹 페이지에 진입한 후 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
+  const recommendTab = page.getByRole("link", { name: /추천\s*탭|추천/i }).first();
+  if (await recommendTab.count()) {
+    await recommendTab.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await recommendTab.click({ force: true });
+  }
+});
 
 Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
   const baseUrl = getBaseUrl();
@@ -7,6 +16,7 @@ Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPag
     url === "https://page.kakao.com/" || url === baseUrl ? baseUrl : url;
   await loginPage.goto(targetUrl);
   await ensurePageReady(page);
+  await dismissPermissionPopup(page);
   if (/\/content\/|\/landing\/series\//i.test(url)) {
     await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
     return;

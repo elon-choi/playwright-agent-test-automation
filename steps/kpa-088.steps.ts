@@ -5,7 +5,7 @@ And("사용자가 {string}을 선택한다", async ({ page }, _param: string) =>
   await page.waitForTimeout(500);
 });
 
-When("사용자가 {string}을 클릭한다", async ({ page }, _param: string) => {
+When('사용자가 "{string}"을 클릭한다', async ({ page }, _param: string) => {
   await page.waitForTimeout(500);
 });
 
