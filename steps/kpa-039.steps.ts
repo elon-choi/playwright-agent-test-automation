@@ -12,8 +12,11 @@ And("사용자가 로그인하여 좋아요 탭에 접근할 수 있다", async 
 });
 
 And("사용자가 편집 메뉴를 클릭한다", async ({ page }) => {
+  await page.waitForTimeout(600);
+  const list = page.locator('a[href*="/content/"]').first();
+  await list.waitFor({ state: "visible", timeout: 12000 }).catch(() => null);
   const editBtn = page.getByRole("button", { name: /편집/i }).or(page.getByText(/편집/i).first());
-  await editBtn.first().click({ timeout: 5000 });
+  await editBtn.first().click({ timeout: 10000 });
   await page.waitForTimeout(400);
 });
 

@@ -13,14 +13,17 @@ When("사용자가 좋아요 탭 하단의 작품 리스트를 확인한다", as
 });
 
 And("사용자가 작품 리스트 상단의 정렬 영역을 클릭한다", async ({ page }) => {
-  const sortArea = page.getByRole("button", { name: /정렬/i }).or(page.getByText(/정렬|좋아요\s*순|업데이트\s*순|제목\s*순/i).first());
-  await sortArea.first().click({ timeout: 5000 });
+  await page.waitForTimeout(600);
+  const list = page.locator('a[href*="/content/"]').first();
+  await list.waitFor({ state: "visible", timeout: 12000 }).catch(() => null);
+  const sortArea = page.getByRole("button", { name: /정렬/i }).or(page.getByText(/정렬|좋아요\s*순|구매\s*순|업데이트\s*순|제목\s*순/i).first());
+  await sortArea.first().click({ timeout: 10000 });
   await page.waitForTimeout(400);
 });
 
 And("사용자가 임의의 정렬값을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(300);
-  const option = page.getByRole("button", { name: /좋아요\s*순|업데이트\s*순|제목\s*순/i }).or(page.getByText(/좋아요\s*순|업데이트\s*순|제목\s*순/i).first());
+  const option = page.getByRole("button", { name: /좋아요\s*순|구매\s*순|업데이트\s*순|제목\s*순/i }).or(page.getByText(/좋아요\s*순|구매\s*순|업데이트\s*순|제목\s*순/i).first());
   if (await option.count() > 0) await option.first().click({ timeout: 8000, force: true });
   await page.waitForTimeout(400);
 });

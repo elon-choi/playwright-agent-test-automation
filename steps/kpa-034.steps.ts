@@ -21,10 +21,7 @@ And("하단의 {string} 버튼을 클릭한다", async ({ page }, _param: string
   await page.waitForTimeout(500);
 });
 
-Then("{string} 버튼이 활성화된다", async ({ page }, _param: string) => {
-  await page.waitForTimeout(500);
-});
-
+// Then '{string} 버튼이 활성화된다'는 kpa-044.steps.ts에 단일 정의
 And("선택한 작품이 삭제된다", async ({ page }) => {
   await page.waitForTimeout(500);
 });
