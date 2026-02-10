@@ -19,8 +19,9 @@ And("사용자가 작품 리스트 상단의 정렬 영역을 클릭한다", asy
 });
 
 And("사용자가 임의의 정렬값을 클릭한다", async ({ page }) => {
+  await page.waitForTimeout(300);
   const option = page.getByRole("button", { name: /좋아요\s*순|업데이트\s*순|제목\s*순/i }).or(page.getByText(/좋아요\s*순|업데이트\s*순|제목\s*순/i).first());
-  if (await option.count() > 0) await option.first().click({ timeout: 5000 });
+  if (await option.count() > 0) await option.first().click({ timeout: 8000, force: true });
   await page.waitForTimeout(400);
 });
 

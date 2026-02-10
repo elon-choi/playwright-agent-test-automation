@@ -5,10 +5,7 @@ And("사용자가 {string} 정렬 상태를 선택한다", async ({ page }, _par
   await page.waitForTimeout(500);
 });
 
-And("사용자가 {string} 탭 하단의 작품 리스트를 확인한다", async ({ page }, _param: string) => {
-  await page.waitForTimeout(500);
-});
-
+// And '사용자가 {string} 탭 하단의 작품 리스트를 확인한다'는 kpa-038.steps.ts When에 단일 정의
 And("사용자가 {string} > {string} > {string} > 1위 작품을 클릭하고, 해당 작품의 1회차를 클릭한다", async ({ page }, _param: string) => {
   await page.waitForTimeout(500);
 });

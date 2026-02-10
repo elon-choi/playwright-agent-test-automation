@@ -13,19 +13,8 @@ When("사용자가 구매작품 탭을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(500);
 });
 
-And("사용자가 편집 메뉴를 클릭한다", async ({ page }) => {
-  const editBtn = page.getByRole("button", { name: /편집/i }).or(page.getByText(/편집/i).first());
-  await editBtn.first().click({ timeout: 5000 });
-  await page.waitForTimeout(400);
-});
-
-And("사용자가 임의의 작품을 선택한다", async ({ page }) => {
-  const checkbox = page.locator('input[type="checkbox"]').or(page.getByRole("checkbox").first());
-  if (await checkbox.count() > 0) await checkbox.first().click({ timeout: 3000 });
-  else await page.locator('a[href*="/content/"]').first().click({ timeout: 3000 });
-  await page.waitForTimeout(400);
-});
-
+// And '사용자가 편집 메뉴를 클릭한다'는 kpa-039.steps.ts에 단일 정의
+// And '사용자가 임의의 작품을 선택한다'는 kpa-039.steps.ts에 단일 정의
 And("사용자가 하단의 {string} 버튼을 클릭한다", async ({ page }) => {
   const deleteBtn = page.getByRole("button", { name: /선택\s*항목\s*삭제|삭제/i });
   await deleteBtn.first().click({ timeout: 5000 });

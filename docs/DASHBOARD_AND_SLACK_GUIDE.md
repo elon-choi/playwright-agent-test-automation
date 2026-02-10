@@ -136,3 +136,33 @@ CI에서 테스트 실행 → HTML(또는 Allure) 리포트를 아티팩트로 �
    - `SLACK_WEBHOOK_URL` 발급 후, “테스트 종료 후 스크립트” 또는 “커스텀 리포터” 중 하나로 결과 요약 전송. CI만 알림이면 GitHub Actions 단계에서 전송.
 
 이 문서는 코드 수정 없이 **구성 방향**만 정리한 것입니다. 실제 reporter 코드·스크립트·CI YAML 예시가 필요하면 그다음 단계에서 파일 단위로 작성하면 됩니다.
+
+---
+
+## 4. 슬랙 결과가 안 올 때 확인 사항
+
+현재 구현은 **방식 2(테스트 종료 후 스크립트)** + **CI에서 notify-slack 단계** 로 동작합니다.
+
+### 1) 실행 방법
+
+- **로컬에서 전체 시나리오 실행 후 슬랙에 보내려면** 반드시 아래를 사용해야 합니다.
+  ```bash
+  npm run test:ci
+  ```
+- `npm run test` 또는 `npx playwright test`만 실행하면 **notify-slack이 호출되지 않아** 슬랙으로 결과가 가지 않습니다.
+- `test:ci`는 테스트 실행 → 종료 코드 저장 → `notify-slack` 실행 순서로 동작합니다.
+
+### 2) 환경 변수
+
+- **로컬:** 프로젝트 루트 `.env` 에 다음이 있어야 합니다.
+  ```bash
+  SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+  ```
+- 비어 있거나 없으면 `notify-slack` 실행 시 콘솔에  
+  `"SLACK_WEBHOOK_URL이 비어 있어 슬랙 전송을 건너뜁니다."` 만 출력하고 전송하지 않습니다.
+- **CI(GitHub Actions):** 리포지토리 **Settings → Secrets and variables → Actions** 에 `SLACK_WEBHOOK_URL` 시크릿이 등록되어 있어야 워크플로의 "Notify Slack" 단계에서 전송됩니다.
+
+### 3) 결과 파일
+
+- 슬랙 메시지는 `test-results/results.json` (Playwright JSON 리포터 출력)을 읽어 만듭니다.
+- `playwright.config.ts` 에 이미 `["json", { outputFile: "test-results/results.json" }]` 가 있으므로, `npm run test` 또는 `test:ci` 실행 후에는 해당 파일이 생성됩니다. 이 파일이 없으면 실패/통과 수가 0으로 요약될 수 있습니다.

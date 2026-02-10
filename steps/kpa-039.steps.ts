@@ -1,4 +1,5 @@
 // Feature: KPA-039 (overnight generated)
+// When '사용자가 좋아요 탭 하단의 작품 리스트를 확인한다'는 kpa-040.steps.ts에 단일 정의됨
 import { Given, When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
 
 And("사용자가 로그인하여 좋아요 탭에 접근할 수 있다", async ({ page }) => {
@@ -8,12 +9,6 @@ And("사용자가 로그인하여 좋아요 탭에 접근할 수 있다", async 
   if (await storage.count() > 0) { await storage.first().click({ timeout: 8000 }); await page.waitForTimeout(600); }
   const likeTab = page.getByRole("tab", { name: /좋아요/i }).or(page.getByRole("link", { name: /좋아요/i }));
   if (await likeTab.count() > 0) { await likeTab.first().click({ timeout: 5000 }); await page.waitForTimeout(600); }
-});
-
-When("사용자가 좋아요 탭 하단의 작품 리스트를 확인한다", async ({ page }) => {
-  await page.waitForTimeout(400);
-  const list = page.locator('a[href*="/content/"]').first();
-  await expect(list).toBeVisible({ timeout: 8000 }).catch(() => null);
 });
 
 And("사용자가 편집 메뉴를 클릭한다", async ({ page }) => {

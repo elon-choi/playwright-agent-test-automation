@@ -14,13 +14,7 @@ When("사용자가 구매작품 탭의 하단에 있는 작품 리스트를 확�
   await expect(page.locator('a[href*="/content/"]').first()).toBeVisible({ timeout: 8000 }).catch(() => null);
 });
 
-And("사용자가 검색 아이콘을 클릭하고 임의의 작품을 검색한다", async ({ page }) => {
-  const searchInput = page.getByRole("textbox", { name: /제목|작가|검색/i }).or(page.getByPlaceholder(/제목|작가를 입력하세요/i));
-  await searchInput.first().fill("웹툰", { timeout: 5000 });
-  await searchInput.first().press("Enter");
-  await page.waitForTimeout(1000);
-});
-
+// And '사용자가 검색 아이콘을 클릭하고 임의의 작품을 검색한다'는 kpa-038.steps.ts에 단일 정의
 Then("검색어에 포함된 작품 리스트가 사용자에게 노출된다", async ({ page }) => {
   await expect(page.locator('a[href*="/content/"]').first()).toBeVisible({ timeout: 10000 });
 });
