@@ -1,9 +1,5 @@
-// Feature: KPA-052 시나리오 검증
+// Feature: KPA-052 시나리오 검증 (사용자는 작품 감상 이력이 있는 계정으로 로그인한다는 kpa-049.steps.ts에 정의)
 import { When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
-
-And("사용자는 작품 감상 이력이 있는 계정으로 로그인한다", async ({ page }) => {
-  if (/accounts\.kakao\.com\/login/i.test(page.url())) throw new Error("로그인 상태가 필요합니다.");
-});
 
 When("사용자가 웹 페이지 상단의 웹툰 GNB 메뉴를 클릭한다", async ({ page }) => {
   await page.waitForTimeout(400);

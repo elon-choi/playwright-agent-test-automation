@@ -1,7 +1,5 @@
-// Feature: KPA-054 시나리오 검증
+// Feature: KPA-054 시나리오 검증 (운영중인 배너가 3개 이상 존재한다는 kpa-051.steps.ts에 정의)
 import { When, Then, And, expect } from "./fixtures.js";
-
-And("운영중인 배너가 3개 이상 존재한다", async () => {});
 
 When("사용자가 웹 페이지에 진입하여 상단의 웹소설 GNB 메뉴를 클릭한다", async ({ page }) => {
   await page.waitForTimeout(400);
