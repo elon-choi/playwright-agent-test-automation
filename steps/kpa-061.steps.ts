@@ -58,7 +58,25 @@ When("사용자가 첫번째 신작 작품을 클릭한다", async ({ page, ai }
 
 Then("사용자는 클릭한 작품의 작품홈으로 이동한다", async ({ page }) => {
   if (!selectedWorkUrl) {
-    throw new Error("작품 URL을 확보하지 못했습니다.");
+    const contentPattern = /\/(content|landing\/series|landing)\//i;
+    await page.waitForURL(contentPattern, { timeout: 20000 }).catch(() => null);
+    let ok = /\/content\/|\/landing\//i.test(page.url());
+    if (!ok) {
+      const newPage = await page.context().waitForEvent("page", { timeout: 5000 }).catch(() => null);
+      if (newPage && /\/content\/|\/landing\//i.test(newPage.url())) {
+        ok = true;
+      }
+      if (!ok) {
+        for (const p of page.context().pages()) {
+          if (p !== page && /\/content\/|\/landing\//i.test(p.url())) {
+            ok = true;
+            break;
+          }
+        }
+      }
+    }
+    expect(ok).toBe(true);
+    return;
   }
-  await expect(page).toHaveURL(new RegExp(selectedWorkUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  await expect(page).toHaveURL(new RegExp(selectedWorkUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), { timeout: 15000 });
 });

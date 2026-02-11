@@ -2,28 +2,28 @@ import { Given, Then, When, expect, dismissPermissionPopup, getBaseUrlOrigin } f
 
 Given("사용자가 로그인 상태이다", async ({ page }) => {
   if (/accounts\.kakao\.com\/login/i.test(page.url())) {
-    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 login.feature로 로그인 상태를 저장해 주세요.");
+    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 00-login.feature(또는 login.feature)로 로그인 상태를 저장해 주세요.");
   }
   await expect(page).toHaveURL((u: URL) => u.origin === getBaseUrlOrigin());
 });
 
 Given("사용자는 로그인 상태이다", async ({ page }) => {
   if (/accounts\.kakao\.com\/login/i.test(page.url())) {
-    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 login.feature로 로그인 상태를 저장해 주세요.");
+    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 00-login.feature(또는 login.feature)로 로그인 상태를 저장해 주세요.");
   }
   await expect(page).toHaveURL((u: URL) => u.origin === getBaseUrlOrigin());
 });
 
 Given("사용자가 로그인되어 있다", async ({ page }) => {
   if (/accounts\.kakao\.com\/login/i.test(page.url())) {
-    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 login.feature로 로그인 상태를 저장해 주세요.");
+    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 00-login.feature(또는 login.feature)로 로그인 상태를 저장해 주세요.");
   }
   await expect(page).toHaveURL((u: URL) => u.origin === getBaseUrlOrigin());
 });
 
 Given("로그인 상태이다", async ({ page }) => {
   if (/accounts\.kakao\.com\/login/i.test(page.url())) {
-    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 login.feature로 로그인 상태를 저장해 주세요.");
+    throw new Error("로그인 상태가 필요하나 현재 로그인 페이지에 있습니다. 먼저 00-login.feature(또는 login.feature)로 로그인 상태를 저장해 주세요.");
   }
   await expect(page).toHaveURL((u: URL) => u.origin === getBaseUrlOrigin());
 });

@@ -52,8 +52,13 @@ And("매칭된 키워드에 해당하는 작품 리스트가 노출된다", asyn
 
 When("사용자가 임의의 작품을 클릭한다", async ({ page }) => {
   const workCard = page.locator('a[href*="/content/"]').first();
-  await workCard.scrollIntoViewIfNeeded();
-  await workCard.click({ timeout: 10000 });
+  await workCard.waitFor({ state: "visible", timeout: 15000 }).catch(() => null);
+  await workCard.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
+  await page.waitForTimeout(300);
+  await workCard.click({ timeout: 15000, force: true }).catch(async () => {
+    await workCard.evaluate((el: HTMLElement) => el.click());
+  });
+  await page.waitForURL(/\/(content|landing\/series)\//i, { timeout: 15000 }).catch(() => null);
   await page.waitForTimeout(600);
 });
 

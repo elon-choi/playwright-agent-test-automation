@@ -215,7 +215,7 @@ export const test = base.extend<MyFixtures>({
   context: async ({ browser }, use, testInfo) => {
     const isLoginScenario =
       testInfo.title.includes("공통 로그인 시나리오") ||
-      (testInfo.file && testInfo.file.includes("login.feature"));
+      (testInfo.file && (testInfo.file.includes("00-login.feature") || testInfo.file.includes("login.feature")));
     const skipAuthByTitle =
       testInfo.title.includes("KPA-002") ||
       testInfo.title.includes("KPA-061") ||
@@ -301,8 +301,8 @@ export const test = base.extend<MyFixtures>({
 
     if (!hasStorageState) {
       const hint = isAdultProject
-        ? "login.feature에서 '성인 인증 계정으로 로그인 성공' 시나리오를 실행해 주세요."
-        : "login.feature에서 '미인증 계정으로 로그인 성공' 시나리오를 실행해 주세요.";
+        ? "00-login.feature에서 '성인 인증 계정으로 로그인 성공' 시나리오를 실행해 주세요."
+        : "00-login.feature에서 '미인증 계정으로 로그인 성공' 시나리오를 실행해 주세요.";
       throw new Error(`저장된 로그인 상태가 없습니다. 먼저 ${hint}`);
     }
 

@@ -1,12 +1,19 @@
 import { Given, When, Then, expect, ensurePageReady, getBaseUrl, getBaseUrlOrigin, dismissPermissionPopup } from "./fixtures.js";
 
-When("사용자가 웹 페이지에 진입한 후 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
+const clickRecommendGnb = async (page: any) => {
   const recommendTab = page.getByRole("link", { name: /추천\s*탭|추천/i }).first();
   if (await recommendTab.count()) {
     await recommendTab.scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     await recommendTab.click({ force: true });
   }
+};
+
+When("사용자가 웹 페이지에 진입한 후 상단의 추천 GNB 메뉴를 클릭한다", async (ctx) => {
+  await clickRecommendGnb(ctx.page);
+});
+When("사용자가 웹 페이지에 진입하여 상단의 추천 GNB 메뉴를 클릭한다", async (ctx) => {
+  await clickRecommendGnb(ctx.page);
 });
 
 Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {

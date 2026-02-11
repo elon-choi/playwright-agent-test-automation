@@ -34,6 +34,12 @@ function nicknameInputLocator(page: {
 }
 
 When("닉네임 영역을 클릭한다", async ({ page }) => {
+  if (/accounts\.kakao\.com\/login|kauth\.kakao\.com/i.test(page.url())) {
+    throw new Error(
+      "로그인 페이지에 있습니다. .auth/는 Git에 없어 다른 PC에서는 세션이 없습니다. " +
+        "해당 PC에서 한 번만 00-login.feature의 '미인증 계정으로 로그인 성공' 시나리오를 UI 모드로 실행해 주세요."
+    );
+  }
   if (!page.url().includes("/account/profile")) {
     const toProfileEdit = page
       .locator('a[href*="/account/profile"]')

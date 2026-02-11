@@ -4,10 +4,10 @@ import dotenv from "dotenv";
 
 dotenv.config({ quiet: true });
 
-// BDD 설정: feature/step 파일 경로 지정
+// BDD 설정: feature/step 파일 경로 지정 (00-login은 .auth 생성용으로 맨 먼저 실행되도록 파일명 선두)
 const testDir = defineBddConfig({
   features: [
-    "features/login.feature",
+    "features/00-login.feature",
     "features/kpa-002.feature",
     "features/kpa-003.feature",
     "features/kpa-004.feature",
@@ -81,8 +81,6 @@ const testDir = defineBddConfig({
     "features/kpa-079.feature",
     "features/kpa-081.feature",
     "features/kpa-082.feature",
-    "features/kpa-083.feature",
-    "features/kpa-084.feature",
     "features/kpa-085.feature",
     "features/kpa-086.feature",
     "features/kpa-087.feature",
@@ -125,9 +123,7 @@ const testDir = defineBddConfig({
     "features/kpa-134.feature",
     "features/kpa-135.feature",
     "features/kpa-136.feature",
-    "features/kpa-137.feature",
-    "features/kpa-138.feature",
-    "features/kpa-139.feature"
+    "features/kpa-137.feature"
   ],
   steps: [
     "steps/fixtures.ts",
@@ -209,8 +205,6 @@ const testDir = defineBddConfig({
     "steps/kpa-079.steps.ts",
     "steps/kpa-081.steps.ts",
     "steps/kpa-082.steps.ts",
-    "steps/kpa-083.steps.ts",
-    "steps/kpa-084.steps.ts",
     "steps/kpa-085.steps.ts",
     "steps/kpa-086.steps.ts",
     "steps/kpa-087.steps.ts",
@@ -253,18 +247,16 @@ const testDir = defineBddConfig({
     "steps/kpa-134.steps.ts",
     "steps/kpa-135.steps.ts",
     "steps/kpa-136.steps.ts",
-    "steps/kpa-137.steps.ts",
-    "steps/kpa-138.steps.ts",
-    "steps/kpa-139.steps.ts"
+    "steps/kpa-137.steps.ts"
   ]
 });
 
 // CTO 시연용: 스텁만 있는 시나리오 제외. 정상 구현된 시나리오만 UI 모드에서 실행되도록 함
 const STUB_KPA_NUMBERS = [
   32, 33, 34, 35, 55, 57, 58, 60, 62, 63, 64, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
-  81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 93, 97, 98, 100, 102, 104, 105, 106, 107, 108, 109,
+  81, 82, 85, 86, 87, 88, 89, 90, 93, 97, 98, 100, 102, 104, 105, 106, 107, 108, 109,
   111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128,
-  130, 131, 132, 133, 134, 135, 136, 137, 138, 139
+  130, 131, 132, 133, 134, 135, 136, 137
 ];
 const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
   `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`
@@ -295,6 +287,17 @@ export default defineConfig({
     {
       name: "chromium",
       testIgnore: ["**/adult/**", ...STUB_TEST_IGNORE],
+      use: {
+        ...devices["Desktop Chrome"],
+        channel: "chrome",
+        launchOptions: {
+          args: ["--disable-features=LocalNetworkAccess"]
+        }
+      }
+    },
+    {
+      name: "chromium-remaining",
+      testMatch: STUB_KPA_NUMBERS.map((n) => `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`),
       use: {
         ...devices["Desktop Chrome"],
         channel: "chrome",

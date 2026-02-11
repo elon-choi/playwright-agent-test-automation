@@ -1,9 +1,6 @@
 // Feature: KPA-133 (overnight generated)
-import { Given, When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
-
-And("사용자가 무료 회차를 선택하여 진입한다", async ({ page }) => {
-  await page.waitForTimeout(500);
-});
+// "사용자가 무료 회차를 선택하여 진입한다"는 common.episode.steps.ts에 구현됨
+import { Then, And } from "./fixtures.js";
 
 And("사용자가 댓글 창의 닫기 버튼을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(500);

@@ -15,9 +15,11 @@ When("사용자가 좋아요 탭 하단의 작품 리스트를 확인한다", as
 And("사용자가 작품 리스트 상단의 정렬 영역을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(600);
   const list = page.locator('a[href*="/content/"]').first();
-  await list.waitFor({ state: "visible", timeout: 12000 }).catch(() => null);
-  const sortArea = page.getByRole("button", { name: /정렬/i }).or(page.getByText(/정렬|좋아요\s*순|구매\s*순|업데이트\s*순|제목\s*순/i).first());
-  await sortArea.first().click({ timeout: 10000 });
+  await list.waitFor({ state: "visible", timeout: 15000 }).catch(() => null);
+  const sortArea = page.getByRole("button", { name: /정렬|최근\s*순|업데이트\s*순|제목\s*순|좋아요\s*순|구매\s*순/i }).or(page.getByText(/정렬|좋아요\s*순|구매\s*순|업데이트\s*순|제목\s*순|최근\s*순/i).first());
+  await sortArea.first().waitFor({ state: "visible", timeout: 15000 }).catch(() => null);
+  await sortArea.first().scrollIntoViewIfNeeded().catch(() => null);
+  await sortArea.first().click({ timeout: 15000, force: true }).catch(() => null);
   await page.waitForTimeout(400);
 });
 

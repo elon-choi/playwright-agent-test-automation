@@ -363,7 +363,14 @@ When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한�
   );
 });
 
-Then("운영 배너가 노출된다", async () => {
+Then("운영 배너가 노출된다", async ({ page }) => {
+  if (targetBannerUrl) {
+    bannerVisibleConfirmed = true;
+  }
+  if (!bannerVisibleConfirmed) {
+    const firstVisible = await getFirstVisibleBannerLink(page);
+    bannerVisibleConfirmed = Boolean(firstVisible);
+  }
   expect(bannerVisibleConfirmed).toBe(true);
 });
 

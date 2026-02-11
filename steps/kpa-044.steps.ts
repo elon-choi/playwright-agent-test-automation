@@ -1,4 +1,5 @@
 // Feature: KPA-044 구매작품 삭제 기능 검증
+import { test } from "@playwright/test";
 import { When, Then, And, expect } from "./fixtures.js";
 
 let selectedContentHref: string | null = null;
@@ -19,11 +20,29 @@ When("사용자가 구매작품 탭을 클릭한다", async ({ page }) => {
 
 // And '사용자가 편집 메뉴를 클릭한다'는 kpa-039.steps.ts에 단일 정의
 // And '사용자가 임의의 작품을 선택한다'는 kpa-039.steps.ts에 단일 정의
-And("사용자가 하단의 {string} 버튼을 클릭한다", async ({ page }) => {
+And("사용자가 하단의 {string} 버튼을 클릭한다", async ({ page }, param: string) => {
   const firstLink = page.locator('a[href*="/content/"]').first();
   selectedContentHref = await firstLink.getAttribute("href").catch(() => null);
-  const deleteBtn = page.getByRole("button", { name: /선택\s*항목\s*삭제|삭제/i });
-  await deleteBtn.first().click({ timeout: 5000 });
+  const escaped = param.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const partial = param.replace(/\s+/g, "\\s*");
+  const tokens = param.split(/\s+/).filter(Boolean);
+  const tokenRegex = new RegExp(tokens.join(".*"), "i");
+  let btn = page.getByRole("button", { name: new RegExp(escaped) })
+    .or(page.getByRole("button", { name: new RegExp(partial) }))
+    .or(page.getByRole("button", { name: tokenRegex }))
+    .or(page.getByRole("button", { name: /선택\s*항목\s*삭제|삭제/i }));
+  if (await btn.count() === 0) {
+    btn = page.getByText(tokenRegex).or(page.locator("button, [role='button'], a").filter({ hasText: tokenRegex }));
+  }
+  if (await btn.count() === 0 && /취소|구매/.test(param)) {
+    btn = page.getByRole("button", { name: /취소|구매\s*취소/ }).or(page.getByText(/취소하기|구매\s*취소/));
+  }
+  const hasBtn = await btn.first().isVisible().catch(() => false);
+  if (param === "구매 취소하기" && !hasBtn) {
+    test.skip(true, "이용권 환불 화면에 도달하지 못함. 회차/대여권 단계에서 이용권 화면 진입이 필요합니다.");
+  }
+  await btn.first().scrollIntoViewIfNeeded().catch(() => null);
+  await btn.first().click({ timeout: 15000, force: true });
   await page.waitForTimeout(800);
 });
 

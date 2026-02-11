@@ -1,4 +1,4 @@
-// Generated from: features/login.feature
+// Generated from: features/00-login.feature
 import { test } from "../../steps/fixtures.ts";
 
 test.describe('공통 로그인 시나리오', () => {
@@ -21,7 +21,7 @@ test.describe('공통 로그인 시나리오', () => {
 
 test.use({
   $test: [({}, use) => use(test), { scope: 'test', box: true }],
-  $uri: [({}, use) => use('features/login.feature'), { scope: 'test', box: true }],
+  $uri: [({}, use) => use('features/00-login.feature'), { scope: 'test', box: true }],
   $bddFileData: [({}, use) => use(bddFileData), { scope: "test", box: true }],
 });
 

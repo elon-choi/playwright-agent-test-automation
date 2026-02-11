@@ -4,7 +4,7 @@ import { Given, When, Then, expect, getBaseUrlOrigin } from "./fixtures.js";
 
 Given("사용자가 수신 받은 알림 리스트를 보유하고 있다", async ({ page }) => {
   if (/accounts\.kakao\.com\/login/i.test(page.url())) {
-    throw new Error("알림 기능 검증을 위해 로그인 상태가 필요합니다. 먼저 login.feature로 로그인해 주세요.");
+    throw new Error("알림 기능 검증을 위해 로그인 상태가 필요합니다. 먼저 00-login.feature로 로그인해 주세요.");
   }
   await expect(page).toHaveURL((u: URL) => u.origin === getBaseUrlOrigin());
   await page.waitForTimeout(500);

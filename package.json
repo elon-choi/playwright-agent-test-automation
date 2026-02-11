@@ -13,7 +13,10 @@
     "test:ci": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test; e=$?; TEST_EXIT_CODE=$e npm run notify-slack; exit $e",
     "test:ui:ci": "CI=true PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium; e=$?; TEST_EXIT_CODE=$e npm run notify-slack; exit $e",
     "overnight": "node scripts/overnight-generate-remaining.mjs",
-    "clean:dumps": "node scripts/clean-old-dumps.mjs"
+    "clean:dumps": "node scripts/clean-old-dumps.mjs",
+    "test:ui:demo": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium",
+    "test:ui:remaining": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium-remaining",
+    "test:ui:stub": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium-remaining"
   },
   "devDependencies": {
     "@playwright/test": "1.58.1",
