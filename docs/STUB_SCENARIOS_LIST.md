@@ -7,7 +7,24 @@
 
 ---
 
-## Feature 파일 목록 (74개, 자동화 불가 083/084/138/139 제외)
+## 스텁 목록에서 제외된 시나리오 (실제 구현 있음)
+
+아래는 `STUB_KPA_NUMBERS`에서 제외되어, 기본 UI 목록에 포함됩니다.
+
+| 번호 | 사유 |
+|------|------|
+| 062 | 이벤트 서브탭/전체보기 클릭, getByRole·getByText·expect 사용 |
+| 063 | 요일 서브탭·작품 클릭, waitForURL·locator 사용 |
+| 071 | 이용권 내역 화면 이동, locator·getByRole·expect·뒤로가기 등 |
+| 081 | 이용권 구매 흐름, ensureContentPage·GNB·작품 클릭·충전 버튼 등 |
+| 082 | 소장권 구매, getByText·getByRole·locator·충전하기 버튼 등 |
+| 085 | 이용권 환불 흐름, 대여권 탭·환불 항목 클릭 등 |
+| 097 | 유료회차 이용권 미보유 시 충전 페이지 이동, ensureContentPage·회차 탭·expect 등 |
+| 112 | 정주행 아이콘·확인 버튼·뷰어 엔드 영역, getByRole·getByText·waitFor 사용 |
+
+---
+
+## Feature 파일 목록 (스텁으로 분류된 것만, 083/084/138/139 제외)
 
 | 번호 | feature |
 |------|---------|
