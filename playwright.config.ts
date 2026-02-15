@@ -69,16 +69,17 @@ const testDir = defineBddConfig({
     "features/kpa-067.feature",
     "features/kpa-068.feature",
     "features/kpa-069.feature",
-    "features/kpa-070.feature",
+    "features/mw/kpa-070.feature",
+    "features/pcw/kpa-070.feature",
     "features/kpa-071.feature",
     "features/kpa-072.feature",
-    "features/kpa-073.feature",
-    "features/kpa-074.feature",
-    "features/kpa-075.feature",
-    "features/kpa-076.feature",
+    "features/mw/kpa-073.feature",
+    "features/mw/kpa-074.feature",
+    "features/mw/kpa-075.feature",
+    "features/mw/kpa-076.feature",
     "features/kpa-077.feature",
     "features/kpa-078.feature",
-    "features/kpa-079.feature",
+    "features/mw/kpa-079.feature",
     "features/kpa-081.feature",
     "features/kpa-082.feature",
     "features/kpa-085.feature",
@@ -254,9 +255,7 @@ const testDir = defineBddConfig({
 // CTO 시연용: 스텁만 있는 시나리오 제외. 정상 구현된 시나리오만 UI 모드에서 실행되도록 함
 // 스텁(waitForTimeout 위주) 시나리오만 포함. 062,063,071,081,082,085,097,112 등 실제 구현 있는 번호는 제외
 const STUB_KPA_NUMBERS = [
-  32, 33, 34, 35, 55, 57, 58, 60, 64, 66, 67, 68, 69, 70, 72, 73, 74, 75, 76, 77, 78, 79,
-  86, 87, 88, 89, 90, 93, 98, 100, 102, 104, 105, 106, 107, 108, 109,
-  111, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128,
+  118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128,
   130, 131, 132, 133, 134, 135, 136, 137
 ];
 const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
@@ -287,7 +286,7 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: ["**/adult/**", ...STUB_TEST_IGNORE],
+      testIgnore: ["**/adult/**", "**/mw/**", ...STUB_TEST_IGNORE],
       use: {
         ...devices["Desktop Chrome"],
         channel: "chrome",
@@ -299,6 +298,17 @@ export default defineConfig({
     {
       name: "chromium-remaining",
       testMatch: STUB_KPA_NUMBERS.map((n) => `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`),
+      use: {
+        ...devices["Desktop Chrome"],
+        channel: "chrome",
+        launchOptions: {
+          args: ["--disable-features=LocalNetworkAccess"]
+        }
+      }
+    },
+    {
+      name: "chromium-mw",
+      testMatch: ["**/mw/**/*.feature.spec.js"],
       use: {
         ...devices["Desktop Chrome"],
         channel: "chrome",

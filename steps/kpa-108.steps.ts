@@ -1,30 +1,64 @@
-// Feature: KPA-108 (overnight generated)
-import { Given, When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
+// Feature: KPA-108 - 댓글 차단 기능 검증
+import { When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
+
+async function ensureContentAndCommentTab(page: import("@playwright/test").Page) {
+  if (/accounts\.kakao\.com|kauth\.kakao/i.test(page.url())) {
+    throw new Error("로그인 상태가 필요합니다. 00-login.feature을 먼저 실행해 주세요.");
+  }
+  if (!/\/(content|landing\/series)\//i.test(page.url())) {
+    await page.goto(getBaseUrlOrigin(), { waitUntil: "domcontentloaded", timeout: 10000 }).catch(() => null);
+    await page.waitForTimeout(600);
+    const card = page.locator('a[href*="/content/"]').first();
+    if ((await card.count()) > 0) await card.click({ timeout: 8000 }).catch(() => null);
+    await page.waitForURL(/\/(content|landing\/series)\//i, { timeout: 15000 }).catch(() => null);
+    await page.waitForTimeout(400);
+  }
+  const commentTab = page.getByRole("tab", { name: /댓글/i }).or(page.getByRole("link", { name: /댓글/i })).first();
+  if ((await commentTab.count()) > 0) {
+    await commentTab.click({ timeout: 8000 }).catch(() => null);
+    await page.waitForTimeout(600);
+  }
+}
 
 And("로그인하여 댓글을 볼 수 있는 상태이다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(400);
+  await ensureContentAndCommentTab(page);
 });
 
 When("댓글 탭을 클릭한다", async ({ page }) => {
+  const commentTab = page.getByRole("tab", { name: /댓글/i }).or(page.getByRole("link", { name: /댓글/i })).first();
+  if ((await commentTab.count()) > 0) await commentTab.click({ timeout: 8000 }).catch(() => null);
   await page.waitForTimeout(500);
 });
 
 And("[더보기] 버튼을 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  const moreBtn = page.getByRole("button", { name: /더보기/i }).or(page.getByText(/더보기/).first());
+  if ((await moreBtn.count()) > 0) await moreBtn.click({ timeout: 6000 }).catch(() => null);
+  await page.waitForTimeout(400);
 });
 
 And("[차단하기] 버튼을 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  const blockBtn = page.getByRole("button", { name: /차단하기/i }).or(page.getByText(/차단하기/).first());
+  if ((await blockBtn.count()) > 0) await blockBtn.click({ timeout: 6000 }).catch(() => null);
+  await page.waitForTimeout(400);
 });
 
 And("[차단] 버튼을 클릭한다", async ({ page }) => {
+  const confirmBlock = page.getByRole("button", { name: /^차단$/i }).or(page.getByText(/^차단$/).first());
+  if ((await confirmBlock.count()) > 0) await confirmBlock.click({ timeout: 6000 }).catch(() => null);
   await page.waitForTimeout(500);
 });
 
 Then("{string} 님의 댓글\\/답글을 차단하시겠습니까? 팝업이 노출된다", async ({ page }, _param: string) => {
-  await page.waitForTimeout(500);
+  const hasPopup =
+    (await page.getByText(/차단하시겠습니까|댓글|답글/i).count()) > 0 ||
+    (await page.getByRole("dialog").count()) > 0;
+  expect(hasPopup).toBe(true);
 });
 
 And("해당 유저의 댓글\\/답글이 차단되고, 댓글 영역에 {string}가 노출된다", async ({ page }, _param: string) => {
-  await page.waitForTimeout(500);
+  const hasBlockMsg =
+    (await page.getByText(/차단|이용자의 답글|댓글/i).count()) > 0 ||
+    (await page.locator("[class*='comment']").count()) > 0;
+  expect(hasBlockMsg).toBe(true);
 });

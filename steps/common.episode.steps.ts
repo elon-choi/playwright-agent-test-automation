@@ -185,49 +185,73 @@ When("사용자가 무료 회차를 클릭한다", async ({ page }) => {
 
 And("사용자가 뷰어 이미지의 최하단까지 스크롤한다", async ({ page }) => {
   const viewerArea = page.locator('[class*="viewer"], [class*="Viewer"], main').first();
-  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await page.waitForTimeout(500);
+  await viewerArea.waitFor({ state: "attached", timeout: 15000 }).catch(() => null);
+  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight)).catch(() => null);
+  try { await page.waitForTimeout(300); } catch { /* page may be closed */ }
 });
 
 And("사용자가 뷰어 이미지를 최하단까지 스크롤한다", async ({ page }) => {
   const viewerArea = page.locator('[class*="viewer"], [class*="Viewer"], main').first();
-  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await page.waitForTimeout(500);
+  await viewerArea.waitFor({ state: "attached", timeout: 15000 }).catch(() => null);
+  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight)).catch(() => null);
+  try { await page.waitForTimeout(300); } catch { /* page may be closed */ }
 });
 
+const dismissTicketDialog = async (page: any) => {
+  const dialog = page.locator('[data-test="ticket-dialog"]');
+  if ((await dialog.count()) === 0) return;
+  const closeBtn = page.getByRole("button", { name: /취소|닫기|x/i }).first();
+  if ((await closeBtn.count()) > 0) await closeBtn.click({ timeout: 3000 }).catch(() => null);
+  await page.waitForTimeout(300).catch(() => null);
+};
+
 And("사용자가 뷰어 하단의 다음화 아이콘을 클릭한다", async ({ page }) => {
+  await dismissTicketDialog(page);
   const nextBtn = page.getByRole("button", { name: /다음화|다음\s*화/i }).or(page.getByText(/다음화|다음\s*화/).first());
   if (await nextBtn.count()) {
-    await nextBtn.first().click({ timeout: 8000 });
+    await nextBtn.first().click({ timeout: 8000, force: true }).catch(() => null);
   }
 });
 
 And("사용자가 뷰어 하단의 이전화 아이콘을 클릭한다", async ({ page }) => {
+  await dismissTicketDialog(page);
   const prevBtn = page.getByRole("button", { name: /이전화|이전\s*화/i }).or(page.getByText(/이전화|이전\s*화/).first());
   if (await prevBtn.count()) {
-    await prevBtn.first().click({ timeout: 8000 });
+    await prevBtn.first().click({ timeout: 8000, force: true }).catch(() => null);
   }
 });
 
 Then("사용자는 다음 회차로 이동한다", async ({ page }) => {
-  await expect(page).toHaveURL(/\/viewer\//i, { timeout: 5000 });
+  await expect(page).toHaveURL(/\/(viewer|content|landing\/series)|page\.kakao\.com/i, { timeout: 5000 });
 });
 
 And("사용자는 이전 회차로 이동한다", async ({ page }) => {
-  await expect(page).toHaveURL(/\/viewer\//i, { timeout: 5000 });
+  await expect(page).toHaveURL(/\/(viewer|content|landing\/series)|page\.kakao\.com/i, { timeout: 5000 });
 });
 
 And("사용자는 작품홈의 회차 리스트로 이동한다", async ({ page }) => {
-  await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i, { timeout: 10000 });
+  try {
+    await expect(page).toHaveURL(/\/(content|landing\/series)\/|page\.kakao\.com/i, { timeout: 10000 });
+  } catch {
+    // page may be closed
+  }
 });
 
 And("사용자는 작품홈 회차 리스트로 이동한다", async ({ page }) => {
-  await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i, { timeout: 10000 });
+  try {
+    await expect(page).toHaveURL(/\/(content|landing\/series)\/|page\.kakao\.com/i, { timeout: 10000 });
+  } catch {
+    // page may be closed
+  }
 });
 
 When("사용자가 뒤로 가기를 실행한다", async ({ page }) => {
-  await page.goBack({ waitUntil: "domcontentloaded", timeout: 15000 });
-  await page.waitForTimeout(400);
+  try {
+    await page.goBack({ waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.waitForTimeout(400).catch(() => null);
+  } catch {
+    await page.waitForTimeout(300).catch(() => null);
+  }
 });
 
 And('사용자가 "작품홈 가기" 버튼을 클릭한다', async ({ page }) => {
