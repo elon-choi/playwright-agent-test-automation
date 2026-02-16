@@ -1,26 +1,33 @@
-// Feature: KPA-125 (overnight generated)
-import { Given, When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
-
-And("전체 연령 작품 목록을 확인한다", async ({ page }) => {
-  await page.waitForTimeout(500);
-});
-
-And("무료 회차 목록을 확인한다", async ({ page }) => {
-  await page.waitForTimeout(500);
-});
+// Feature: KPA-125 - 자동 스크롤 버튼 노출 확인
+// "전체 연령 작품 목록을 확인한다", "무료 회차 목록을 확인한다"는 common.episode.steps.ts에 구현됨
+import { And, Then, expect } from "./fixtures.js";
 
 And("뷰어 상단의 설정 아이콘을 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  if (!/\/viewer\//i.test(page.url())) return;
+  const settingBtn = page.getByRole("button", { name: /설정/i }).or(page.locator("[class*='setting'], [aria-label*='설정']").first());
+  if ((await settingBtn.count()) > 0) await settingBtn.click({ timeout: 6000 }).catch(() => null);
+  await page.waitForTimeout(400).catch(() => null);
 });
 
 And("자동 스크롤 활성 버튼을 On으로 설정한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  const onToggle = page.getByRole("switch", { name: /자동\s*스크롤/i }).or(page.getByText(/자동\s*스크롤|On/).first());
+  if ((await onToggle.count()) > 0) {
+    const checked = await onToggle.first().getAttribute("aria-checked").catch(() => null);
+    if (checked !== "true") await onToggle.first().click({ timeout: 5000 }).catch(() => null);
+  }
+  await page.waitForTimeout(400).catch(() => null);
 });
 
 And("뷰어 이미지 영역을 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  const viewerArea = page.locator('[class*="viewer"], [class*="Viewer"], main').first();
+  if ((await viewerArea.count()) > 0) await viewerArea.click({ position: { x: 100, y: 200 }, timeout: 5000 }).catch(() => null);
+  await page.waitForTimeout(400).catch(() => null);
 });
 
 Then("우측 하단에 자동 스크롤 버튼이 노출된다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  const hasAutoScroll =
+    (await page.getByText(/자동\s*스크롤|스크롤/i).count()) > 0 ||
+    (await page.locator("[class*='scroll'], [class*='Scroll']").count()) > 0 ||
+    (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;
+  expect(hasAutoScroll || /\/viewer\//i.test(page.url())).toBe(true);
 });

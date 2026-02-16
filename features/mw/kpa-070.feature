@@ -1,5 +1,6 @@
-Feature: KPA-070 시나리오 검증
+Feature: KPA-070 시나리오 검증 (MW 전용)
 
+  # 모바일 웹에서만 더보기 레이어 팝업이 동일한 UI로 노출됨. PC Web에서는 미지원.
   Scenario: 더보기 레이어 팝업의 동작 검증
     Given 사용자가 "https://page.kakao.com/" 사이트에 접속한다
     And 사전 조건이 없다

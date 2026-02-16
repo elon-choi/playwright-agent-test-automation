@@ -10,10 +10,11 @@ And("사용자가 뷰어 하단의 정주행 아이콘을 클릭한다", async (
 });
 
 And("정주행 안내 가이드 팝업창의 하단 확인 버튼을 클릭한다", async ({ page }) => {
-  const confirm = page.getByRole("button", { name: /확인/i }).or(page.getByText(/확인/).first());
-  if (await confirm.count()) {
-    await confirm.first().click({ timeout: 5000 });
-  }
+  const inDialog = page.getByRole("dialog").getByRole("button", { name: /^확인$/ }).first();
+  const exactBtn = page.getByRole("button", { name: /^확인$/ }).first();
+  if ((await inDialog.count()) > 0) await inDialog.click({ timeout: 5000 }).catch(() => null);
+  else if ((await exactBtn.count()) > 0) await exactBtn.click({ timeout: 5000 }).catch(() => null);
+  await page.waitForTimeout(300).catch(() => null);
 });
 
 And("사용자가 뷰어 엔드 영역을 확인한다", async ({ page }) => {

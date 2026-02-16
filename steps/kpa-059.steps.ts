@@ -12,7 +12,7 @@ When("사용자가 웹 페이지 하단의 요일연재 메뉴를 클릭한다",
   } else {
     await byRole.click({ timeout: 15000 });
   }
-  await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("domcontentloaded", { timeout: 15000 });
   await page.waitForTimeout(500);
 });
 

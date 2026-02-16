@@ -45,13 +45,6 @@ And("확인 버튼을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(400);
 });
 
-Then("더보기 레이어 팝업이 노출되어야 한다", async ({ page }) => {
-  const hasPopup =
-    (await page.getByRole("dialog").count()) > 0 ||
-    (await page.getByText(/더보기|신고하기|차단하기|취소/i).count()) > 0;
-  expect(hasPopup).toBe(true);
-});
-
 And("팝업에는 다음 옵션이 포함되어야 한다:", async ({ page }, _dataTable?: unknown) => {
   const hasOption =
     (await page.getByText(/신고하기|차단하기|취소/i).count()) > 0 ||

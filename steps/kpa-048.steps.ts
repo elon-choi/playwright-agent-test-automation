@@ -380,6 +380,12 @@ Then("배너는 다음 요소로 구성된다:", async () => {
   }
 });
 
+Then("배너는 다음 요소들로 구성된다:", async () => {
+  if (!bannerComponents.hasThumbnail && !bannerComponents.hasMainTitle) {
+    throw new Error("배너의 핵심 텍스트/이미지 요소를 확인하지 못했습니다.");
+  }
+});
+
 Then("저장된 링크 주소로 페이지가 이동하였는지 확인한다", async ({ page }) => {
   if (!targetBannerUrl) {
     throw new Error("저장된 배너 링크 주소가 없습니다.");

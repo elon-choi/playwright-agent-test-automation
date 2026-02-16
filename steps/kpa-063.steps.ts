@@ -1,5 +1,6 @@
 // Feature: KPA-063 (overnight generated)
 import { Given, When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
+import { setSelectedWorkUrl } from "./kpa-061.steps.js";
 
 And("요일 서브탭을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(400);
@@ -15,6 +16,8 @@ And("임의의 작품을 클릭한다", async ({ page }) => {
   const workCard = page.locator('a[href*="/content/"]').first();
   await workCard.waitFor({ state: "visible", timeout: 15000 }).catch(() => null);
   await workCard.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
+  const href = await workCard.getAttribute("href").catch(() => null);
+  if (href) setSelectedWorkUrl(href.startsWith("http") ? href : new URL(href, page.url()).href);
   await page.waitForTimeout(300);
   await workCard.click({ timeout: 15000, force: true }).catch(async () => {
     await workCard.evaluate((el: HTMLElement) => el.click());

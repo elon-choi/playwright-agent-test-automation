@@ -4,6 +4,10 @@ import { Given, When, Then, expect, withAiFallback } from "./fixtures.js";
 
 let selectedWorkUrl: string | null = null;
 
+export function setSelectedWorkUrl(url: string | null) {
+  selectedWorkUrl = url;
+}
+
 When("사용자가 상단의 추천 GNB 메뉴를 클릭한다", async ({ page, ai }) => {
   await withAiFallback(
     async () => {

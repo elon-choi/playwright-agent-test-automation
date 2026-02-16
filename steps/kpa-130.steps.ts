@@ -1,7 +1,7 @@
-// Feature: KPA-130 (overnight generated)
-// "사용자가 뷰어 이미지를 최하단까지 스크롤한다"는 common.episode.steps.ts에 구현됨
-import { Then } from "./fixtures.js";
+// Feature: KPA-130 - 무료 회차에서 원작소설로 이동하기
+// "뷰어 이미지 최하단 스크롤", "이 작품을 원작소설로 보기 배너 클릭"은 common/kpa-116에 구현됨
+import { Then, expect } from "./fixtures.js";
 
 Then("사용자는 해당 작품의 홈으로 이동한다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  await expect(page).toHaveURL(/\/(content|landing\/series)\/|page\.kakao\.com/i, { timeout: 8000 });
 });

@@ -18,6 +18,7 @@ const ensureContentPage = async (page: any) => {
     if (await sectionCard.count()) {
       await sectionCard.first().click({ force: true });
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
+      await dismissFirstTimeReaderBenefitIfPresent(page);
       return;
     }
   }
@@ -26,6 +27,7 @@ const ensureContentPage = async (page: any) => {
   if (await fallbackCard.count()) {
     await fallbackCard.first().click({ force: true });
     await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
+    await dismissFirstTimeReaderBenefitIfPresent(page);
     return;
   }
   throw new Error("작품 상세 페이지로 이동하지 못했습니다.");
@@ -40,6 +42,7 @@ Given("사용자가 특정 작품홈에 진입한다", async ({ page }) => {
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
 });
 
 When("사용자가 회차 탭을 클릭한다", async ({ page, ai }) => {
@@ -145,14 +148,22 @@ And("사용자가 전체 연령 작품 목록을 확인한다", async ({ page })
   }
 });
 
+And("전체 연령 작품 목록을 확인한다", async ({ page }) => {
+  if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
+    await ensureContentPage(page);
+  }
+});
+
 And("사용자가 무료 회차에 진입한다", async ({ page }) => {
   if (/\/viewer\//i.test(page.url())) return;
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
   const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
   if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
   const viewerLink = page.locator('a[href*="/viewer/"]').first();
@@ -167,9 +178,11 @@ And("사용자가 무료 회차 목록에 진입한다", async ({ page }) => {
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
   const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
   if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
 });
@@ -204,6 +217,21 @@ const dismissTicketDialog = async (page: any) => {
   if ((await closeBtn.count()) > 0) await closeBtn.click({ timeout: 3000 }).catch(() => null);
   await page.waitForTimeout(300).catch(() => null);
 };
+
+const dismissFirstTimeReaderBenefitIfPresent = async (page: any) => {
+  await page.waitForTimeout(500).catch(() => null);
+  const hasBenefitTitle = (await page.getByText(/처음 만나는 독자 혜택/i).count()) > 0;
+  const hasBenefitMessage = (await page.getByText(/대여권.*받았습니다|받았습니다/i).count()) > 0;
+  if (!hasBenefitTitle && !hasBenefitMessage) return;
+  const confirmBtn = page.getByRole("button", { name: /^확인$/i }).or(page.getByText(/^확인$/).first());
+  if ((await confirmBtn.count()) > 0) await confirmBtn.click({ timeout: 5000 }).catch(() => null);
+  await page.waitForTimeout(400).catch(() => null);
+};
+
+And("사용자가 처음 만나는 독자 혜택 팝업이 있으면 확인을 눌러 닫는다", async ({ page }) => {
+  if (!/\/content\/|\/landing\/series\//i.test(page.url())) return;
+  await dismissFirstTimeReaderBenefitIfPresent(page);
+});
 
 And("사용자가 뷰어 하단의 다음화 아이콘을 클릭한다", async ({ page }) => {
   await dismissTicketDialog(page);
@@ -269,9 +297,11 @@ const step이전다음회차확인 = async ({ page }: { page: any }) => {
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
   const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
   if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
 };
@@ -283,9 +313,24 @@ And("사용자가 무료 회차 목록을 확인한다", async ({ page }) => {
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
   const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
   if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
+    await page.waitForTimeout(400);
+  }
+});
+
+And("무료 회차 목록을 확인한다", async ({ page }) => {
+  if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
+    await ensureContentPage(page);
+  }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
+  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
+  if (await episodeTab.count()) {
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
 });
@@ -295,9 +340,11 @@ And("사용자가 전체 연령 작품의 무료 회차에 진입한다", async 
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
   const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
   if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
   const viewerLink = page.locator('a[href*="/viewer/"]').first();
@@ -312,9 +359,11 @@ And("사용자가 전체 연령 작품 목록에서 무료 회차를 선택한�
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
   const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
   if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
+    const first = episodeTab.first();
+    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
   const viewerLink = page.locator('a[href*="/viewer/"]').first();
@@ -326,14 +375,16 @@ And("사용자가 전체 연령 작품 목록에서 무료 회차를 선택한�
 
 And("사용자가 뷰어 이미지의 최하단까지 스크롤을 진행한다", async ({ page }) => {
   const viewerArea = page.locator('[class*="viewer"], [class*="Viewer"], main').first();
-  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await page.waitForTimeout(500);
+  await viewerArea.waitFor({ state: "attached", timeout: 15000 }).catch(() => null);
+  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight), { timeout: 8000 }).catch(() => null);
+  try { await page.waitForTimeout(500); } catch { /* page may be closed */ }
 });
 
 And("뷰어 이미지의 최하단까지 스크롤을 진행한다", async ({ page }) => {
   const viewerArea = page.locator('[class*="viewer"], [class*="Viewer"], main').first();
-  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await page.waitForTimeout(500);
+  await viewerArea.waitFor({ state: "attached", timeout: 15000 }).catch(() => null);
+  await viewerArea.evaluate((el) => el.scrollTo(0, el.scrollHeight), { timeout: 8000 }).catch(() => null);
+  try { await page.waitForTimeout(500); } catch { /* page may be closed */ }
 });
 
 And("사용자가 무료 회차를 선택하여 진입한다", async ({ page }) => {

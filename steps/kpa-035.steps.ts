@@ -27,7 +27,9 @@ When("사용자가 최근본 탭 하단의 작품 리스트를 확인한다", as
 // And '사용자가 작품 리스트 상단의 정렬 영역을 클릭한다'는 kpa-040.steps.ts에 단일 정의
 // And '사용자가 임의의 정렬값을 클릭한다'는 kpa-040.steps.ts에 단일 정의
 Then("최근 순, 업데이트 순, 제목 순 정렬 옵션이 노출된다", async ({ page }) => {
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(400);
+  const hasSort = (await page.getByText(/최근\s*순|업데이트\s*순|제목\s*순/i).count()) > 0;
+  expect(hasSort).toBe(true);
 });
 
 // And '선택한 정렬 기준으로 작품이 정렬되어 노출된다'는 kpa-040.steps.ts에 단일 정의

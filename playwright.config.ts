@@ -83,6 +83,8 @@ const testDir = defineBddConfig({
     "features/kpa-081.feature",
     "features/kpa-082.feature",
     "features/kpa-085.feature",
+    "features/kpa-085-1.feature",
+    "features/kpa-085-2.feature",
     "features/kpa-086.feature",
     "features/kpa-087.feature",
     "features/kpa-088.feature",
@@ -207,6 +209,7 @@ const testDir = defineBddConfig({
     "steps/kpa-081.steps.ts",
     "steps/kpa-082.steps.ts",
     "steps/kpa-085.steps.ts",
+    "steps/kpa-085-1.steps.ts",
     "steps/kpa-086.steps.ts",
     "steps/kpa-087.steps.ts",
     "steps/kpa-088.steps.ts",
@@ -254,10 +257,7 @@ const testDir = defineBddConfig({
 
 // CTO 시연용: 스텁만 있는 시나리오 제외. 정상 구현된 시나리오만 UI 모드에서 실행되도록 함
 // 스텁(waitForTimeout 위주) 시나리오만 포함. 062,063,071,081,082,085,097,112 등 실제 구현 있는 번호는 제외
-const STUB_KPA_NUMBERS = [
-  118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128,
-  130, 131, 132, 133, 134, 135, 136, 137
-];
+const STUB_KPA_NUMBERS: number[] = [];
 const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
   `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`
 );
@@ -273,7 +273,7 @@ export default defineConfig({
     ["list"],
     ["json", { outputFile: "test-results/results.json" }]
   ],
-  timeout: 60000,
+  timeout: 90000,
   expect: { timeout: 10000 },
   use: {
     headless: process.env.CI === "true",

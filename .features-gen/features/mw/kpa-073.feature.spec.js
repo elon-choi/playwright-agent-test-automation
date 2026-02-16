@@ -1,5 +1,5 @@
-// Generated from: features/kpa-073.feature
-import { test } from "../../steps/fixtures.ts";
+// Generated from: features/mw/kpa-073.feature
+import { test } from "../../../steps/fixtures.ts";
 
 test.describe('KPA-073 시나리오 검증', () => {
 
@@ -22,7 +22,7 @@ test.describe('KPA-073 시나리오 검증', () => {
 
 test.use({
   $test: [({}, use) => use(test), { scope: 'test', box: true }],
-  $uri: [({}, use) => use('features/kpa-073.feature'), { scope: 'test', box: true }],
+  $uri: [({}, use) => use('features/mw/kpa-073.feature'), { scope: 'test', box: true }],
   $bddFileData: [({}, use) => use(bddFileData), { scope: "test", box: true }],
 });
 

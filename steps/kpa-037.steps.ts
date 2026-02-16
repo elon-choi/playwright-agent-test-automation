@@ -29,10 +29,32 @@ And("사용자가 {string}을 선택한 상태이다", async ({ page }, param: s
 
 When("사용자가 웹 페이지에 진입한 후 하단의 {string} 메뉴를 클릭한다", async ({ page }, menuName: string) => {
   await page.waitForTimeout(400);
-  const menu = page.getByRole("link", { name: new RegExp(menuName.replace(/\s/g, "\\s*"), "i") })
-    .or(page.getByRole("button", { name: new RegExp(menuName.replace(/\s/g, "\\s*"), "i") }));
-  await menu.first().click({ timeout: 8000 });
-  await page.waitForTimeout(600);
+  if (/accounts\.kakao\.com|kauth\.kakao/i.test(page.url())) {
+    throw new Error("로그인 상태가 필요합니다. 00-login.feature을 먼저 실행해 .auth를 생성한 뒤 다시 실행해 주세요.");
+  }
+  if (/\/inven\/|보관함/i.test(page.url())) {
+    await page.waitForTimeout(300);
+    return;
+  }
+  const re = new RegExp(menuName.replace(/\s/g, "\\s*"), "i");
+  const menu = page.getByRole("link", { name: re })
+    .or(page.getByRole("button", { name: re }))
+    .or(page.getByLabel(re));
+  if ((await menu.count()) > 0 && (await menu.first().isVisible().catch(() => false))) {
+    await menu.first().click({ timeout: 8000 });
+    await page.waitForTimeout(600);
+    return;
+  }
+  if (/보관함/i.test(menuName)) {
+    const invenLink = page.locator('a[href*="/inven"]').first();
+    if ((await invenLink.count()) > 0) {
+      await invenLink.click({ timeout: 8000 });
+      await page.waitForTimeout(600);
+      return;
+    }
+    await page.goto(new URL("/inven", page.url()).href, { waitUntil: "domcontentloaded", timeout: 10000 }).catch(() => null);
+    await page.waitForTimeout(500);
+  }
 });
 
 And("사용자가 {string} 하단의 작품 리스트를 확인한다", async ({ page }) => {

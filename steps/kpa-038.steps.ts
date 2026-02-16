@@ -25,6 +25,14 @@ When("사용자가 {string} 탭 하단의 작품 리스트를 확인한다", asy
       await page.waitForTimeout(500);
     }
   }
+  if (/최근\s*본|최근본\s*작품/i.test(tabName)) {
+    const storage = page.getByRole("link", { name: /보관함/i }).or(page.getByRole("button", { name: /보관함/i }));
+    if ((await storage.count()) > 0) await storage.first().click({ timeout: 8000 }).catch(() => null);
+    await page.waitForTimeout(500);
+    const tab = page.getByRole("tab", { name: /최근\s*본/i }).or(page.getByText(/최근\s*본/i).first());
+    if ((await tab.count()) > 0) await tab.first().click({ timeout: 5000 });
+    await page.waitForTimeout(500);
+  }
   const list = page.locator('a[href*="/content/"]').or(page.getByRole("list").locator("li")).first();
   await expect(list).toBeVisible({ timeout: 8000 }).catch(() => null);
 });
