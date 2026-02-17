@@ -14,19 +14,102 @@ And("사용자가 임의의 작품을 클릭한다.", async ({ page }) => {
 });
 
 And("사용자가 좌측 작품 정보 영역 이미지 하단의 대여권 n장 소장권 n장 > 영역에서 > 아이콘을 클릭한다.", async ({ page }) => {
-  const ticketLink = page.locator('a[href*="/history/ticket"], a[href*="ticket"]').first();
-  const ok = await ticketLink.count() > 0;
-  if (ok) {
-    await ticketLink.evaluate((e: HTMLElement) => e.click()).catch(() => null);
-    await page.waitForTimeout(500);
-    if (!/history\/ticket|ticket/i.test(page.url())) {
-      await page.goto(new URL("/history/ticket", page.url()).href, { waitUntil: "domcontentloaded", timeout: 10000 }).catch(() => null);
+  await page.waitForTimeout(800);
+
+  const popupPromise = page.waitForEvent("popup", { timeout: 12000 }).catch(() => null);
+
+  const ticketBlock = page.locator('[class*="ticket"], [class*="Ticket"], [class*="item"], [class*="row"]')
+    .filter({ hasText: /대여권\s*\d+\s*장|소장권\s*\d+\s*장/ })
+    .filter({ hasNotText: /이어보기/ });
+
+  const clickArrowOnly = async (): Promise<boolean> => {
+    const withCharge = ticketBlock.filter({ hasText: /충전/ }).first();
+    const block = (await withCharge.count()) > 0 ? withCharge : ticketBlock.first();
+    if ((await block.count()) === 0) return false;
+    await block.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+
+    const arrow = block.locator('img[alt*="다음"], img[alt*="arrow"], img[aria-label*="다음"], [class*="arrow"], [class*="chevron"], [class*="Arrow"], [class*="Chevron"]').first();
+    if ((await arrow.count()) > 0 && (await arrow.isVisible().catch(() => false))) {
+      await arrow.click({ timeout: 8000, force: true }).catch(() => arrow.evaluate((e: HTMLElement) => e.click()));
+      return true;
     }
-  } else {
-    const ticketArea = page.getByRole("link", { name: /이용권\s*내역|대여권|소장권/i }).first();
-    await ticketArea.evaluate((e: HTMLElement) => e.click()).catch(() => null);
+    const linkArrow = block.getByRole("link", { name: ">" }).or(block.locator('a').filter({ hasText: /^>\s*$/ }));
+    if ((await linkArrow.count()) > 0 && (await linkArrow.first().isVisible().catch(() => false))) {
+      await linkArrow.first().click({ timeout: 8000, force: true });
+      return true;
+    }
+    const btnArrow = block.getByRole("button", { name: ">" }).or(block.locator('button').filter({ hasText: /^>\s*$/ }));
+    if ((await btnArrow.count()) > 0 && (await btnArrow.first().isVisible().catch(() => false))) {
+      await btnArrow.first().click({ timeout: 8000, force: true });
+      return true;
+    }
+    const genericArrow = block.locator('[class*="icon"], [class*="Icon"], span, div').filter({ hasText: /^>\s*$/ }).first();
+    if ((await genericArrow.count()) > 0 && (await genericArrow.isVisible().catch(() => false))) {
+      await genericArrow.click({ timeout: 8000, force: true });
+      return true;
+    }
+    return false;
+  };
+
+  let clicked = await clickArrowOnly();
+
+  if (!clicked) {
+    const historyTicketLink = page.locator('a[href*="/history/ticket"]').first();
+    if ((await historyTicketLink.count()) > 0 && (await historyTicketLink.isVisible().catch(() => false))) {
+      await historyTicketLink.scrollIntoViewIfNeeded();
+      await historyTicketLink.click({ timeout: 10000, force: true });
+      clicked = true;
+    }
   }
-  await page.waitForTimeout(500);
+
+  if (!clicked) {
+    const textPattern = /대여권\s*\d+\s*장\s*소장권\s*\d+\s*장|대여권\s*\d+\s*장|소장권\s*\d+\s*장/;
+    const byContainer = page.locator('[class*="ticket"], [class*="Ticket"], [class*="item"], [class*="row"]')
+      .filter({ hasText: /대여권/ })
+      .filter({ hasText: /소장권|장/ })
+      .filter({ hasNotText: /이어보기/ })
+      .first();
+    for (let attempt = 0; attempt < 4 && !clicked; attempt++) {
+      if (attempt > 0) await page.waitForTimeout(400);
+      if ((await byContainer.count()) > 0 && (await byContainer.isVisible().catch(() => false))) {
+        const arrowIn = byContainer.locator('img, [class*="arrow"], [class*="chevron"], [class*="icon"]').first();
+        if ((await arrowIn.count()) > 0 && (await arrowIn.isVisible().catch(() => false))) {
+          await arrowIn.click({ timeout: 8000, force: true });
+          clicked = true;
+        } else {
+          await byContainer.click({ timeout: 10000, force: true }).catch(() => byContainer.evaluate((e: HTMLElement) => e.click()));
+          clicked = true;
+        }
+        break;
+      }
+      const byText = page.getByText(textPattern).first();
+      if ((await byText.count()) > 0 && (await byText.isVisible({ timeout: 1500 }).catch(() => false))) {
+        const containerWithArrow = page.locator('[class*="ticket"], [class*="Ticket"], [class*="item"], [class*="row"], div, section')
+          .filter({ has: page.getByText(textPattern) })
+          .filter({ has: page.locator('img, [class*="arrow"], [class*="chevron"], [class*="icon"]') })
+          .first();
+        const arrowEl = containerWithArrow.locator('img, [class*="arrow"], [class*="chevron"], [class*="icon"]').first();
+        if ((await containerWithArrow.count()) > 0 && (await arrowEl.count()) > 0 && (await arrowEl.isVisible().catch(() => false))) {
+          await arrowEl.click({ timeout: 8000, force: true });
+        } else {
+          await byText.scrollIntoViewIfNeeded();
+          await byText.click({ timeout: 10000, force: true }).catch(() => byText.evaluate((e: HTMLElement) => e.click()));
+        }
+        clicked = true;
+        break;
+      }
+    }
+  }
+
+  const popup = await popupPromise;
+  if (popup && !popup.isClosed()) {
+    (page as any).__ticketPopup = popup;
+    await popup.getByText(/이용권\s*내역|대여권|소장권/).first().waitFor({ state: "visible", timeout: 8000 }).catch(() => null);
+  } else {
+    await page.getByText(/이용권\s*내역|구매회차|대여권|소장권/).first().waitFor({ state: "visible", timeout: 8000 }).catch(() => null);
+  }
+  await page.waitForTimeout(800);
 });
 
 Then("이용권 내역 화면으로 이동한다", async ({ page }) => {

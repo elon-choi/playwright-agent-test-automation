@@ -17,7 +17,7 @@
     "test:ui:demo": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium",
     "test:ui:remaining": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium-remaining",
     "test:ui:stub": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium-remaining",
-    "test:ui:085": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test .features-gen/features/kpa-085-1.feature.spec.js .features-gen/features/kpa-085-2.feature.spec.js --ui --project=chromium"
+    "test:ui:085": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test .features-gen/features/kpa-085-1.feature.spec.js .features-gen/features/kpa-085-2.feature.spec.js --ui --project=chromium-085"
   },
   "devDependencies": {
     "@playwright/test": "1.58.1",

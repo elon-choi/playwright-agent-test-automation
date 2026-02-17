@@ -5,6 +5,7 @@ node_modules/
 test-results/
 playwright-report/
 blob-report/
+.features-gen/
 playwright/.cache/
 dom_dumps/
 dom_logs/
