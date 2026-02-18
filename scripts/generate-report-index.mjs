@@ -1,8 +1,4 @@
-/**
- * report-site/reports/*/summary.json 목록을 읽어 report-site/index.html 을 생성한다.
- * GitHub Pages 등에서 실행 이력(요일/실행 주기별) 목록으로 사용.
- */
-
+// report-site/reports/*/summary.json list -> report-site/index.html (run history for GitHub Pages)
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -14,9 +10,9 @@ async function loadSummaries() {
   const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
   const summaries = [];
   for (const dir of dirs) {
-    const path = join(REPORTS_DIR, dir, "summary.json");
+    const p = join(REPORTS_DIR, dir, "summary.json");
     try {
-      const raw = await readFile(path, "utf-8");
+      const raw = await readFile(p, "utf-8");
       const data = JSON.parse(raw);
       summaries.push({ id: dir, ...data });
     } catch {
@@ -55,17 +51,17 @@ function formatDuration(sec) {
 function buildHtml(summaries) {
   const rows = summaries
     .map(
-      (s) => `
-    <tr>
-      <td>${formatDate(s.date)}</td>
-      <td>${formatTime(s.date)}</td>
-      <td><a href="reports/${s.id}/index.html">${s.id}</a></td>
-      <td>${s.total ?? "-"}</td>
-      <td class="pass">${s.passed ?? 0}</td>
-      <td class="fail">${s.failed ?? 0}</td>
-      <td>${s.skipped ?? 0}</td>
-      <td>${formatDuration(s.durationSeconds)}</td>
-    </tr>`
+      (s) =>
+        `<tr>
+  <td>${formatDate(s.date)}</td>
+  <td>${formatTime(s.date)}</td>
+  <td><a href="reports/${s.id}/index.html">${s.id}</a></td>
+  <td>${s.total ?? "-"}</td>
+  <td class="pass">${s.passed ?? 0}</td>
+  <td class="fail">${s.failed ?? 0}</td>
+  <td>${s.skipped ?? 0}</td>
+  <td>${formatDuration(s.durationSeconds)}</td>
+</tr>`
     )
     .join("");
 
@@ -116,7 +112,7 @@ async function main() {
   const html = buildHtml(summaries);
   const outPath = join(REPORT_SITE, "index.html");
   await writeFile(outPath, html, "utf-8");
-  console.log(`Wrote ${outPath} (${summaries.length} runs)`);
+  console.log("Wrote", outPath, "(" + summaries.length + " runs)");
 }
 
 main().catch((err) => {
