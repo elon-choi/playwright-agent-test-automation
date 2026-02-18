@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   CI: true
@@ -56,3 +57,87 @@ jobs:
           name: test-results
           path: test-results/
           retention-days: 7
+
+      - name: Setup Java (Allure CLI)
+        if: always()
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Generate Allure report
+        if: always()
+        continue-on-error: true
+        run: npx allure generate allure-results -o allure-report --clean
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 14
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 14
+
+  deploy-report-history:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && always() && !cancelled()
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare report-site (gh-pages content)
+        run: |
+          mkdir -p report-site/reports
+          git fetch origin gh-pages 2>/dev/null || true
+          git --work-tree=report-site checkout origin/gh-pages -- . 2>/dev/null || true
+
+      - name: Set run id and date
+        id: run
+        run: |
+          echo "id=$(date -u +%Y-%m-%d_%H-%M-%S)" >> $GITHUB_OUTPUT
+          echo "date_iso=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Download Playwright report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+
+      - name: Add this run to report history
+        run: |
+          RUN_ID="${{ steps.run.outputs.id }}"
+          RUN_DATE_ISO="${{ steps.run.outputs.date_iso }}"
+          mkdir -p "report-site/reports/$RUN_ID"
+          cp -r playwright-report/* "report-site/reports/$RUN_ID/"
+          RESULTS_JSON=test-results/results.json \
+          SUMMARY_JSON="report-site/reports/$RUN_ID/summary.json" \
+          RUN_DATE_ISO="$RUN_DATE_ISO" \
+          RUN_ID="$RUN_ID" \
+          node scripts/write-report-summary.mjs
+
+      - name: Generate index
+        run: REPORT_SITE=report-site node scripts/generate-report-index.mjs
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: report-site
+          force_orphan: true

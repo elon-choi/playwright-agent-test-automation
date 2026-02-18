@@ -154,7 +154,15 @@ export default defineConfig({
   reporter: [
     ["html", { open: "never" }],
     ["list"],
-    ["json", { outputFile: "test-results/results.json" }]
+    ["json", { outputFile: "test-results/results.json" }],
+    [
+      "allure-playwright",
+      {
+        resultsDir: "allure-results",
+        detail: true,
+        suiteTitle: true
+      }
+    ]
   ],
   timeout: 90000,
   expect: { timeout: 10000 },
