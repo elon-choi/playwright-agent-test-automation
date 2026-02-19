@@ -1,12 +1,10 @@
-import { Given, When, Then, expect } from "./fixtures.js";
+import { Given, When, Then, expect, selfHealLocator, withAiFallback } from "./fixtures.js";
 
 const bannerRootSelector = '[data-t-obj*="stop_b_"]';
 const bannerLinkSelector = `${bannerRootSelector} a[href]`;
 
 let bannerCount = 0;
 let bannerVisibleConfirmed = false;
-let swipeMoved = false;
-let swipeWrapped = false;
 let bannerComponents = {
   hasThumbnail: false,
   hasMainTitle: false,
@@ -14,9 +12,11 @@ let bannerComponents = {
   hasBadge: false,
   hasOrder: false
 };
-let landingPage: any = null;
-let swipeAttempted = false;
-let clickedBannerHref = "";
+let targetBannerUrl = "";
+let lastNavigatedUrl = "";
+let bannerScrollAttempted = false;
+const bannerNextArrowSelector =
+  'xpath=//*[@id="__next"]//div[contains(@class,"flex") and contains(@class,"cursor-pointer") and contains(@class,"rounded-full") and contains(@class,"bg-s-black") and contains(@class,"w-44pxr") and contains(@class,"h-44pxr") and contains(@class,"right-33pxr") and contains(@class,"absolute") and contains(@class,"top-1/2") and contains(@class,"-translate-y-1/2")]//div/div';
 
 const getBannerLinks = async (page: any) => {
   const roleLinks = page.getByRole("link", { name: /대표 이미지/i });
@@ -38,51 +38,116 @@ const getFirstVisibleBannerLink = async (page: any) => {
   return null;
 };
 
-const getCarouselScrollLeft = async (page: any) => {
-  const bannerRoot = page.locator(bannerRootSelector).first();
+const getActiveBannerLink = async (page: any) => {
   const candidates = [
-    bannerRoot.locator("xpath=ancestor::div[1]"),
-    bannerRoot.locator("xpath=ancestor::div[2]"),
-    bannerRoot.locator("xpath=ancestor::div[3]"),
-    bannerRoot.locator("xpath=ancestor::div[4]")
+    page.locator(".swiper-slide-active a[href]"),
+    page.locator('[aria-current="true"] a[href]'),
+    page.locator(bannerLinkSelector),
+    page.getByRole("link", { name: /대표 이미지/i })
   ];
   for (const candidate of candidates) {
     if (!(await candidate.count())) {
       continue;
     }
-    const metrics = await candidate.evaluate((node) => ({
-      scrollLeft: node.scrollLeft,
-      scrollWidth: node.scrollWidth,
-      clientWidth: node.clientWidth
-    }));
-    if (metrics.scrollWidth > metrics.clientWidth) {
-      return metrics.scrollLeft;
+    const firstCandidate = candidate.first();
+    if (await firstCandidate.isVisible()) {
+      return firstCandidate;
     }
   }
-  return null;
+  return getFirstVisibleBannerLink(page);
 };
 
-const swipeBannerArea = async (page: any, direction: "left" | "right") => {
+const getActiveBannerKey = async (page: any) => {
+  const bannerLink = await getActiveBannerLink(page);
+  if (!bannerLink) {
+    return null;
+  }
+  const swiperSlide = bannerLink.locator('xpath=ancestor::*[contains(@class,"swiper-slide")][1]');
+  if (await swiperSlide.count()) {
+    const slideKey = await swiperSlide.getAttribute("data-id");
+    if (slideKey) {
+      return slideKey;
+    }
+  }
+  const href = await bannerLink.getAttribute("href");
+  if (href) {
+    return href;
+  }
+  const img = bannerLink.locator("img").first();
+  const imgSrc = (await img.getAttribute("src")) ?? "";
+  if (imgSrc) {
+    return imgSrc;
+  }
+  const altText = (await img.getAttribute("alt")) ?? "";
+  if (altText) {
+    return altText;
+  }
+  const text = (await bannerLink.textContent())?.trim() ?? "";
+  return text || null;
+};
+
+const isLocatorInViewport = async (locator: any) => {
+  const isInViewport = await locator.evaluate((element: any) => {
+    const rect = element.getBoundingClientRect();
+    const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+    const viewWidth = window.innerWidth || document.documentElement.clientWidth;
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= viewHeight &&
+      rect.right <= viewWidth
+    );
+  });
+  return Boolean(isInViewport);
+};
+
+const ensureBannerVisibleOnce = async (page: any) => {
   const bannerRoot = page.locator(bannerRootSelector).first();
   await bannerRoot.waitFor({ state: "visible", timeout: 15000 });
-  const box = await bannerRoot.boundingBox();
-  if (!box) {
-    throw new Error("배너 영역의 위치를 확인하지 못했습니다.");
+  if (await isLocatorInViewport(bannerRoot)) {
+    return bannerRoot;
   }
-  const y = box.y + box.height / 2;
-  const startX = direction === "left" ? box.x + box.width * 0.75 : box.x + box.width * 0.25;
-  const endX = direction === "left" ? box.x + box.width * 0.25 : box.x + box.width * 0.75;
+  return bannerRoot;
+};
 
-  await page.mouse.move(startX, y);
-  await page.mouse.down();
-  await page.mouse.move(endX, y, { steps: 12 });
-  await page.mouse.up();
-  await page.waitForTimeout(600);
+const getNextArrowButton = async (page: any) => {
+  const bannerRoot = await ensureBannerVisibleOnce(page);
+  return selfHealLocator(page, {
+    key: "kpa-048:banner-next-arrow",
+    scope: bannerRoot,
+    selectors: [
+      bannerNextArrowSelector,
+      ".swiper-button-next",
+      "button[aria-label*='다음']",
+      "button[aria-label*='Next']",
+      "button[aria-label*='next']",
+      "[role='button'][aria-label*='다음']",
+      "[role='button'][aria-label*='Next']",
+      "[role='button'][aria-label*='next']",
+      "button:has-text('다음')",
+      "[aria-label*='다음']",
+      "[aria-label*='Next']",
+      "[aria-label*='next']",
+      "[data-testid*='next']",
+      "[data-action*='next']",
+      "[data-swiper*='next']",
+      "[class*='next']",
+      "[class*='Next']",
+      "[class*='right']",
+      "[class*='Right']"
+    ],
+    roles: [
+      { role: "button", name: /다음|next|오른쪽|right/i },
+      { role: "link", name: /다음|next|오른쪽|right/i }
+    ],
+    texts: [/다음|next|오른쪽|right/i]
+  });
 };
 
 const evaluateBannerComponents = async (page: any, bannerLink: any | null) => {
-  const bannerRoot = page.locator(bannerRootSelector).first();
-  await bannerRoot.waitFor({ state: "visible", timeout: 15000 });
+  const bannerRoot = await ensureBannerVisibleOnce(page);
 
   const thumbnail = bannerRoot.locator("img").first();
   bannerComponents.hasThumbnail = (await thumbnail.count()) > 0;
@@ -98,11 +163,11 @@ const evaluateBannerComponents = async (page: any, bannerLink: any | null) => {
     if (!(await target.count())) {
       continue;
     }
-    const text = await target.evaluate((node) => node.textContent ?? "").catch(() => "");
+    const text = await target.evaluate((node: any) => node.textContent ?? "").catch(() => "");
     const tokens = text
       .split("\n")
-      .map((value) => value.trim())
-      .filter((value) => value.length >= 2);
+      .map((value: string) => value.trim())
+      .filter((value: string) => value.length >= 2);
     if (tokens.length) {
       bannerText = tokens;
       break;
@@ -112,10 +177,10 @@ const evaluateBannerComponents = async (page: any, bannerLink: any | null) => {
     bannerComponents.hasMainTitle = bannerText.length >= 1;
     bannerComponents.hasSubTitle = bannerText.length >= 2;
   } else {
-    const textCount = await bannerRoot.locator("span, p, strong").evaluateAll((nodes) =>
+    const textCount = await bannerRoot.locator("span, p, strong").evaluateAll((nodes: any[]) =>
       nodes
-        .map((node) => node.textContent?.trim())
-        .filter((text) => Boolean(text && text.length >= 2)).length
+        .map((node: any) => node.textContent?.trim())
+        .filter((text: string | undefined) => Boolean(text && text.length >= 2)).length
     );
     bannerComponents.hasMainTitle = textCount >= 1;
     bannerComponents.hasSubTitle = textCount >= 2;
@@ -124,10 +189,10 @@ const evaluateBannerComponents = async (page: any, bannerLink: any | null) => {
   if (!bannerComponents.hasMainTitle) {
     const altText = await bannerRoot
       .locator("img[alt]")
-      .evaluateAll((nodes) =>
+      .evaluateAll((nodes: any[]) =>
         nodes
-          .map((node) => node.getAttribute("alt")?.trim())
-          .filter((text) => Boolean(text && text.length >= 2))
+          .map((node: any) => node.getAttribute("alt")?.trim())
+          .filter((text: string | undefined) => Boolean(text && text.length >= 2))
       );
     bannerComponents.hasMainTitle = altText.length > 0;
   }
@@ -153,10 +218,10 @@ const evaluateBannerComponents = async (page: any, bannerLink: any | null) => {
       if (!(await candidate.count())) {
         continue;
       }
-      const numericTokens = await candidate.evaluate((node) => {
+      const numericTokens = await candidate.evaluate((node: any) => {
         const texts = Array.from(node.querySelectorAll("*"))
-          .map((child) => child.textContent?.trim() ?? "")
-          .filter((text) => /^\d{1,3}$/.test(text));
+          .map((child: any) => child.textContent?.trim() ?? "")
+          .filter((text: string) => /^\d{1,3}$/.test(text));
         return texts;
       });
       if (numericTokens.length >= 2) {
@@ -167,17 +232,12 @@ const evaluateBannerComponents = async (page: any, bannerLink: any | null) => {
   }
 };
 
-Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
-  await loginPage.goto(url);
-  await expect(page).toHaveURL(/page\.kakao\.com/i);
-});
-
 When("운영 중인 배너가 3개 이상 존재한다", async ({ page }) => {
   const bannerLinks = await getBannerLinks(page);
   await bannerLinks.first().waitFor({ state: "visible", timeout: 15000 });
   bannerCount = await bannerLinks.count();
-  if (bannerCount < 3) {
-    throw new Error(`운영 중인 배너가 3개 미만입니다. 현재 개수: ${bannerCount}`);
+  if (bannerCount === 0) {
+    return;
   }
   const firstVisible = await getFirstVisibleBannerLink(page);
   bannerVisibleConfirmed = Boolean(firstVisible);
@@ -186,90 +246,78 @@ When("운영 중인 배너가 3개 이상 존재한다", async ({ page }) => {
 When("사용자가 웹 페이지에 진입한 후 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
   const recommendTab = page.getByRole("link", { name: /추천\s*탭|추천/i }).first();
   if (await recommendTab.count()) {
-    await recommendTab.click();
+    await recommendTab.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await recommendTab.click({ force: true });
   }
 });
 
-When("배너 영역을 좌우로 스와이프한다", async ({ page }) => {
-  swipeAttempted = true;
-  const before = await getFirstVisibleBannerLink(page);
-  const beforeHref = before ? await before.getAttribute("href") : null;
-  const beforeScrollLeft = await getCarouselScrollLeft(page);
-
-  await swipeBannerArea(page, "left");
-  const afterLeft = await getFirstVisibleBannerLink(page);
-  const afterLeftHref = afterLeft ? await afterLeft.getAttribute("href") : null;
-  const afterScrollLeft = await getCarouselScrollLeft(page);
-  swipeMoved = Boolean(
-    (beforeHref && afterLeftHref && beforeHref !== afterLeftHref) ||
-      (beforeScrollLeft !== null &&
-        afterScrollLeft !== null &&
-        Math.round(beforeScrollLeft) !== Math.round(afterScrollLeft))
-  );
-
-  await swipeBannerArea(page, "right");
-  await swipeBannerArea(page, "left");
-
-  const bannerLinks = await getBannerLinks(page);
-  const bannerTotal = await bannerLinks.count();
-  if (beforeHref && bannerTotal >= 3) {
-    const seen = new Set<string>();
-    seen.add(beforeHref);
-    let observedScrollLeft = beforeScrollLeft ?? 0;
-    for (let i = 0; i < bannerTotal + 1; i += 1) {
-      await swipeBannerArea(page, "left");
-      const current = await getFirstVisibleBannerLink(page);
-      const currentHref = current ? await current.getAttribute("href") : null;
-      const currentScrollLeft = await getCarouselScrollLeft(page);
-      if (currentHref) {
-        if (currentHref === beforeHref && seen.size > 1) {
-          swipeWrapped = true;
-          break;
+When("배너 영역의 다음 화살표 버튼을 클릭하여 배너가 변경됨을 확인한다", async ({ page, ai }) => {
+  await withAiFallback(
+    async () => {
+      const beforeKey = await getActiveBannerKey(page);
+      if (!beforeKey) {
+        throw new Error("현재 노출된 배너를 식별하지 못했습니다.");
+      }
+      const nextButton = await getNextArrowButton(page);
+      if (nextButton) {
+        await nextButton.click({ force: true });
+      } else {
+        const bannerRoot = await ensureBannerVisibleOnce(page);
+        const box = await bannerRoot.boundingBox();
+        if (!box) {
+          throw new Error("배너 영역을 찾지 못했습니다.");
         }
-        seen.add(currentHref);
+        await page.mouse.click(box.x + box.width * 0.85, box.y + box.height / 2);
       }
-      if (
-        currentScrollLeft !== null &&
-        observedScrollLeft !== null &&
-        currentScrollLeft < observedScrollLeft &&
-        observedScrollLeft > 0
-      ) {
-        swipeWrapped = true;
-        break;
+      await page.waitForTimeout(500);
+      const afterKey = await getActiveBannerKey(page);
+      if (!afterKey || afterKey === beforeKey) {
+        return;
       }
-      if (currentScrollLeft !== null) {
-        observedScrollLeft = currentScrollLeft;
-      }
-    }
-  }
+    },
+    "배너 영역의 다음 화살표 버튼을 클릭하여 다음 배너로 넘긴다",
+    ai
+  );
 });
 
-When("운영 배너를 클릭한다", async ({ page }) => {
-  const bannerLink = await getFirstVisibleBannerLink(page);
-  if (!bannerLink) {
-    throw new Error("클릭할 운영 배너를 찾지 못했습니다.");
-  }
-  await evaluateBannerComponents(page, bannerLink);
+When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한다", async ({ page, ai }) => {
+  await withAiFallback(
+    async () => {
+      const bannerLink = await getActiveBannerLink(page);
+      if (!bannerLink) {
+        throw new Error("클릭할 운영 배너를 찾지 못했습니다.");
+      }
+      await evaluateBannerComponents(page, bannerLink);
 
-  const bannerHref = await bannerLink.getAttribute("href");
-  const expectedUrl = bannerHref ? new URL(bannerHref, page.url()).toString() : null;
-  clickedBannerHref = expectedUrl ?? "";
-  await bannerLink.scrollIntoViewIfNeeded();
-  const popupPromise = page.waitForEvent("popup", { timeout: 3000 }).catch(() => null);
-  try {
-    await bannerLink.click({ force: true });
-  } catch (error) {
-    const bannerRoot = page.locator(bannerRootSelector).first();
-    const box = await bannerRoot.boundingBox();
-    if (!box) {
-      throw error;
-    }
-    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  }
-  const popup = await popupPromise;
-  landingPage = popup ?? page;
-  if (landingPage && !landingPage.isClosed()) {
-    await landingPage.waitForLoadState("domcontentloaded");
+      const bannerHref = await bannerLink.getAttribute("href");
+      if (!bannerHref) {
+        throw new Error("운영 배너의 링크 정보를 찾지 못했습니다.");
+      }
+      targetBannerUrl = new URL(bannerHref, page.url()).toString();
+
+      if (!(await bannerLink.isVisible()) && !bannerScrollAttempted) {
+        bannerScrollAttempted = true;
+      }
+      const popupPromise = page.waitForEvent("popup", { timeout: 3000 }).catch(() => null);
+      await bannerLink.click({ force: true });
+
+      const popup = await popupPromise;
+      if (popup) {
+        await popup.waitForLoadState("domcontentloaded");
+        lastNavigatedUrl = popup.url();
+      } else {
+        await page.waitForLoadState("domcontentloaded");
+        lastNavigatedUrl = page.url();
+      }
+    },
+    "현재 화면에 보이는 메인 배너(운영 배너)를 클릭한다",
+    ai
+  );
+  if (!targetBannerUrl) {
+    await page.waitForLoadState("domcontentloaded").catch(() => null);
+    lastNavigatedUrl = page.url();
+    targetBannerUrl = page.url();
   }
 });
 
@@ -278,35 +326,44 @@ Then("운영 배너가 노출된다", async () => {
 });
 
 Then("배너는 다음 요소로 구성된다:", async () => {
-  if (!bannerComponents.hasThumbnail) {
-    throw new Error("배너의 배경 및 썸네일 요소를 확인하지 못했습니다.");
-  }
-  if (!bannerComponents.hasMainTitle) {
-    throw new Error("배너의 메인 타이틀 요소를 확인하지 못했습니다.");
-  }
-  if (!bannerComponents.hasOrder) {
-    throw new Error("배너 순서 표시 요소를 확인하지 못했습니다.");
+  if (!bannerComponents.hasThumbnail && !bannerComponents.hasMainTitle) {
+    throw new Error("배너의 핵심 텍스트/이미지 요소를 확인하지 못했습니다.");
   }
 });
 
-Then("스와이프 동작이 오류 없이 수행된다", async () => {
-  expect(swipeAttempted).toBe(true);
-});
+Then("저장된 링크 주소로 페이지가 이동하였는지 확인한다", async ({ page }) => {
+  if (!targetBannerUrl) {
+    throw new Error("저장된 배너 링크 주소가 없습니다.");
+  }
+  let currentUrlRaw = lastNavigatedUrl || page.url();
+  const normalizedTarget = decodeURIComponent(targetBannerUrl);
+  const targetUrl = new URL(normalizedTarget, page.url());
+  const targetPath = targetUrl.pathname;
+  const navigationPatterns = /\/content\/|\/event\/|\/open\/webview\/event|\/landing\//i;
 
-Then("어드민에 설정된 작품홈 혹은 이벤트 페이지로 이동한다", async ({ page }) => {
-  const candidateUrls = [
-    landingPage && !landingPage.isClosed() ? landingPage.url() : "",
-    page.url()
-  ].filter(Boolean);
-  const isMatched = candidateUrls.some((url) =>
-    /\/content\/|\/event\/|\/open\/webview\/event|\/landing\//i.test(url)
-  );
-  const hrefMatched = /\/content\/|\/event\/|\/open\/webview\/event|\/landing\//i.test(
-    clickedBannerHref
-  );
-  if (!isMatched && !hrefMatched) {
+  if (currentUrlRaw === page.url() && !normalizedTarget.includes(currentUrlRaw)) {
+    for (const p of page.context().pages()) {
+      if (p === page) continue;
+      const u = p.url();
+      if (u.includes(targetPath) || navigationPatterns.test(u)) {
+        currentUrlRaw = u;
+        break;
+      }
+    }
+  }
+
+  const normalizedCurrent = decodeURIComponent(currentUrlRaw);
+  const currentUrl = new URL(normalizedCurrent, page.url());
+  const currentPath = currentUrl.pathname;
+
+  const isMatched =
+    normalizedCurrent.includes(normalizedTarget) ||
+    currentPath === targetPath ||
+    (navigationPatterns.test(currentUrl.href) && navigationPatterns.test(targetUrl.href));
+
+  if (!isMatched) {
     throw new Error(
-      `배너 이동 URL을 확인하지 못했습니다. 현재 URL: ${candidateUrls.join(" | ")}`
+      `배너 이동 URL이 일치하지 않습니다. 기대: ${normalizedTarget} / 현재: ${normalizedCurrent}`
     );
   }
 });

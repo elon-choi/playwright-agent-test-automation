@@ -1,60 +1,92 @@
 // Feature: KPA-059 시나리오 검증
-// Scenario: 바로가기 메뉴를 통한 페이지 이동 및 구성 요소 확인
+// Scenario: 요일연재 메뉴를 통한 페이지 이동 및 구성 요소 확인
 import { Given, When, Then, expect } from "./fixtures.js";
+import { DataTable } from "playwright-bdd";
 
-let selectedShortcutUrl: string | null = null;
-
-Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
-  await loginPage.goto(url);
-  await expect(page).toHaveURL(url);
-});
-
-Given("사용자는 로그인하지 않은 상태이다", async ({ loginPage }) => {
-  await loginPage.ensureLoggedOut();
-});
+let selectedMenuUrl: string | null = null;
 
 When("사용자가 웹 페이지 하단의 바로가기 메뉴를 클릭한다", async ({ page }) => {
-  const shortcutLink = page.locator('a[href="/shortcut/list"]');
-  if (await shortcutLink.count()) {
-    await shortcutLink.first().click();
-    return;
-  }
-  const fallback = page.getByRole("link", { name: /바로가기/i });
-  await fallback.first().click();
+  const shortcutBtn = page
+    .getByRole("button", { name: /바로가기|메뉴/i })
+    .or(page.locator("a").filter({ hasText: /바로가기/i }).first())
+    .or(page.locator("[aria-label*='바로가기']").first());
+  await shortcutBtn.first().waitFor({ state: "visible", timeout: 10000 });
+  await shortcutBtn.first().click({ timeout: 8000 });
+  await page.waitForLoadState("domcontentloaded", { timeout: 10000 }).catch(() => null);
+  await page.waitForTimeout(500);
 });
 
-Then("바로가기 메뉴 화면이 다음과 같이 구성되어 있는지 확인한다:", async ({ page }) => {
-  await expect(page).toHaveURL(/\/shortcut\/list/i);
-
-  await expect(page.getByRole("link", { name: /웹툰/i }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /웹소설/i }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /책/i }).first()).toBeVisible();
-
-  await expect(page.getByText("추천").first()).toBeVisible();
-  await expect(page.getByText("웹툰").first()).toBeVisible();
-  await expect(page.getByText("웹소설").first()).toBeVisible();
-  await expect(page.getByText("책").first()).toBeVisible();
+Then("바로가기 메뉴 화면이 다음과 같이 구성되어 있는지 확인한다:", async ({ page }, dataTable: DataTable) => {
+  const rows = dataTable.rows();
+  for (let i = 0; i < rows.length; i++) {
+    const cell = rows[i][0];
+    if (typeof cell !== "string") continue;
+    const text = cell.replace(/^"|"$/g, "").trim();
+    if (!text) continue;
+    await expect(page.getByText(new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).first()).toBeVisible({
+      timeout: 8000
+    });
+  }
+  await expect(page.getByRole("link", { name: /웹툰|웹소설|책/i }).first()).toBeVisible({ timeout: 5000 });
 });
 
 When("사용자가 임의의 바로가기 메뉴를 클릭한다", async ({ page }) => {
-  const shortcutLinks = page.locator(
-    [
-      'a[href^="/menu/"]',
-      'a[href^="/landing/"]',
-      'a[href^="/ranking/"]',
-      'a[href^="/content/"]'
-    ].join(", ")
-  );
-  if (!(await shortcutLinks.count())) {
-    throw new Error("바로가기 메뉴 링크를 찾지 못했습니다.");
+  const shortcutLink = page.getByRole("link", { name: /웹툰|웹소설|책|추천/i }).first();
+  await shortcutLink.waitFor({ state: "visible", timeout: 8000 });
+  selectedMenuUrl = await shortcutLink.getAttribute("href");
+  await shortcutLink.click({ timeout: 8000 });
+  await page.waitForTimeout(500);
+});
+
+When("사용자가 웹 페이지 하단의 요일연재 메뉴를 클릭한다", async ({ page }) => {
+  const byHref = page.locator('a[href*="/day-of-week"]').first();
+  const byRole = page.getByRole("link", { name: /요일연재/i }).first();
+  if (await byHref.count() > 0) {
+    await byHref.click({ timeout: 15000 });
+  } else {
+    await byRole.click({ timeout: 15000 });
   }
-  selectedShortcutUrl = await shortcutLinks.first().getAttribute("href");
-  await shortcutLinks.first().click();
+  await page.waitForLoadState("domcontentloaded", { timeout: 15000 });
+  await page.waitForTimeout(500);
+});
+
+Then("요일연재 메뉴 화면이 다음과 같이 구성되어 있는지 확인한다:", async ({ page }) => {
+  await expect(page).toHaveURL(/\/day-of-week/i);
+
+  const dayTabs = page.locator('a[href*="day-of-week?day_id="]');
+  await expect(dayTabs.first()).toBeVisible({ timeout: 8000 });
+  await expect(dayTabs).toHaveCount(7);
+
+  await expect(page.getByRole("link", { name: /전체/i }).first()).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText(/카웹Zone/i).first()).toBeVisible({ timeout: 5000 });
+  await expect(page.getByRole("link", { name: /웹툰/i }).first()).toBeVisible({ timeout: 5000 });
+  await expect(page.getByRole("link", { name: /웹소설/i }).first()).toBeVisible({ timeout: 5000 });
+
+  await expect(page.getByText(/카웹Zone/i).first()).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText(/웹툰/).first()).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText(/웹소설/).first()).toBeVisible({ timeout: 5000 });
+
+  const workList = page.locator('a[href*="/content/"]');
+  await expect(workList.first()).toBeVisible({ timeout: 8000 });
+});
+
+When("사용자가 임의의 요일연재 메뉴를 클릭한다", async ({ page }) => {
+  const dayLink = page.locator('a[href*="day-of-week?day_id="]').first();
+  if ((await dayLink.count()) > 0) {
+    selectedMenuUrl = await dayLink.getAttribute("href");
+    await dayLink.click({ timeout: 8000 });
+    return;
+  }
+  const contentLink = page.locator('a[href*="/content/"]').first();
+  await expect(contentLink).toBeVisible({ timeout: 5000 });
+  selectedMenuUrl = await contentLink.getAttribute("href");
+  await contentLink.click({ timeout: 8000 });
 });
 
 Then("사용자는 클릭한 메뉴에 해당하는 페이지로 이동한다", async ({ page }) => {
-  if (!selectedShortcutUrl) {
-    throw new Error("바로가기 URL을 확보하지 못했습니다.");
+  if (!selectedMenuUrl) {
+    throw new Error("선택한 메뉴 URL을 확보하지 못했습니다.");
   }
-  await expect(page).toHaveURL(new RegExp(selectedShortcutUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  const urlPath = selectedMenuUrl.replace(/^https?:\/\/[^/]+/, "").split("?")[0];
+  await expect(page).toHaveURL(new RegExp(urlPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), { timeout: 10000 });
 });

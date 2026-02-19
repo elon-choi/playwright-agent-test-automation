@@ -1,0 +1,8 @@
+{
+  "pcwPaths": [
+    "features/kpa-104.feature",
+    "features/kpa-105.feature",
+    "features/kpa-106.feature"
+  ],
+  "mwPaths": []
+}

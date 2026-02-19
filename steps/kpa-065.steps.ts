@@ -2,15 +2,6 @@
 // Scenario: 작품 카드 클릭 후 이미지 확대 및 닫기 기능 검증
 import { Given, When, Then, expect } from "./fixtures.js";
 
-Given("사용자가 {string} 사이트에 접속한다", async ({ page, loginPage }, url: string) => {
-  await loginPage.goto(url);
-  await expect(page).toHaveURL(url);
-});
-
-Given("사용자는 로그인하지 않은 상태이다", async ({ loginPage }) => {
-  await loginPage.ensureLoggedOut();
-});
-
 When("사용자가 카카오페이지 웹에 접속한다", async ({ page }) => {
   await expect(page).toHaveURL(/page\.kakao\.com/);
 });
