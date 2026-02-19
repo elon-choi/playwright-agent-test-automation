@@ -6,7 +6,7 @@
   "scripts": {
     "pw:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install",
     "test": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
-    "bddgen": "playwright-bdd",
+    "bddgen": "node scripts/run-bddgen.mjs",
     "test:ui": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --ui --project=chromium",
     "last-failure": "npx ts-node --esm scripts/last-failure.ts",
     "notify-slack": "npx ts-node --esm scripts/notify-slack.ts",

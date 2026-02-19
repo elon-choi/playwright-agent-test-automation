@@ -31,6 +31,45 @@ When('사용자가 임의의 "기다무" BM 작품 카드 하나를 클릭한다
   );
 });
 
+And("사용자가 회차탭 하단의 최신 유료 회차를 클릭한다", async ({ page, ai }) => {
+  const episodeTabCandidates = [
+    page.getByRole("tab", { name: /회차/i }),
+    page.getByRole("link", { name: /회차/i }),
+    page.getByRole("button", { name: /회차/i })
+  ];
+  for (const locator of episodeTabCandidates) {
+    if (await locator.count()) {
+      await locator.first().click();
+      break;
+    }
+  }
+  const paidEpisodeCandidates = [
+    page.getByRole("button", { name: /구매|대여|소장|잠금|유료/i }),
+    page.getByRole("link", { name: /구매|대여|소장|잠금|유료/i })
+  ];
+  for (const locator of paidEpisodeCandidates) {
+    if (await locator.count()) {
+      await locator.first().click();
+      await page.waitForTimeout(500);
+      return;
+    }
+  }
+  const paidViewerLinks = page.locator('a[href*="/viewer/"]:not(:has-text("무료"))');
+  if (await paidViewerLinks.count()) {
+    const target = paidViewerLinks.first();
+    await target.scrollIntoViewIfNeeded();
+    await target.click({ force: true });
+    await page.waitForTimeout(500);
+    return;
+  }
+  const viewerLinks = page.locator('a[href*="/viewer/"]');
+  if (await viewerLinks.count()) {
+    await viewerLinks.first().scrollIntoViewIfNeeded();
+    await viewerLinks.first().click({ force: true });
+    await page.waitForTimeout(500);
+  }
+});
+
 When("사용자가 홈 탭 하단의 최신 유료 회차를 클릭한다", async ({ page, ai }) => {
   await withAiFallback(
     async () => {

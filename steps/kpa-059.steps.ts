@@ -1,8 +1,42 @@
 // Feature: KPA-059 시나리오 검증
 // Scenario: 요일연재 메뉴를 통한 페이지 이동 및 구성 요소 확인
 import { Given, When, Then, expect } from "./fixtures.js";
+import { DataTable } from "playwright-bdd";
 
 let selectedMenuUrl: string | null = null;
+
+When("사용자가 웹 페이지 하단의 바로가기 메뉴를 클릭한다", async ({ page }) => {
+  const shortcutBtn = page
+    .getByRole("button", { name: /바로가기|메뉴/i })
+    .or(page.locator("a").filter({ hasText: /바로가기/i }).first())
+    .or(page.locator("[aria-label*='바로가기']").first());
+  await shortcutBtn.first().waitFor({ state: "visible", timeout: 10000 });
+  await shortcutBtn.first().click({ timeout: 8000 });
+  await page.waitForLoadState("domcontentloaded", { timeout: 10000 }).catch(() => null);
+  await page.waitForTimeout(500);
+});
+
+Then("바로가기 메뉴 화면이 다음과 같이 구성되어 있는지 확인한다:", async ({ page }, dataTable: DataTable) => {
+  const rows = dataTable.rows();
+  for (let i = 0; i < rows.length; i++) {
+    const cell = rows[i][0];
+    if (typeof cell !== "string") continue;
+    const text = cell.replace(/^"|"$/g, "").trim();
+    if (!text) continue;
+    await expect(page.getByText(new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).first()).toBeVisible({
+      timeout: 8000
+    });
+  }
+  await expect(page.getByRole("link", { name: /웹툰|웹소설|책/i }).first()).toBeVisible({ timeout: 5000 });
+});
+
+When("사용자가 임의의 바로가기 메뉴를 클릭한다", async ({ page }) => {
+  const shortcutLink = page.getByRole("link", { name: /웹툰|웹소설|책|추천/i }).first();
+  await shortcutLink.waitFor({ state: "visible", timeout: 8000 });
+  selectedMenuUrl = await shortcutLink.getAttribute("href");
+  await shortcutLink.click({ timeout: 8000 });
+  await page.waitForTimeout(500);
+});
 
 When("사용자가 웹 페이지 하단의 요일연재 메뉴를 클릭한다", async ({ page }) => {
   const byHref = page.locator('a[href*="/day-of-week"]').first();

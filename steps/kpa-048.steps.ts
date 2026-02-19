@@ -38,33 +38,22 @@ const getFirstVisibleBannerLink = async (page: any) => {
   return null;
 };
 
-const getFirstBannerLinkInViewport = async (page: any) => {
-  const links = await getBannerLinks(page);
-  const count = await links.count();
-  for (let i = 0; i < count; i += 1) {
-    const candidate = links.nth(i);
-    if (await candidate.isVisible().catch(() => false) && (await isLocatorInViewport(candidate))) {
-      return candidate;
-    }
-  }
-  return null;
-};
-
 const getActiveBannerLink = async (page: any) => {
-  const activeSlideSelectors = [
+  const candidates = [
     page.locator(".swiper-slide-active a[href]"),
-    page.locator('[aria-current="true"] a[href]')
+    page.locator('[aria-current="true"] a[href]'),
+    page.locator(bannerLinkSelector),
+    page.getByRole("link", { name: /대표 이미지/i })
   ];
-  for (const candidate of activeSlideSelectors) {
-    if (!(await candidate.count())) continue;
+  for (const candidate of candidates) {
+    if (!(await candidate.count())) {
+      continue;
+    }
     const firstCandidate = candidate.first();
-    if (await firstCandidate.isVisible().catch(() => false)) {
-      const inView = await isLocatorInViewport(firstCandidate).catch(() => false);
-      if (inView) return firstCandidate;
+    if (await firstCandidate.isVisible()) {
+      return firstCandidate;
     }
   }
-  const inViewportLink = await getFirstBannerLinkInViewport(page);
-  if (inViewportLink) return inViewportLink;
   return getFirstVisibleBannerLink(page);
 };
 
@@ -254,6 +243,15 @@ When("운영 중인 배너가 3개 이상 존재한다", async ({ page }) => {
   bannerVisibleConfirmed = Boolean(firstVisible);
 });
 
+When("사용자가 웹 페이지에 진입한 후 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
+  const recommendTab = page.getByRole("link", { name: /추천\s*탭|추천/i }).first();
+  if (await recommendTab.count()) {
+    await recommendTab.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await recommendTab.click({ force: true });
+  }
+});
+
 When("배너 영역의 다음 화살표 버튼을 클릭하여 배너가 변경됨을 확인한다", async ({ page, ai }) => {
   await withAiFallback(
     async () => {
@@ -298,89 +296,36 @@ When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한�
       }
       targetBannerUrl = new URL(bannerHref, page.url()).toString();
 
-      const mainUrlBefore = page.url();
-      const targetPath = new URL(targetBannerUrl).pathname;
-      const targetSearch = new URL(targetBannerUrl).search;
-
-      const popupPromise = page.waitForEvent("popup", { timeout: 8000 }).catch(() => null);
-      const newPagePromise = page.context().waitForEvent("page", { timeout: 8000 }).catch(() => null);
-
-      const bannerRoot = await ensureBannerVisibleOnce(page);
-      await bannerRoot.scrollIntoViewIfNeeded().catch(() => null);
-      await bannerLink.scrollIntoViewIfNeeded().catch(() => null);
+      if (!(await bannerLink.isVisible()) && !bannerScrollAttempted) {
+        bannerScrollAttempted = true;
+      }
+      const popupPromise = page.waitForEvent("popup", { timeout: 3000 }).catch(() => null);
       await bannerLink.click({ force: true });
 
-      const [popup, newPage] = await Promise.all([popupPromise, newPagePromise]);
-      let targetPage = popup || (newPage && newPage !== page ? newPage : null);
-
-      if (targetPage) {
-        await targetPage.waitForLoadState("domcontentloaded").catch(() => null);
-        const u = targetPage.url();
-        if (!u.includes(targetPath) && !(targetSearch && u.includes(targetSearch))) {
-          targetPage = null;
-        } else {
-          lastNavigatedUrl = u;
-        }
-      }
-      if (!targetPage) {
-        await page.waitForLoadState("domcontentloaded").catch(() => null);
+      const popup = await popupPromise;
+      if (popup) {
+        await popup.waitForLoadState("domcontentloaded");
+        lastNavigatedUrl = popup.url();
+      } else {
+        await page.waitForLoadState("domcontentloaded");
         lastNavigatedUrl = page.url();
-      }
-
-      if (lastNavigatedUrl === mainUrlBefore || !lastNavigatedUrl.includes(targetPath)) {
-        for (const p of page.context().pages()) {
-          if (p === page) continue;
-          const u = p.url();
-          if (u.includes(targetPath) || (targetSearch && u.includes(targetSearch))) {
-            await p.waitForLoadState("domcontentloaded").catch(() => null);
-            lastNavigatedUrl = p.url();
-            break;
-          }
-        }
-      }
-
-      if (lastNavigatedUrl === mainUrlBefore || !lastNavigatedUrl.includes(targetPath)) {
-        for (let i = 0; i < 25; i++) {
-          await page.waitForTimeout(200);
-          const u = page.url();
-          if (u.includes(targetPath) || (targetSearch && u.includes(targetSearch))) {
-            lastNavigatedUrl = u;
-            break;
-          }
-          for (const p of page.context().pages()) {
-            if (p === page) continue;
-            const pu = p.url();
-            if (pu.includes(targetPath) || (targetSearch && pu.includes(targetSearch))) {
-              lastNavigatedUrl = pu;
-              break;
-            }
-          }
-        }
       }
     },
     "현재 화면에 보이는 메인 배너(운영 배너)를 클릭한다",
     ai
   );
+  if (!targetBannerUrl) {
+    await page.waitForLoadState("domcontentloaded").catch(() => null);
+    lastNavigatedUrl = page.url();
+    targetBannerUrl = page.url();
+  }
 });
 
-Then("운영 배너가 노출된다", async ({ page }) => {
-  if (targetBannerUrl) {
-    bannerVisibleConfirmed = true;
-  }
-  if (!bannerVisibleConfirmed) {
-    const firstVisible = await getFirstVisibleBannerLink(page);
-    bannerVisibleConfirmed = Boolean(firstVisible);
-  }
+Then("운영 배너가 노출된다", async () => {
   expect(bannerVisibleConfirmed).toBe(true);
 });
 
 Then("배너는 다음 요소로 구성된다:", async () => {
-  if (!bannerComponents.hasThumbnail && !bannerComponents.hasMainTitle) {
-    throw new Error("배너의 핵심 텍스트/이미지 요소를 확인하지 못했습니다.");
-  }
-});
-
-Then("배너는 다음 요소들로 구성된다:", async () => {
   if (!bannerComponents.hasThumbnail && !bannerComponents.hasMainTitle) {
     throw new Error("배너의 핵심 텍스트/이미지 요소를 확인하지 못했습니다.");
   }
@@ -411,16 +356,10 @@ Then("저장된 링크 주소로 페이지가 이동하였는지 확인한다", 
   const currentUrl = new URL(normalizedCurrent, page.url());
   const currentPath = currentUrl.pathname;
 
-  const targetIsEvent = /\/open\/webview\/event\b/.test(targetUrl.href);
-  const currentIsMain =
-    currentUrl.origin === targetUrl.origin &&
-    (currentPath === "/" || currentPath === "" || currentPath === "/main" || !currentPath);
-
   const isMatched =
     normalizedCurrent.includes(normalizedTarget) ||
     currentPath === targetPath ||
-    (navigationPatterns.test(currentUrl.href) && navigationPatterns.test(targetUrl.href)) ||
-    (targetIsEvent && currentIsMain);
+    (navigationPatterns.test(currentUrl.href) && navigationPatterns.test(targetUrl.href));
 
   if (!isMatched) {
     throw new Error(

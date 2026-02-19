@@ -1,8 +1,8 @@
 // Feature: KPA-101 시나리오 검증
 // Scenario: 웹툰의 관련 소설 영역으로 이동
-import { Given, When, Then, expect, withAiFallback, dismissPermissionPopup, getBaseUrl } from "./fixtures.js";
+import { Given, When, Then, expect, withAiFallback } from "./fixtures.js";
 
-const targetContentUrl = getBaseUrl() + "content/58095657?tab_type=about";
+const targetContentUrl = "https://page.kakao.com/content/58095657?tab_type=about";
 
 const ensureContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
@@ -38,17 +38,23 @@ When('사용자가 상단 메뉴에서 "정보" 탭을 클릭한다', async ({ p
   );
 });
 
+const identicalSectionXPath =
+  '//*[@id="__next"]/div/div[2]/div[1]/div/div[2]/div[2]/div/div/div[3]/div[3]/div[1]/div/div';
+
 When('사용자가 정보 탭 하단의 "동일작" 섹션에서 원작 소설 작품을 클릭한다', async ({ page, ai }) => {
   await page.waitForLoadState("networkidle");
   await page.getByText(/줄거리|키워드|동일작/i).first().waitFor({ state: "visible", timeout: 15000 });
 
-  await dismissPermissionPopup(page);
-
-  const identicalSectionAnchor = page.getByText(/동일작/i).first();
-  if (await identicalSectionAnchor.count()) {
-    await dismissPermissionPopup(page);
-    await identicalSectionAnchor.scrollIntoViewIfNeeded();
+  const identicalSection = page.locator(`xpath=${identicalSectionXPath}`);
+  if (await identicalSection.count()) {
+    await identicalSection.first().scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
+  } else {
+    const fallbackSection = page.getByText(/동일작/i).first();
+    if (await fallbackSection.count()) {
+      await fallbackSection.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(300);
+    }
   }
 
   await withAiFallback(
