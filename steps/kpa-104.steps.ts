@@ -1,66 +1,42 @@
-// Feature: KPA-104 - 댓글 정렬 기능 검증 (회차 진입 → 댓글 아이콘 → 전체 탭 → 정렬)
+// Feature: KPA-104 - 댓글 정렬 기능 검증 (작품 카드 → 홈탭 댓글 영역 스크롤 → 정렬)
+// "사용자가 임의의 작품 카드를 클릭한다"는 steps/kpa-065.steps.ts에 정의됨 (중복 제거)
 import { When, Then, And, expect, getBaseUrl, getBaseUrlOrigin } from "./fixtures.js";
 
-async function ensureContentPage(page: import("@playwright/test").Page) {
-  if (/\/(content|landing\/series)\//i.test(page.url())) return;
-  await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
-  await page.waitForTimeout(500);
-  const card = page.locator('a[href*="/content/"]').first();
-  if ((await card.count()) > 0) {
-    await card.click({ timeout: 8000 });
-    await page.waitForURL(/\/(content|landing\/series)\//i, { timeout: 15000 });
+When("사용자가 홈탭 하단으로  댓글 영역까지 스크롤 다운한다.", async ({ page }) => {
+  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).first();
+  await commentMarker.waitFor({ state: "attached", timeout: 8000 });
+  const commentSection = page.locator("section, [class*='comment'], [class*='Comment']").filter({ hasText: /전체\s*\d+/ }).first();
+  if ((await commentSection.count()) > 0) {
+    await commentSection.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -200));
+  } else {
+    await commentMarker.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -200));
   }
-  await page.waitForTimeout(400);
-}
-
-When("사용자가 두번째 무료 뱃지가 달린 회차를 클릭한다", async ({ page }) => {
-  await ensureContentPage(page);
-  const freeBadge = /무료|FREE/i;
-  const episodeLinks = page.locator('a[href*="/viewer/"]').filter({
-    has: page.getByText(freeBadge).or(page.locator("img[alt*='무료']")).or(page.locator("[class*='free'], [class*='badge']"))
-  });
-  await episodeLinks.first().waitFor({ state: "visible", timeout: 10000 });
-  const second = episodeLinks.nth(1);
-  await second.waitFor({ state: "visible", timeout: 6000 });
-  await second.click({ timeout: 8000 });
-  await page.waitForURL(/\/viewer\//i, { timeout: 15000 }).catch(() => null);
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(500);
 });
 
-And("회차 진입 후 우측 상단의 댓글 아이콘을 클릭한다", async ({ page }) => {
-  const commentIcon = page
-    .getByRole("button", { name: /댓글/i })
-    .or(page.locator("[aria-label*='댓글']"))
-    .or(page.locator("a[href*='#comment'], a[href*='comment']"))
-    .or(page.locator("button, a").filter({ hasText: /댓글/ }).first());
-  await commentIcon.first().waitFor({ state: "visible", timeout: 10000 });
-  await commentIcon.first().click({ timeout: 6000 });
-  await page.waitForTimeout(600);
-});
-
-And("사용자가 전체 탭을 클릭한다", async ({ page }) => {
-  const allTab = page
-    .getByRole("tab", { name: /^전체$/ })
-    .or(page.getByRole("button", { name: /^전체$/ }))
-    .or(page.getByText(/^전체$/, { exact: true }).first());
-  await allTab.first().waitFor({ state: "visible", timeout: 8000 });
-  await allTab.first().click({ timeout: 6000 });
-  await page.waitForTimeout(400);
-});
+// "댓글 영역이 화면에 표시된다"는 steps/kpa-105.steps.ts에 정의됨 (중복 제거)
 
 And("전체탭 우측 상단의 정렬 옵션을 클릭 후 최신순 옵션을 클릭한다", async ({ page }) => {
+  await page.waitForTimeout(500);
   const sortTrigger = page
     .getByRole("button", { name: /정렬/i })
-    .or(page.locator("button").filter({ hasText: /정렬/i }).first());
-  await sortTrigger.first().waitFor({ state: "visible", timeout: 8000 });
+    .or(page.locator("button").filter({ hasText: /정렬/i }))
+    .or(page.getByText(/정렬/).first())
+    .or(page.locator("[aria-label*='정렬']"))
+    .or(page.locator("button, [role='button'], a").filter({ hasText: /정렬/i }).first());
+  await sortTrigger.first().scrollIntoViewIfNeeded().catch(() => null);
+  await sortTrigger.first().waitFor({ state: "visible", timeout: 12000 });
   await sortTrigger.first().click({ timeout: 6000 });
   await page.waitForTimeout(400);
 
   const latestOption = page
     .getByRole("option", { name: /최신순/i })
     .or(page.getByRole("menuitem", { name: /최신순/i }))
-    .or(page.getByText(/^최신순$/).first());
-  await latestOption.first().waitFor({ state: "visible", timeout: 5000 });
+    .or(page.getByText(/^최신순$/))
+    .or(page.getByText(/최신순/).first());
+  await latestOption.first().waitFor({ state: "visible", timeout: 6000 });
   await latestOption.first().click({ timeout: 6000 });
   await page.waitForTimeout(500);
 });

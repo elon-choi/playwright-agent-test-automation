@@ -26,14 +26,9 @@ When("사용자가 댓글 탭을 클릭한다", async ({ page }) => {
 });
 
 Then("댓글 영역이 화면에 표시된다", async ({ page }) => {
-  const commentArea = page
-    .locator("span.font-small2-bold")
-    .filter({ hasText: /전체\s*\d+/ })
-    .first()
-    .or(page.locator("[class*='comment'], [class*='Comment']").first())
-    .or(page.getByText(/댓글\s*\d*/).first());
-  await commentArea.waitFor({ state: "visible", timeout: 8000 });
-  await expect(commentArea).toBeVisible();
+  const commentArea = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ });
+  await commentArea.first().waitFor({ state: "visible", timeout: 10000 });
+  await expect(commentArea.first()).toBeVisible();
 });
 
 When("사용자가 첫 번째 댓글의 [좋아요] 버튼을 클릭한다", async ({ page }) => {
