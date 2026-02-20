@@ -1,10 +1,13 @@
 import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 import { defineBddConfig } from "playwright-bdd";
 import dotenv from "dotenv";
 
 dotenv.config({ quiet: true });
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const { pcwPaths, mwPaths } = require("./scripts/generated-feature-paths.json");
 
@@ -144,6 +147,36 @@ const STUB_KPA_NUMBERS: number[] = [];
 const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
   `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`
 );
+// 헤드리스(CI) 시 시스템 Chrome 사용 시 macOS에서 _RegisterApplication abort 크래시 발생 가능
+const useChannelChrome = process.env.CI !== "true";
+// CI 시 headless-shell(x64) 대신 번들 전체 Chromium(arm64) 사용 (executablePath로 우선)
+const fs = require("node:fs");
+const projectRoot = process.cwd();
+const bundledChromiumPathByDir = path.join(
+  __dirname,
+  ".playwright-browsers",
+  "chromium-1208",
+  "chrome-mac-arm64",
+  "Google Chrome for Testing.app",
+  "Contents",
+  "MacOS",
+  "Google Chrome for Testing"
+);
+const bundledChromiumPathByCwd = path.join(
+  projectRoot,
+  ".playwright-browsers",
+  "chromium-1208",
+  "chrome-mac-arm64",
+  "Google Chrome for Testing.app",
+  "Contents",
+  "MacOS",
+  "Google Chrome for Testing"
+);
+const bundledChromiumPath = fs.existsSync(bundledChromiumPathByDir)
+  ? bundledChromiumPathByDir
+  : bundledChromiumPathByCwd;
+const useBundledChromiumPath =
+  process.env.CI === "true" && fs.existsSync(bundledChromiumPath);
 
 export default defineConfig({
   // BDD 설정을 테스트 디렉터리로 연결
@@ -180,7 +213,8 @@ export default defineConfig({
       testIgnore: ["**/adult/**", ...STUB_TEST_IGNORE],
       use: {
         ...devices["Desktop Chrome"],
-        channel: "chrome",
+        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
+        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
         launchOptions: {
           args: ["--disable-features=LocalNetworkAccess"]
         }
@@ -191,7 +225,8 @@ export default defineConfig({
       testMatch: STUB_KPA_NUMBERS.map((n) => `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`),
       use: {
         ...devices["Desktop Chrome"],
-        channel: "chrome",
+        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
+        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
         launchOptions: {
           args: ["--disable-features=LocalNetworkAccess"]
         }
@@ -202,7 +237,8 @@ export default defineConfig({
       testMatch: ["**/mw/**/*.feature.spec.js"],
       use: {
         ...devices["Desktop Chrome"],
-        channel: "chrome",
+        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
+        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
         launchOptions: {
           args: ["--disable-features=LocalNetworkAccess"]
         }
@@ -214,7 +250,8 @@ export default defineConfig({
       timeout: 300000,
       use: {
         ...devices["Desktop Chrome"],
-        channel: "chrome",
+        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
+        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
         launchOptions: {
           args: ["--disable-features=LocalNetworkAccess"]
         }

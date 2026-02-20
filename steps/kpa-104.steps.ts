@@ -3,16 +3,32 @@
 import { When, Then, And, expect, getBaseUrl, getBaseUrlOrigin } from "./fixtures.js";
 
 When("사용자가 홈탭 하단으로  댓글 영역까지 스크롤 다운한다.", async ({ page }) => {
-  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).first();
-  await commentMarker.waitFor({ state: "attached", timeout: 8000 });
-  const commentSection = page.locator("section, [class*='comment'], [class*='Comment']").filter({ hasText: /전체\s*\d+/ }).first();
-  if ((await commentSection.count()) > 0) {
-    await commentSection.scrollIntoViewIfNeeded();
-    await page.evaluate(() => window.scrollBy(0, -200));
-  } else {
-    await commentMarker.scrollIntoViewIfNeeded();
-    await page.evaluate(() => window.scrollBy(0, -200));
+  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last();
+  await commentMarker.waitFor({ state: "attached", timeout: 15000 });
+  const maxScrolls = 80;
+  for (let i = 0; i < maxScrolls; i++) {
+    const visible = await commentMarker.isVisible().catch(() => false);
+    if (visible) break;
+    await page.evaluate(() => window.scrollBy(0, 500));
+    await page.waitForTimeout(350);
   }
+  await commentMarker.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -200));
+  await page.waitForTimeout(500);
+});
+
+When("사용자가 홈탭 하단 댓글 영역까지 스크롤 다운한다.", async ({ page }) => {
+  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last();
+  await commentMarker.waitFor({ state: "attached", timeout: 15000 });
+  const maxScrolls = 80;
+  for (let i = 0; i < maxScrolls; i++) {
+    const visible = await commentMarker.isVisible().catch(() => false);
+    if (visible) break;
+    await page.evaluate(() => window.scrollBy(0, 500));
+    await page.waitForTimeout(350);
+  }
+  await commentMarker.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -200));
   await page.waitForTimeout(500);
 });
 
@@ -25,18 +41,20 @@ And("전체탭 우측 상단의 정렬 옵션을 클릭 후 최신순 옵션을 
     .or(page.locator("button").filter({ hasText: /정렬/i }))
     .or(page.getByText(/정렬/).first())
     .or(page.locator("[aria-label*='정렬']"))
-    .or(page.locator("button, [role='button'], a").filter({ hasText: /정렬/i }).first());
+    .or(page.locator("button, [role='button'], a").filter({ hasText: /정렬/i }).first())
+    .or(page.getByText(/좋아요\s*순|최신\s*순/).last());
   await sortTrigger.first().scrollIntoViewIfNeeded().catch(() => null);
   await sortTrigger.first().waitFor({ state: "visible", timeout: 12000 });
   await sortTrigger.first().click({ timeout: 6000 });
   await page.waitForTimeout(400);
 
   const latestOption = page
-    .getByRole("option", { name: /최신순/i })
-    .or(page.getByRole("menuitem", { name: /최신순/i }))
-    .or(page.getByText(/^최신순$/))
-    .or(page.getByText(/최신순/).first());
-  await latestOption.first().waitFor({ state: "visible", timeout: 6000 });
+    .getByRole("option", { name: /최신\s*순/i })
+    .or(page.getByRole("menuitem", { name: /최신\s*순/i }))
+    .or(page.getByText(/^최신\s*순$/).last())
+    .or(page.getByText(/최신\s*순/).last());
+  await latestOption.first().waitFor({ state: "visible", timeout: 10000 });
+  await latestOption.first().scrollIntoViewIfNeeded();
   await latestOption.first().click({ timeout: 6000 });
   await page.waitForTimeout(500);
 });
@@ -73,17 +91,19 @@ Then("댓글이 생성된 일자가 최신순으로 노출되는지 확인한다
 And("전체탭 우측 상단의 정렬 옵션을 클릭 후 좋아요 옵션을 클릭한다", async ({ page }) => {
   const sortTrigger = page
     .getByRole("button", { name: /정렬/i })
-    .or(page.locator("button").filter({ hasText: /정렬/i }).first());
-  await sortTrigger.first().waitFor({ state: "visible", timeout: 8000 });
+    .or(page.locator("button").filter({ hasText: /정렬/i }))
+    .or(page.getByText(/좋아요\s*순|최신\s*순/).last());
+  await sortTrigger.first().waitFor({ state: "visible", timeout: 12000 });
   await sortTrigger.first().click({ timeout: 6000 });
   await page.waitForTimeout(400);
 
   const likeOption = page
     .getByRole("option", { name: /좋아요/i })
     .or(page.getByRole("menuitem", { name: /좋아요/i }))
-    .or(page.getByText(/^좋아요순$/))
-    .or(page.getByText(/좋아요\s*순/).first());
-  await likeOption.first().waitFor({ state: "visible", timeout: 5000 });
+    .or(page.getByText(/^좋아요\s*순$/).last())
+    .or(page.getByText(/좋아요\s*순/).last());
+  await likeOption.first().waitFor({ state: "visible", timeout: 10000 });
+  await likeOption.first().scrollIntoViewIfNeeded();
   await likeOption.first().click({ timeout: 6000 });
   await page.waitForTimeout(500);
 });

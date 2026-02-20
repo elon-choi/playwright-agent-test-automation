@@ -12,8 +12,11 @@ When("사용자가 임의의 작품 카드를 클릭한다", async ({ page }) =>
     page.locator('a[href*="/content/"]')
   ];
   for (const locator of candidates) {
-    if (await locator.count()) {
-      await locator.first().click();
+    const count = await locator.count();
+    if (count > 0) {
+      const maxIndex = Math.min(count - 1, 20);
+      const index = Math.floor(Math.random() * (maxIndex + 1));
+      await locator.nth(index).click();
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
     }
