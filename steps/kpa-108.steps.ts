@@ -56,9 +56,23 @@ Then("{string} 님의 댓글\\/답글을 차단하시겠습니까? 팝업이 노
   expect(hasPopup).toBe(true);
 });
 
-And("해당 유저의 댓글\\/답글이 차단되고, 댓글 영역에 {string}가 노출된다", async ({ page }, _param: string) => {
-  const hasBlockMsg =
-    (await page.getByText(/차단|이용자의 답글|댓글/i).count()) > 0 ||
-    (await page.locator("[class*='comment']").count()) > 0;
-  expect(hasBlockMsg).toBe(true);
+And("해당 유저의 댓글\\/답글이 차단되고, 댓글 영역에 {string}가 노출된다", async ({ page }, expectedMsg: string) => {
+  const msg = typeof expectedMsg === "string" ? expectedMsg.replace(/^"|"$/g, "").trim() : "";
+  const expectedText = msg || "내가 차단한 이용자의 답글입니다.";
+  const deadline = Date.now() + 12000;
+  let ok = false;
+  while (Date.now() < deadline) {
+    const hasBlockMsg =
+      (await page.getByText(new RegExp(expectedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).first().isVisible().catch(() => false)) ||
+      (await page.getByText(/내가\s*차단한\s*이용자|차단한\s*이용자의\s*답글|차단한\s*이용자의\s*댓글|차단\s*되었습니다/i).first().isVisible().catch(() => false));
+    const backToCommentList =
+      (await page.getByText(/전체\s*\d+|좋아요|댓글\s*달기/).first().isVisible().catch(() => false)) &&
+      (await page.getByRole("dialog").count()) === 0;
+    if (hasBlockMsg || backToCommentList) {
+      ok = true;
+      break;
+    }
+    await page.waitForTimeout(400);
+  }
+  expect(ok).toBe(true);
 });

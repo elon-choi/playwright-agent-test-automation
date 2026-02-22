@@ -33,14 +33,50 @@ Then("사용자의 캐시 사용 리스트가 최근 리스트 순서대로 노�
   await expect(el).toBeAttached({ timeout: 5000 });
 });
 
+const CHARGEPOPUP_VIEWPORT = { width: 1400, height: 900 };
+
+const getChargePopupPage = async (page: any) => {
+  const ctx = page.context();
+  const pages = ctx.pages();
+  for (const p of pages) {
+    const isCharge = /billing|charge|kpg|payment_intro/i.test(p.url()) ||
+      await p.getByText(/충전하기/i).first().isVisible().catch(() => false);
+    if (isCharge) return p;
+  }
+  return page;
+};
+
 When("사용자가 [캐시 충전] 버튼을 클릭한다", async ({ page }) => {
+  await page.setViewportSize(CHARGEPOPUP_VIEWPORT);
   await page.getByRole("button", { name: /캐시\s*충전/i }).or(page.getByText(/캐시\s*충전/i).first()).click({ timeout: 8000 });
 });
 
 Then("캐시 충전 메뉴로 이동된다", async ({ page }) => {
-  await page.waitForTimeout(500);
-  const onCharge = /charge|충전|cash/i.test(page.url()) || await page.getByText(/캐시|충전/i).first().isVisible().catch(() => false);
+  await page.waitForTimeout(800);
+  const chargePage = await getChargePopupPage(page);
+  await chargePage.setViewportSize(CHARGEPOPUP_VIEWPORT);
+  const onCharge = /charge|충전|cash|billing|kpg/i.test(chargePage.url()) ||
+    await chargePage.getByText(/충전하기|캐시|충전/i).first().isVisible().catch(() => false);
   expect(onCharge).toBe(true);
+});
+
+When("사용자가 우측 상단 x 아이콘을 클릭한다", async ({ page }) => {
+  const chargePage = await getChargePopupPage(page);
+  await chargePage.setViewportSize(CHARGEPOPUP_VIEWPORT);
+  await page.waitForTimeout(300);
+  const closeBtn = chargePage.locator('div.new_popup_head_right.btn_comm.btn_cancel').or(
+    chargePage.locator('div[class*="new_popup_head_right"][class*="btn_cancel"]')
+  );
+  await closeBtn.first().click({ timeout: 8000 });
+});
+
+Then("캐시 내역 화면으로 다시 이동된다", async ({ page }) => {
+  await page.waitForTimeout(800);
+  const cacheHistoryPage = page.context().pages().length === 1 ? page : page.context().pages()[0];
+  const target = cacheHistoryPage;
+  await expect(target.getByText(/캐시\s*내역/i).first()).toBeAttached({ timeout: 10000 });
+  const chargeGone = await target.getByText(/충전하기/i).first().isHidden().catch(() => true);
+  expect(chargeGone).toBe(true);
 });
 
 When("사용자가 좌측 상단 뒤로가기[⬅︎] 버튼을 클릭한다", async ({ page }) => {

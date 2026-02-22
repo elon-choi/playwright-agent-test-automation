@@ -18,23 +18,65 @@ export class LoginPage extends BasePage {
     await this.page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
   }
 
-  async clickProfileIcon() {
+  async clickProfileIcon(openLoginFlow = false) {
     const header = this.page.getByRole("banner");
-    const candidates = [
-      this.page.locator('[data-test="header-login-button"]'),
-      header.locator('[data-test="header-login-button"]'),
+    const url = this.page.url();
+    const onPageKakao = /page\.kakao\.com/i.test(url);
+    const profileOnlyCandidates = [
       this.page.getByLabel(/내 정보/i),
-      header.getByRole("link", { name: /로그인|프로필|계정|내 정보|내정보/i }),
-      header.getByRole("button", { name: /로그인|프로필|계정|내 정보|내정보/i }),
+      header.getByRole("button", { name: /프로필|계정|내 정보|내정보/i }),
+      header.locator('button[aria-label*="프로필"], button[aria-label*="계정"], button[aria-label*="내 정보"]'),
+      header.locator('[aria-label*="프로필"], [aria-label*="계정"]').filter({ hasNot: this.page.locator('a') }),
+      header.locator('[data-testid*="profile"], [class*="profile"]').filter({ hasNot: this.page.locator('a[href*="login"], a[href*="accounts.kakao"]') })
+    ];
+    const loginCandidates = [
+      header.getByRole("link", { name: /로그인/i }),
+      header.getByRole("button", { name: /로그인/i }),
       header.locator('a[href*="login"], a[href*="accounts.kakao.com"]'),
-      header.locator('[aria-label*="프로필"], [aria-label*="로그인"], [aria-label*="계정"]'),
-      header.locator('[data-testid*="profile"], [class*="profile"], [class*="account"]'),
+      header.locator('[aria-label*="로그인"]'),
       this.page.getByRole("link", { name: /로그인/i }),
       this.page.getByRole("button", { name: /로그인/i })
     ];
-    for (const locator of candidates) {
-      if (await locator.count()) {
-        await this.smartClick(locator.first(), "우측 상단 프로필 아이콘");
+    if (onPageKakao && !openLoginFlow) {
+      const hasLoginForm =
+        (await this.page.locator('input[name="loginId"], input[placeholder*="카카오메일"], input[placeholder*="Account"]').count()) > 0 ||
+        (await this.page.getByRole("button", { name: /Log\s*In|로그인/i }).count()) > 0;
+      for (const locator of profileOnlyCandidates) {
+        const resolved = locator.first();
+        if ((await locator.count()) > 0 && (await resolved.isVisible().catch(() => false))) {
+          const href = await resolved.getAttribute("href").catch(() => null);
+          if (href && /login|accounts\.kakao\.com/i.test(href)) continue;
+          const tag = await resolved.evaluate((el) => el.tagName).catch(() => "");
+          if (tag === "A") {
+            const linkHref = await resolved.evaluate((el) => (el as HTMLAnchorElement).href).catch(() => "");
+            if (/login|accounts\.kakao\.com/i.test(linkHref)) continue;
+          }
+          const hasLoginLinkInside = await resolved
+            .evaluate(
+              (el) =>
+                !!el.querySelector('a[href*="login"], a[href*="accounts.kakao.com"]') ||
+                (el.closest("a") && /login|accounts\.kakao\.com/i.test((el.closest("a") as HTMLAnchorElement).href))
+            )
+            .catch(() => true);
+          if (hasLoginLinkInside) continue;
+          await this.smartClick(resolved, "우측 상단 프로필 아이콘");
+          await this.page.waitForTimeout(3500);
+          if (/accounts\.kakao\.com\/login/i.test(this.page.url())) {
+            throw new Error(
+              "프로필 아이콘으로 클릭한 요소가 로그인 페이지로 이동시켰습니다. 00-login.feature 실행 후 다시 시도하세요."
+            );
+          }
+          return;
+        }
+      }
+      throw new Error(
+        "page.kakao.com에서 프로필 아이콘(메뉴 열기)을 찾지 못했습니다. 로그인 상태에서 00-login.feature 실행 후 다시 시도하세요."
+      );
+    }
+    for (const locator of [...profileOnlyCandidates, ...loginCandidates]) {
+      const resolved = locator.first();
+      if ((await locator.count()) > 0 && (await resolved.isVisible().catch(() => false))) {
+        await this.smartClick(resolved, "우측 상단 프로필 아이콘");
         return;
       }
     }
@@ -47,7 +89,7 @@ export class LoginPage extends BasePage {
   }
 
   async openLogin() {
-    await this.clickProfileIcon();
+    await this.clickProfileIcon(true);
     const loginForm = this.page.locator(
       [
         'input[name="loginId"]',

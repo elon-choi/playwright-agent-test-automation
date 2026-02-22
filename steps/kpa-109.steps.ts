@@ -4,10 +4,19 @@ import { Then, And, expect } from "./fixtures.js";
 
 Then("뷰어 탭 하단에 다음 UI 요소들이 노출된다:", async ({ page }) => {
   await page.waitForTimeout(500);
-  const viewerOrMain = page.locator("main").first();
-  await viewerOrMain.waitFor({ state: "attached", timeout: 8000 }).catch(() => null);
-  const hasViewerUi =
-    (await page.getByText(/회차|다음화|이전화|댓글|정주행/i).count()) > 0 ||
-    (await page.locator("a[href*='/viewer/']").count()) > 0;
-  expect(hasViewerUi || /\/viewer\//i.test(page.url())).toBe(true);
+  await expect(page).toHaveURL(/\/viewer\//i, { timeout: 5000 });
+
+  const requiredUi = [
+    { name: "회차명", locator: page.getByText(/회차|\d+화/i).first() },
+    { name: "정주행 아이콘", locator: page.locator('img[alt*="정주행"]').first() },
+    { name: "댓글 아이콘", locator: page.locator('img[alt="댓글"]').first() },
+    { name: "이전화", locator: page.locator('img[alt="왼쪽 화살표"]').first() },
+    { name: "다음화", locator: page.locator('[data-test="viewer-navbar-next-button"]').first() },
+    { name: "설정 메뉴", locator: page.locator('img[alt="설정"]').first() }
+  ];
+
+  for (const { name, locator } of requiredUi) {
+    await locator.waitFor({ state: "visible", timeout: 10000 });
+    expect(await locator.count(), `${name} 노출되어야 함`).toBeGreaterThan(0);
+  }
 });

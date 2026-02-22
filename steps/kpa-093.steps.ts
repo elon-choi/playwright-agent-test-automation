@@ -32,6 +32,21 @@ When("사용자가 특정 [회차]를 클릭한다", async ({ page }) => {
   await page.waitForTimeout(400);
 });
 
+When("사용자가 특정 무료 뱃지가 표시된 [회차]를 클릭한다", async ({ page }) => {
+  const freeEpisode = page.locator('a[href*="/viewer/"]').filter({ hasText: /무료|Free|FREE/ }).first();
+  const episodeLink = (await freeEpisode.count()) > 0 && (await freeEpisode.isVisible().catch(() => false))
+    ? freeEpisode
+    : page.locator('a[href*="/viewer/"]').first();
+  await episodeLink.waitFor({ state: "visible", timeout: 10000 }).catch(() => null);
+  await episodeLink.scrollIntoViewIfNeeded().catch(() => null);
+  await page.waitForTimeout(200);
+  await episodeLink.click({ timeout: 10000, force: true }).catch(async () => {
+    await episodeLink.evaluate((el: HTMLElement) => el.click());
+  });
+  await page.waitForURL(/\/viewer\//i, { timeout: 20000 }).catch(() => null);
+  await page.waitForTimeout(400);
+});
+
 Then("해당 회차의 뷰어 페이지로 이동한다", async ({ page }) => {
   await expect(page).toHaveURL(/\/viewer\//i, { timeout: 15000 });
   const hasViewer = (await page.getByText(/회차|화|다음|이전/i).count()) > 0 || (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;

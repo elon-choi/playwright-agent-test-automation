@@ -19,9 +19,9 @@ And("최근 검색어가 존재한다", async ({ page }) => {
   await page.waitForTimeout(500);
 });
 
-When("사용자가 웹 페이지에 진입한 후 우 상단의 검색 아이콘을 클릭한다", async ({ page }) => {
+When("사용자가 웹 페이지에 진입한 후 우 상단의 {string} 아이콘을 클릭한다", async ({ page }, iconName: string) => {
   await page.waitForTimeout(400);
-  const searchTrigger = page.getByRole("button", { name: /검색/i })
+  const searchTrigger = page.getByRole("button", { name: new RegExp(iconName, "i") })
     .or(page.getByRole("link", { name: /검색/i }))
     .or(page.getByPlaceholder(/제목|작가를 입력/).first())
     .or(page.getByRole("textbox", { name: /제목|작가|검색/i }).first());

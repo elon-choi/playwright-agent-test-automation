@@ -1,6 +1,18 @@
 // Feature: KPA-062 시나리오 검증
-// "사용자가 웹 페이지에 진입하여 상단의 추천 GNB 메뉴를 클릭한다"는 common.navigation.steps.ts에 구현됨
-import { Then, And, expect } from "./fixtures.js";
+import { When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
+
+When("사용자가 웹 페이지에 진입하여 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
+  const base = getBaseUrlOrigin();
+  if (!/page\.kakao\.com/i.test(page.url())) await page.goto(base, { waitUntil: "domcontentloaded", timeout: 12000 }).catch(() => null);
+  await page.waitForTimeout(500);
+  const recommendTab = page.getByRole("link", { name: /추천\s*탭|추천/i }).first();
+  if ((await recommendTab.count()) > 0) {
+    await recommendTab.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await recommendTab.click({ force: true, timeout: 8000 });
+  }
+  await page.waitForTimeout(400);
+});
 
 And("사용자가 이벤트 서브탭을 클릭한다", async ({ page }) => {
   const eventTab = page.getByRole("tab", { name: /이벤트/i }).or(page.getByRole("link", { name: /이벤트/i }));

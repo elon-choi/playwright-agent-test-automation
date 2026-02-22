@@ -65,7 +65,7 @@ And("각 댓글에는 닉네임, 작성일자, 댓글 내용, 좋아요 수, 싫
 
   const hasNickname = (await page.getByText(/닉네임|\\w{2,}/).count()) > 0;
   const hasDate =
-    (await page.locator("text=/\\d{1,2}분 전|\\d{1,2}시간 전|어제|\\d{4}\\.\\d{1,2}\\.\\d{1,2}/").count()) > 0;
+    (await page.getByText(/\d{1,2}분 전|\d{1,2}시간 전|어제|오늘|방금|\d+일\s*전|\d{4}[./-]\d{1,2}[./-]\d{1,2}/).count()) > 0;
   const hasContent = (await page.locator("[class*='content'], [class*='text'], p, span").count()) > 0;
   const hasLikeButton = (await page.getByRole("button", { name: /좋아요/i }).count()) > 0;
   const commentSectionForLike = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last().locator("xpath=../../..");

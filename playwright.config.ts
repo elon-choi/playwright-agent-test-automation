@@ -24,12 +24,14 @@ const testDir = defineBddConfig({
     "steps/kpa-003.steps.ts",
     "steps/kpa-004.steps.ts",
     "steps/kpa-005.steps.ts",
+    "steps/kpa-006-1.steps.ts",
     "steps/kpa-016.steps.ts",
     "steps/kpa-018.steps.ts",
     "steps/kpa-019.steps.ts",
     "steps/kpa-020.steps.ts",
     "steps/kpa-021.steps.ts",
     "steps/kpa-022.steps.ts",
+    "steps/kpa-024.steps.ts",
     "steps/kpa-008.steps.ts",
     "steps/kpa-009.steps.ts",
     "steps/kpa-010.steps.ts",
@@ -95,7 +97,6 @@ const testDir = defineBddConfig({
     "steps/kpa-081.steps.ts",
     "steps/kpa-082.steps.ts",
     "steps/kpa-085.steps.ts",
-    "steps/kpa-085-1.steps.ts",
     "steps/kpa-086.steps.ts",
     "steps/kpa-087.steps.ts",
     "steps/kpa-088.steps.ts",
@@ -112,6 +113,7 @@ const testDir = defineBddConfig({
     "steps/kpa-107.steps.ts",
     "steps/kpa-108.steps.ts",
     "steps/kpa-109.steps.ts",
+    "steps/kpa-110.steps.ts",
     "steps/kpa-111.steps.ts",
     "steps/kpa-112.steps.ts",
     "steps/kpa-113.steps.ts",
@@ -147,36 +149,35 @@ const STUB_KPA_NUMBERS: number[] = [];
 const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
   `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`
 );
-// 헤드리스(CI) 시 시스템 Chrome 사용 시 macOS에서 _RegisterApplication abort 크래시 발생 가능
-const useChannelChrome = process.env.CI !== "true";
-// CI 시 headless-shell(x64) 대신 번들 전체 Chromium(arm64) 사용 (executablePath로 우선)
+// Cursor/IDE에서 시스템 Chrome 사용 시 macOS에서 _RegisterApplication abort 크래시 발생
+// 로컬에서 시스템 Chrome 쓰려면 PLAYWRIGHT_USE_SYSTEM_CHROME=1 로 실행
+const useChannelChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1";
+// 프로젝트에 chrome-mac-arm64만 설치된 경우 Node가 x64로 동작하면 Playwright가 x64 경로를 찾음.
+// Apple Silicon에서 프로젝트 브라우저만 사용할 때는 PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 권장.
 const fs = require("node:fs");
 const projectRoot = process.cwd();
-const bundledChromiumPathByDir = path.join(
-  __dirname,
-  ".playwright-browsers",
-  "chromium-1208",
-  "chrome-mac-arm64",
-  "Google Chrome for Testing.app",
-  "Contents",
-  "MacOS",
-  "Google Chrome for Testing"
-);
-const bundledChromiumPathByCwd = path.join(
-  projectRoot,
-  ".playwright-browsers",
-  "chromium-1208",
-  "chrome-mac-arm64",
-  "Google Chrome for Testing.app",
-  "Contents",
-  "MacOS",
-  "Google Chrome for Testing"
-);
-const bundledChromiumPath = fs.existsSync(bundledChromiumPathByDir)
-  ? bundledChromiumPathByDir
-  : bundledChromiumPathByCwd;
-const useBundledChromiumPath =
-  process.env.CI === "true" && fs.existsSync(bundledChromiumPath);
+const browsersDir = process.env.PLAYWRIGHT_BROWSERS_PATH
+  ? path.resolve(process.cwd(), process.env.PLAYWRIGHT_BROWSERS_PATH)
+  : path.join(__dirname, ".playwright-browsers");
+
+function findBundledChromium(baseDir: string): string | null {
+  if (!fs.existsSync(baseDir)) return null;
+  const entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  const chromiumDir = entries.find((d) => d.isDirectory() && d.name.startsWith("chromium-"));
+  if (!chromiumDir) return null;
+  const subdir = path.join(baseDir, chromiumDir.name);
+  const candidates = [
+    path.join(subdir, "chrome-mac-arm64", "Google Chrome for Testing.app", "Contents", "MacOS", "Google Chrome for Testing"),
+    path.join(subdir, "chrome-mac", "Google Chrome for Testing.app", "Contents", "MacOS", "Google Chrome for Testing")
+  ];
+  for (const exe of candidates) {
+    if (fs.existsSync(exe)) return exe;
+  }
+  return null;
+}
+
+const bundledChromiumPath = findBundledChromium(browsersDir);
+const useBundledChromiumPath = !!bundledChromiumPath;
 
 export default defineConfig({
   // BDD 설정을 테스트 디렉터리로 연결
@@ -204,7 +205,8 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "on-first-retry",
     actionTimeout: 25000,
-    navigationTimeout: 35000
+    navigationTimeout: 35000,
+    ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {})
   },
   projects: [
     {
@@ -246,7 +248,7 @@ export default defineConfig({
     },
     {
       name: "chromium-085",
-      testMatch: ["**/pcw/콘텐츠홈/kpa-085-1.feature.spec.js", "**/pcw/콘텐츠홈/kpa-085-2.feature.spec.js"],
+      testMatch: ["**/pcw/콘텐츠홈/kpa-085.feature.spec.js"],
       timeout: 300000,
       use: {
         ...devices["Desktop Chrome"],

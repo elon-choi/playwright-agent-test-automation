@@ -46,16 +46,30 @@ And("사용자가 하단의 {string} 버튼을 클릭한다", async ({ page }, p
   await page.waitForTimeout(800);
 });
 
+And("삭제 확인 팝업에서 삭제 확인 버튼을 클릭한다", async ({ page }) => {
+  const popup = page.getByText("선택한", { exact: false }).filter({ hasText: /항목을\s*삭제/ });
+  await popup.first().waitFor({ state: "visible", timeout: 8000 });
+  const confirmBtn = page.getByRole("button", { name: /^(확인|삭제)$|삭제\s*하기/i });
+  if ((await confirmBtn.count()) === 0) {
+    const byText = page.locator("button, [role='button']").filter({ hasText: /확인|삭제/ }).filter({ hasNotText: /취소/ });
+    await byText.first().click({ timeout: 5000 });
+  } else {
+    await confirmBtn.first().click({ timeout: 5000 });
+  }
+  await popup.first().waitFor({ state: "hidden", timeout: 8000 }).catch(() => null);
+  await page.waitForTimeout(1000);
+});
+
 Then("{string} 버튼이 활성화된다", async ({ page }) => {
   await expect(page.getByRole("button", { name: /삭제/i }).first()).toBeVisible({ timeout: 5000 }).catch(() => null);
 });
 
 And("선택한 작품이 구매작품 리스트에서 삭제된다", async ({ page }) => {
+  await page.waitForTimeout(500);
   if (selectedContentHref) {
     const link = page.locator(`a[href="${selectedContentHref}"]`);
-    await link.waitFor({ state: "detached", timeout: 10000 }).catch(() => null);
+    await link.waitFor({ state: "detached", timeout: 10000 });
   }
-  await page.waitForTimeout(500);
 });
 
 And("구매작품 리스트에 선택한 작품이 더 이상 노출되지 않는다", async ({ page }) => {

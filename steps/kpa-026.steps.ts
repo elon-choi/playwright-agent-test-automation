@@ -23,22 +23,21 @@ And("사용자가 대여권을 보유하고 있다", async ({ page }) => {
   await page.waitForTimeout(300);
 });
 
-And("설정 메뉴를 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(600);
-  const byRole = page.getByRole("link", { name: /설정/i }).or(page.getByRole("button", { name: /설정/i }));
-  if (await byRole.count() > 0 && await byRole.first().isVisible().catch(() => false)) {
-    await byRole.first().click({ timeout: 8000 });
-    await page.waitForTimeout(500);
-    return;
+And("설정 메뉴를 클릭한다", async ({ page, loginPage }) => {
+  if (/accounts\.kakao\.com\/login/i.test(page.url())) {
+    await page.goto(getBaseUrlOrigin(), { waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.waitForTimeout(1500);
+    await loginPage.clickProfileIcon(false);
+    await page.waitForTimeout(2000);
+    if (/accounts\.kakao\.com\/login/i.test(page.url())) {
+      throw new Error("로그인 페이지로 이동했습니다. 00-login.feature 실행 후 KPA-026을 실행하세요.");
+    }
   }
-  const byText = page.locator('a').filter({ hasText: /설정/i });
-  if (await byText.count() > 0 && await byText.first().isVisible().catch(() => false)) {
-    await byText.first().click({ timeout: 8000 });
-    await page.waitForTimeout(500);
-    return;
-  }
-  const settingXpath = page.locator('xpath=//*[@id="__next"]/div/div[1]/div/div[2]/div[2]/div/div[9]/a');
-  await settingXpath.first().click({ timeout: 8000 });
+  await page.waitForTimeout(1500);
+  const menu = page.locator('a[href="/settings"]');
+  await menu.waitFor({ state: "visible", timeout: 15000 });
+  await menu.click({ timeout: 10000, force: true });
+  await page.waitForLoadState("domcontentloaded").catch(() => null);
   await page.waitForTimeout(500);
 });
 

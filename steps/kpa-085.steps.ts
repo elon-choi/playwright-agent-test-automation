@@ -1,25 +1,35 @@
 // Feature: KPA-085 이용권 환불 검증 (이용권 내역에서)
+import { test } from "@playwright/test";
 import { And, Then, expect, getBaseUrlOrigin } from "./fixtures.js";
 
-And("이용권 내역 메뉴를 클릭한다.", async ({ page }) => {
-  await page.waitForTimeout(400);
+And("이용권 내역 메뉴를 클릭한다.", async ({ page, loginPage }) => {
+  if (/accounts\.kakao\.com\/login/i.test(page.url())) {
+    await page.goto(getBaseUrlOrigin(), { waitUntil: "domcontentloaded", timeout: 15000 });
+    await safeWait(page,1500);
+    await loginPage.clickProfileIcon(false);
+    await safeWait(page,2000);
+    if (/accounts\.kakao\.com\/login/i.test(page.url())) {
+      throw new Error("로그인 페이지에 있습니다. 00-login.feature 실행 후 KPA-085를 실행하세요.");
+    }
+  }
+  await safeWait(page,400);
   const menu = page.getByRole("link", { name: /이용권\s*내역/i }).or(page.getByText(/이용권\s*내역/).first());
   if ((await menu.count()) > 0 && (await menu.first().isVisible().catch(() => false))) {
     await menu.first().click({ timeout: 10000 });
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
     return;
   }
   const byText = page.getByText(/이용권\s*내역/).first();
   if ((await byText.count()) > 0) await byText.click({ timeout: 10000 });
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
 });
 
 And("스크롤 다운을 하면서 구매한 이용권 내역이 노출 될때까지 찾는다", async ({ page }) => {
-  await page.waitForTimeout(600);
+  await safeWait(page,600);
   const rechargeTab = page.getByRole("tab", { name: /충전\s*내역/i }).or(page.getByText(/충전\s*내역/).first());
   if ((await rechargeTab.count()) > 0 && (await rechargeTab.isVisible().catch(() => false))) {
     await rechargeTab.click({ timeout: 8000 }).catch(() => null);
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
   }
   const scrollAmount = 120;
   const scrollDown = async () => {
@@ -42,11 +52,11 @@ And("스크롤 다운을 하면서 구매한 이용권 내역이 노출 될때�
     const visible = await paidRowLocator.isVisible({ timeout: 1500 }).catch(() => false);
     if (visible) {
       await paidRowLocator.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(500);
+      await safeWait(page,500);
       break;
     }
     await scrollDown();
-    await page.waitForTimeout(850);
+    await safeWait(page,850);
   }
 });
 
@@ -63,7 +73,7 @@ function scrollToFindRow(page: { evaluate: (fn: (amount: number) => void, arg: n
 
 And("충전 내역 탭에서 구매한 대여권 영역을 클릭한다", async ({ page }) => {
   await page.waitForSelector('a[href*="content"]', { state: "attached", timeout: 15000 }).catch(() => null);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   const rowLocator = page
     .locator('a[href*="content"], a[href*="ticket"]')
     .filter({ hasText: /대여권\s*[1-9]\d*\s*장/ })
@@ -75,11 +85,11 @@ And("충전 내역 탭에서 구매한 대여권 영역을 클릭한다", async 
     if (n > 0) {
       const row = rowLocator.first();
       await row.scrollIntoViewIfNeeded().catch(() => null);
-      await page.waitForTimeout(400);
+      await safeWait(page,400);
       const ok = await row.isVisible().catch(() => false);
       if (ok) {
         await row.click({ timeout: 10000, force: true });
-        await page.waitForTimeout(800);
+        await safeWait(page,800);
         return;
       }
       const all = rowLocator;
@@ -87,21 +97,21 @@ And("충전 내역 탭에서 구매한 대여권 영역을 클릭한다", async 
         const r = all.nth(j);
         if (await r.isVisible().catch(() => false)) {
           await r.scrollIntoViewIfNeeded();
-          await page.waitForTimeout(400);
+          await safeWait(page,400);
           await r.click({ timeout: 10000, force: true });
-          await page.waitForTimeout(800);
+          await safeWait(page,800);
           return;
         }
       }
     }
     await scrollToFindRow(page);
-    await page.waitForTimeout(700);
+    await safeWait(page,700);
   }
   const fallback대여 = page.locator('a[href*="content"]').filter({ hasText: /대여권\s*[1-9]\d*\s*장/ }).filter({ hasNotText: /무료|취소\s*완료|취소완료/ }).filter({ hasText: /캐시/ }).first();
   if ((await fallback대여.count()) > 0) {
     await fallback대여.scrollIntoViewIfNeeded();
     await fallback대여.click({ timeout: 10000, force: true });
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
     return;
   }
   throw new Error("구매 취소되지 않은 대여권 항목을 찾을 수 없습니다. 충전 내역에 취소 가능한 대여권(유료)이 있는지 확인하세요.");
@@ -109,7 +119,7 @@ And("충전 내역 탭에서 구매한 대여권 영역을 클릭한다", async 
 
 And("충전 내역 탭에서 구매 취소 처리되지 않은 구매한 대여권 영역을 클릭한다", async ({ page }) => {
   await page.waitForSelector('a[href*="content"]', { state: "attached", timeout: 15000 }).catch(() => null);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   const rowLocator = page
     .locator('a[href*="content"], a[href*="ticket"]')
     .filter({ hasText: /대여권\s*[1-9]\d*\s*장/ })
@@ -121,31 +131,31 @@ And("충전 내역 탭에서 구매 취소 처리되지 않은 구매한 대여�
     if (n > 0) {
       const row = rowLocator.first();
       await row.scrollIntoViewIfNeeded().catch(() => null);
-      await page.waitForTimeout(400);
+      await safeWait(page,400);
       if (await row.isVisible().catch(() => false)) {
         await row.click({ timeout: 10000, force: true });
-        await page.waitForTimeout(800);
+        await safeWait(page,800);
         return;
       }
       for (let j = 0; j < n; j++) {
         const r = rowLocator.nth(j);
         if (await r.isVisible().catch(() => false)) {
           await r.scrollIntoViewIfNeeded();
-          await page.waitForTimeout(400);
+          await safeWait(page,400);
           await r.click({ timeout: 10000, force: true });
-          await page.waitForTimeout(800);
+          await safeWait(page,800);
           return;
         }
       }
     }
     await scrollToFindRow(page);
-    await page.waitForTimeout(700);
+    await safeWait(page,700);
   }
   const fallback대여2 = page.locator('a[href*="content"]').filter({ hasText: /대여권\s*[1-9]\d*\s*장/ }).filter({ hasNotText: /무료|취소\s*완료|취소완료/ }).filter({ hasText: /캐시/ }).first();
   if ((await fallback대여2.count()) > 0) {
     await fallback대여2.scrollIntoViewIfNeeded();
     await fallback대여2.click({ timeout: 10000, force: true });
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
     return;
   }
   throw new Error("구매 취소되지 않은 대여권 항목을 찾을 수 없습니다. 충전 내역에 취소 가능한 대여권(유료)이 있는지 확인하세요.");
@@ -153,7 +163,7 @@ And("충전 내역 탭에서 구매 취소 처리되지 않은 구매한 대여�
 
 And("충전 내역 탭에서 구매한 소장권 영역을 클릭한다", async ({ page }) => {
   await page.waitForSelector('a[href*="content"]', { state: "attached", timeout: 15000 }).catch(() => null);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   const rowLocator = page
     .locator('a[href*="content"], a[href*="ticket"]')
     .filter({ hasText: /소장권\s*[1-9]\d*\s*장/ })
@@ -165,31 +175,31 @@ And("충전 내역 탭에서 구매한 소장권 영역을 클릭한다", async 
     if (n > 0) {
       const row = rowLocator.first();
       await row.scrollIntoViewIfNeeded().catch(() => null);
-      await page.waitForTimeout(400);
+      await safeWait(page,400);
       if (await row.isVisible().catch(() => false)) {
         await row.click({ timeout: 10000, force: true });
-        await page.waitForTimeout(800);
+        await safeWait(page,800);
         return;
       }
       for (let j = 0; j < n; j++) {
         const r = rowLocator.nth(j);
         if (await r.isVisible().catch(() => false)) {
           await r.scrollIntoViewIfNeeded();
-          await page.waitForTimeout(400);
+          await safeWait(page,400);
           await r.click({ timeout: 10000, force: true });
-          await page.waitForTimeout(800);
+          await safeWait(page,800);
           return;
         }
       }
     }
     await scrollToFindRow(page);
-    await page.waitForTimeout(700);
+    await safeWait(page,700);
   }
   const fallback = page.locator('a[href*="content"]').filter({ hasText: /소장권\s*[1-9]\d*\s*장/ }).filter({ hasNotText: /무료|취소\s*완료|취소완료/ }).filter({ hasText: /캐시/ }).first();
   if ((await fallback.count()) > 0) {
     await fallback.scrollIntoViewIfNeeded();
     await fallback.click({ timeout: 10000, force: true });
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
     return;
   }
   throw new Error("구매 취소되지 않은 소장권 항목을 찾을 수 없습니다. 충전 내역에 취소 가능한 소장권(유료)이 있는지 확인하세요.");
@@ -197,7 +207,7 @@ And("충전 내역 탭에서 구매한 소장권 영역을 클릭한다", async 
 
 And("충전 내역 탭에서 구매 취소 처리되지 않은 구매한 소장권 영역을 클릭한다", async ({ page }) => {
   await page.waitForSelector('a[href*="content"]', { state: "attached", timeout: 15000 }).catch(() => null);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   const rowLocator = page
     .locator('a[href*="content"], a[href*="ticket"]')
     .filter({ hasText: /소장권\s*[1-9]\d*\s*장/ })
@@ -209,31 +219,31 @@ And("충전 내역 탭에서 구매 취소 처리되지 않은 구매한 소장�
     if (n > 0) {
       const row = rowLocator.first();
       await row.scrollIntoViewIfNeeded().catch(() => null);
-      await page.waitForTimeout(400);
+      await safeWait(page,400);
       if (await row.isVisible().catch(() => false)) {
         await row.click({ timeout: 10000, force: true });
-        await page.waitForTimeout(800);
+        await safeWait(page,800);
         return;
       }
       for (let j = 0; j < n; j++) {
         const r = rowLocator.nth(j);
         if (await r.isVisible().catch(() => false)) {
           await r.scrollIntoViewIfNeeded();
-          await page.waitForTimeout(400);
+          await safeWait(page,400);
           await r.click({ timeout: 10000, force: true });
-          await page.waitForTimeout(800);
+          await safeWait(page,800);
           return;
         }
       }
     }
     await scrollToFindRow(page);
-    await page.waitForTimeout(700);
+    await safeWait(page,700);
   }
   const fallback소장 = page.locator('a[href*="content"]').filter({ hasText: /소장권\s*[1-9]\d*\s*장/ }).filter({ hasNotText: /무료|취소\s*완료|취소완료/ }).filter({ hasText: /캐시/ }).first();
   if ((await fallback소장.count()) > 0) {
     await fallback소장.scrollIntoViewIfNeeded();
     await fallback소장.click({ timeout: 10000, force: true });
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
     return;
   }
   throw new Error("구매 취소되지 않은 소장권 항목을 찾을 수 없습니다. 충전 내역에 취소 가능한 소장권(유료)이 있는지 확인하세요.");
@@ -241,6 +251,15 @@ And("충전 내역 탭에서 구매 취소 처리되지 않은 구매한 소장�
 
 const MAX_ROW_ATTEMPTS = 15;
 const TOAST_WAIT_MS = 6000;
+
+async function safeWait(page: any, ms: number): Promise<void> {
+  try {
+    if (typeof page?.isClosed === "function" && page.isClosed()) return;
+    await page.waitForTimeout(ms);
+  } catch {
+    // page/context/browser closed (e.g. test timeout) - avoid throwing
+  }
+}
 
 /** 1번 방식: 구매 취소 처리되지 않은 것처럼 보이는 행을 순서대로 시도, 실제 취소 가능한 항목을 찾으면 취소하고, 모두 이미 취소된 경우에도 성공 처리 */
 
@@ -259,7 +278,7 @@ async function tryCancelOneRow(
         for (let i = 0; i < 3; i++) {
           if ((await closeBtn.count()) > 0 && (await closeBtn.isVisible().catch(() => false))) {
             await closeBtn.click({ timeout: 5000 }).catch(() => null);
-            await page.waitForTimeout(600);
+            await safeWait(page,600);
           } else break;
         }
       } catch {
@@ -268,12 +287,12 @@ async function tryCancelOneRow(
       try { await popup.close().catch(() => null); } catch { /* ignore */ }
       (page as any).__ticketPopup = undefined;
     }
-    await page.waitForTimeout(600);
+    await safeWait(page,600);
 
     const origin = getBaseUrlOrigin();
     const ticketHistoryUrl = `${origin.replace(/\/$/, "")}/history/ticket`;
     const gotoOk = await page.goto(ticketHistoryUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).then(() => true).catch(() => false);
-    await page.waitForTimeout(1500);
+    await safeWait(page,1500);
 
     const hasList = await page.locator('a[href*="content"], a[href*="ticket"]').filter({ hasText: /대여권|소장권|캐시/ }).first().isVisible({ timeout: 3000 }).catch(() => false);
     if (!gotoOk || !hasList) {
@@ -281,31 +300,31 @@ async function tryCancelOneRow(
       const profileBtn = page.locator('[data-test="header-login-button"]').or(header.locator('[aria-label*="프로필"], [class*="profile"]')).or(page.getByRole("button", { name: /프로필|내\s*정보|계정/i })).first();
       if ((await profileBtn.count()) > 0 && (await profileBtn.isVisible().catch(() => false))) {
         await profileBtn.click({ timeout: 6000 }).catch(() => null);
-        await page.waitForTimeout(1200);
+        await safeWait(page,1200);
       }
       const menu = page.getByRole("link", { name: /이용권\s*내역/i }).or(page.getByText(/이용권\s*내역/).first());
       if ((await menu.count()) > 0 && (await menu.first().isVisible().catch(() => false))) {
         await menu.first().click({ timeout: 8000 });
-        await page.waitForTimeout(2000);
+        await safeWait(page,2000);
       }
     }
 
     const tab = page.getByRole("tab", { name: /충전\s*내역/i }).or(page.getByText(/충전\s*내역/).first());
     if ((await tab.count()) > 0 && (await tab.isVisible().catch(() => false))) {
       await tab.click({ timeout: 6000 }).catch(() => null);
-      await page.waitForTimeout(1200);
+      await safeWait(page,1200);
     }
     await scrollChargeListToLoadAllRows(page);
-    await page.waitForTimeout(800);
+    await safeWait(page,800);
   };
 
   if (rowIndex > 0) {
     await goBackToList();
-    await page.waitForTimeout(1000);
+    await safeWait(page,1000);
     for (let w = 0; w < 10; w++) {
       const c = await rowLocator.count();
       if (c > rowIndex) break;
-      await page.waitForTimeout(400);
+      await safeWait(page,400);
     }
   }
   const currentCount = await rowLocator.count();
@@ -315,7 +334,7 @@ async function tryCancelOneRow(
   }
   const row = rowLocator.nth(rowIndex);
   await row.scrollIntoViewIfNeeded().catch(() => null);
-  await page.waitForTimeout(500);
+  await safeWait(page,500);
   if (!(await row.isVisible().catch(() => false))) {
     console.log("[KPA-085 tryCancelOneRow] no_row: 행 인덱스", rowIndex, "미노출");
     return "no_row";
@@ -331,7 +350,7 @@ async function tryCancelOneRow(
   } else {
     await row.click({ timeout: 10000, force: true });
   }
-  await page.waitForTimeout(1200);
+  await safeWait(page,1200);
 
   const popupPromise = page.waitForEvent("popup", { timeout: 12000 }).catch(() => null);
 
@@ -355,7 +374,7 @@ async function tryCancelOneRow(
     (page as any).__ticketPopup = popup;
     await popup.getByText(/이용권\s*내역|대여권|소장권/).first().waitFor({ state: "visible", timeout: 8000 }).catch(() => null);
   }
-  await page.waitForTimeout(1500);
+  await safeWait(page,1500);
 
   const scope = await getTicketScope(page);
   const clickTypeInScope = async () => {
@@ -384,7 +403,7 @@ async function tryCancelOneRow(
     }
   };
   await clickTypeInScope();
-  await page.waitForTimeout(2200);
+  await safeWait(page,2200);
 
   const scope2 = await getTicketScope(page);
   const scope2Page = typeof (scope2 as any).evaluate === "function" ? scope2 : page;
@@ -400,7 +419,7 @@ async function tryCancelOneRow(
   if (!hasCancelBtn) {
     for (let round = 0; round < 12; round++) {
       await scrollDetailToBottom();
-      await page.waitForTimeout(350);
+      await safeWait(page,350);
       cancelBtn = scope2.getByRole("button", { name: /구매\s*취소\s*하기|구매\s*취소|구매취소하기|구매취소/ }).first();
       hasCancelBtn = (await cancelBtn.count()) > 0 && (await cancelBtn.isVisible({ timeout: 1500 }).catch(() => false));
       if (hasCancelBtn) break;
@@ -408,6 +427,12 @@ async function tryCancelOneRow(
       hasCancelBtn = (await cancelBtn.count()) > 0 && (await cancelBtn.isVisible({ timeout: 1500 }).catch(() => false));
       if (hasCancelBtn) break;
       cancelBtn = scope2.locator('button, a, [role="button"]').filter({ hasText: /구매\s*취소|구매취소/ }).first();
+      hasCancelBtn = (await cancelBtn.count()) > 0 && (await cancelBtn.isVisible({ timeout: 1500 }).catch(() => false));
+      if (hasCancelBtn) break;
+      cancelBtn = scope2.getByText(/취소\s*하기|취소하기/).first();
+      hasCancelBtn = (await cancelBtn.count()) > 0 && (await cancelBtn.isVisible({ timeout: 1500 }).catch(() => false));
+      if (hasCancelBtn) break;
+      cancelBtn = scope2.locator('button, a, [role="button"]').filter({ hasText: /취소/ }).first();
       hasCancelBtn = (await cancelBtn.count()) > 0 && (await cancelBtn.isVisible({ timeout: 1500 }).catch(() => false));
       if (hasCancelBtn) break;
     }
@@ -423,16 +448,16 @@ async function tryCancelOneRow(
     const list = document.querySelector('[class*="scroll"], [class*="content"], body');
     if (list && (list as HTMLElement).scrollHeight > (list as HTMLElement).clientHeight) (list as HTMLElement).scrollTop = (list as HTMLElement).scrollHeight;
   }).catch(() => null);
-  await page.waitForTimeout(500);
+  await safeWait(page,500);
   await cancelBtn.scrollIntoViewIfNeeded().catch(() => null);
   await cancelBtn.click({ timeout: 8000, force: true });
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
 
   const confirmBtn = scope2.getByRole("button", { name: /확인/ }).first();
   if ((await confirmBtn.count()) > 0 && (await confirmBtn.isVisible().catch(() => false))) await confirmBtn.click({ timeout: 6000 });
-  await page.waitForTimeout(TOAST_WAIT_MS);
+  await safeWait(page,TOAST_WAIT_MS);
 
-  const toastPattern = /이용권.*취소\s*되었습니다|소장권.*취소\s*되었습니다|취소\s*되었습니다|취소되었습니다/;
+  const toastPattern = /대여권.*취소\s*되었습니다|이용권.*취소\s*되었습니다|소장권.*취소\s*되었습니다|취소\s*되었습니다|취소되었습니다/;
   const checkToast = async (target: any) => (await target.getByText(toastPattern).count()) > 0 && (await target.getByText(toastPattern).first().isVisible().catch(() => false));
   let toastVisible = await checkToast(scope2) || await checkToast(page);
   if (!toastVisible && (page as any).__ticketPopup && typeof (page as any).__ticketPopup.isClosed === "function" && !(page as any).__ticketPopup.isClosed()) {
@@ -452,27 +477,33 @@ async function tryCancelOneRow(
 }
 
 async function scrollChargeListToLoadAllRows(page: any) {
-  for (let s = 0; s < 25; s++) {
-    await page.evaluate(() => {
-      const list = document.querySelector('[class*="list"], [class*="overflow-auto"], [class*="overflow-y"], [class*="Scroll"], [class*="scroll"]');
-      if (list && (list as HTMLElement).scrollHeight > (list as HTMLElement).clientHeight) {
-        (list as HTMLElement).scrollTop = (list as HTMLElement).scrollHeight;
-      }
-      window.scrollBy(0, 150);
-    }).catch(() => null);
-    await page.waitForTimeout(400);
+  const maxScroll = 15;
+  for (let s = 0; s < maxScroll; s++) {
+    try {
+      if (typeof page?.isClosed === "function" && page.isClosed()) return;
+      await page.evaluate(() => {
+        const list = document.querySelector('[class*="list"], [class*="overflow-auto"], [class*="overflow-y"], [class*="Scroll"], [class*="scroll"]');
+        if (list && (list as HTMLElement).scrollHeight > (list as HTMLElement).clientHeight) {
+          (list as HTMLElement).scrollTop = (list as HTMLElement).scrollHeight;
+        }
+        window.scrollBy(0, 150);
+      }).catch(() => null);
+    } catch {
+      return;
+    }
+    await safeWait(page, 300);
   }
 }
 
 And("충전 내역에서 취소 가능한 대여권을 찾아 취소한다", async ({ page }) => {
   (page as any).__kpa085Cancelled = false;
   (page as any).__kpa085NoCancellable = false;
-  await page.waitForTimeout(600);
+  await safeWait(page,600);
   const rechargeTab = page.getByRole("tab", { name: /충전\s*내역/i }).or(page.getByText(/충전\s*내역/).first());
   if ((await rechargeTab.count()) > 0 && (await rechargeTab.isVisible().catch(() => false))) await rechargeTab.click({ timeout: 6000 }).catch(() => null);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   await scrollChargeListToLoadAllRows(page);
-  await page.waitForTimeout(500);
+  await safeWait(page,500);
   const linkRows = page
     .locator('a[href*="content"], a[href*="ticket"]')
     .filter({ hasText: /대여권\s*[1-9]\d*\s*장/ })
@@ -515,12 +546,12 @@ And("충전 내역에서 취소 가능한 대여권을 찾아 취소한다", asy
 And("충전 내역에서 취소 가능한 소장권을 찾아 취소한다", async ({ page }) => {
   (page as any).__kpa085Cancelled = false;
   (page as any).__kpa085NoCancellable = false;
-  await page.waitForTimeout(600);
+  await safeWait(page,600);
   const rechargeTab = page.getByRole("tab", { name: /충전\s*내역/i }).or(page.getByText(/충전\s*내역/).first());
   if ((await rechargeTab.count()) > 0 && (await rechargeTab.isVisible().catch(() => false))) await rechargeTab.click({ timeout: 6000 }).catch(() => null);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   await scrollChargeListToLoadAllRows(page);
-  await page.waitForTimeout(500);
+  await safeWait(page,500);
   const linkRows = page
     .locator('a[href*="content"], a[href*="ticket"]')
     .filter({ hasText: /소장권\s*[1-9]\d*\s*장/ })
@@ -579,7 +610,7 @@ async function getTicketScope(page: any): Promise<any> {
     await first.waitFor({ state: "visible", timeout: 5000 }).catch(() => null);
     if ((await first.count()) > 0 && (await first.isVisible().catch(() => false))) return first;
   }
-  await page.waitForTimeout(1500);
+  await safeWait(page,1500);
   try {
     await page.waitForFunction(() => /history\/ticket/.test(window.location.pathname || ""), { timeout: 3000 }).catch(() => null);
   } catch {
@@ -591,7 +622,7 @@ async function getTicketScope(page: any): Promise<any> {
 
 And("이용권 내역 팝업창에서 구매를 취소할 대여권 타입을 클릭한다", async ({ page }) => {
   const scope = await getTicketScope(page);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   const isPage = typeof (scope as any).url === "function";
   if (isPage) {
     const done = await scope.evaluate(() => {
@@ -619,7 +650,7 @@ And("이용권 내역 팝업창에서 구매를 취소할 대여권 타입을 �
       }
       return false;
     });
-    if (done) { await page.waitForTimeout(1500); return; }
+    if (done) { await safeWait(page,1500); return; }
   } else {
     const el = await scope.first().elementHandle().catch(() => null);
     if (el) {
@@ -648,16 +679,16 @@ And("이용권 내역 팝업창에서 구매를 취소할 대여권 타입을 �
         }
         return false;
       });
-      if (done) { await page.waitForTimeout(1500); return; }
+      if (done) { await safeWait(page,1500); return; }
     }
   }
   const rowWith대여권 = scope.locator('[class*="item"], [class*="row"], [class*="Row"]').filter({ hasText: /대여권/ }).filter({ hasText: /[1-9]\d*\s*장/ }).filter({ hasNotText: /대여\s*완료|취소\s*완료|무료/ }).filter({ hasNotText: /구매\s*취소(?!\s*하기)/ });
   const clickableInRow = rowWith대여권.locator('div[class*="cursor-pointer"]').filter({ hasText: /[1-9]\d*\s*장/ }).first();
   if ((await clickableInRow.count()) > 0 && (await clickableInRow.isVisible().catch(() => false))) {
     await clickableInRow.scrollIntoViewIfNeeded().catch(() => null);
-    await page.waitForTimeout(400);
+    await safeWait(page,400);
     await clickableInRow.click({ timeout: 15000, force: true });
-    await page.waitForTimeout(1500);
+    await safeWait(page,1500);
     return;
   }
   const fallback = scope.locator('div').filter({ hasText: /대여권/ }).filter({ hasText: /[1-9]\d*\s*장/ }).filter({ hasNotText: /대여\s*완료|취소\s*완료|구매\s*취소(?!\s*하기)/ }).first();
@@ -665,7 +696,7 @@ And("이용권 내역 팝업창에서 구매를 취소할 대여권 타입을 �
     const inner = fallback.locator('div[class*="cursor-pointer"]').first();
     if ((await inner.count()) > 0) await inner.click({ timeout: 15000, force: true });
     else await fallback.click({ timeout: 15000, force: true });
-    await page.waitForTimeout(1500);
+    await safeWait(page,1500);
     return;
   }
   throw new Error("구매 취소 가능한 대여권 행을 찾을 수 없습니다. '구매 취소'로 표기된(이미 취소된) 행은 제외됩니다.");
@@ -673,7 +704,7 @@ And("이용권 내역 팝업창에서 구매를 취소할 대여권 타입을 �
 
 And("이용권 내역 팝업창에서 구매를 취소할 소장권 타입을 클릭한다", async ({ page }) => {
   const scope = await getTicketScope(page);
-  await page.waitForTimeout(800);
+  await safeWait(page,800);
   const isPage = typeof (scope as any).url === "function";
   if (isPage) {
     const done = await scope.evaluate(() => {
@@ -701,7 +732,7 @@ And("이용권 내역 팝업창에서 구매를 취소할 소장권 타입을 �
       }
       return false;
     });
-    if (done) { await page.waitForTimeout(1500); return; }
+    if (done) { await safeWait(page,1500); return; }
   } else {
     const el = await scope.first().elementHandle().catch(() => null);
     if (el) {
@@ -730,16 +761,16 @@ And("이용권 내역 팝업창에서 구매를 취소할 소장권 타입을 �
         }
         return false;
       });
-      if (done) { await page.waitForTimeout(1500); return; }
+      if (done) { await safeWait(page,1500); return; }
     }
   }
   const row소장권 = scope.locator('[class*="item"], [class*="row"], [class*="Row"]').filter({ hasText: /소장권/ }).filter({ hasText: /[1-9]\d*\s*장/ }).filter({ hasNotText: /취소\s*완료|취소완료|무료/ }).filter({ hasNotText: /구매\s*취소(?!\s*하기)/ });
   const inner소장 = row소장권.locator('div[class*="cursor-pointer"]').filter({ hasText: /[1-9]\d*\s*장/ }).first();
   if ((await inner소장.count()) > 0 && (await inner소장.isVisible().catch(() => false))) {
     await inner소장.scrollIntoViewIfNeeded().catch(() => null);
-    await page.waitForTimeout(400);
+    await safeWait(page,400);
     await inner소장.click({ timeout: 15000, force: true });
-    await page.waitForTimeout(1500);
+    await safeWait(page,1500);
     return;
   }
   const fallback = scope.locator('div').filter({ hasText: /소장권/ }).filter({ hasText: /[1-9]\d*\s*장/ }).filter({ hasNotText: /무료|취소완료|구매\s*취소(?!\s*하기)/ }).first();
@@ -747,7 +778,7 @@ And("이용권 내역 팝업창에서 구매를 취소할 소장권 타입을 �
     const inner = fallback.locator('div[class*="cursor-pointer"]').first();
     if ((await inner.count()) > 0) await inner.click({ timeout: 15000, force: true });
     else await fallback.click({ timeout: 15000, force: true });
-    await page.waitForTimeout(1500);
+    await safeWait(page,1500);
     return;
   }
   throw new Error("구매 취소 가능한 소장권 행을 찾을 수 없습니다. '구매 취소'로 표기된(이미 취소된) 행은 제외됩니다.");
@@ -755,7 +786,7 @@ And("이용권 내역 팝업창에서 구매를 취소할 소장권 타입을 �
 
 And("이용권 내역 상세 팝업창에서 스크롤 다운 후 구매 취소하기 버튼을 클릭한다", async ({ page }) => {
   const scope = await getTicketScope(page);
-  await page.waitForTimeout(1500);
+  await safeWait(page,1500);
   const isPage = typeof (scope as any).url === "function";
   const waitForDetailView = async () => {
     if (isPage) {
@@ -769,8 +800,8 @@ And("이용권 내역 상세 팝업창에서 스크롤 다운 후 구매 취소�
       }
     }
     const hasDetail = (await scope.getByText(/이용권\s*내역\s*상세|취소\s*가능한\s*이용권\s*수|취소\s*가능한\s*캐시/).count()) > 0;
-    if (hasDetail) await page.waitForTimeout(500);
-    await page.waitForTimeout(1200);
+    if (hasDetail) await safeWait(page,500);
+    await safeWait(page,1200);
   };
   await waitForDetailView();
 
@@ -840,14 +871,14 @@ And("이용권 내역 상세 팝업창에서 스크롤 다운 후 구매 취소�
   for (let round = 0; round < 35 && !clicked; round++) {
     await scrollToBottom();
     for (let s = 0; s < 3; s++) await scrollIncremental();
-    await page.waitForTimeout(400);
+    await safeWait(page,400);
     for (const getLocator of cancelSelectors) {
       const btn = getLocator();
       if ((await btn.count()) > 0) {
         const first = btn.first();
         if (await first.isVisible().catch(() => false)) {
           await first.scrollIntoViewIfNeeded();
-          await page.waitForTimeout(200);
+          await safeWait(page,200);
           await first.click({ timeout: 8000, force: true });
           clicked = true;
           break;
@@ -901,34 +932,34 @@ And("이용권 내역 상세 팝업창에서 스크롤 다운 후 구매 취소�
 
   if (!clicked) {
     await scrollToBottom();
-    await page.waitForTimeout(500);
+    await safeWait(page,500);
     clicked = await tryEvalClick();
   }
 
   if (!clicked) {
     throw new Error("구매 취소하기 버튼을 찾을 수 없습니다. 이용권 내역 상세 팝업에서 화면 하단으로 스크롤한 뒤 '구매 취소' 버튼이 노출되는지 확인하세요.");
   }
-  await page.waitForTimeout(500);
+  await safeWait(page,500);
 });
 
 And("이용권을 취소 하시겠습니까? 메세지 팝업에서 확인 버튼을 클릭한다", async ({ page }) => {
   const scope = await getTicketScope(page);
-  await page.waitForTimeout(600);
+  await safeWait(page,600);
   const confirm = scope.getByRole("button", { name: "확인" }).or(scope.getByRole("button", { name: /^확인$/ })).first();
   if ((await confirm.count()) > 0 && (await confirm.isVisible().catch(() => false))) await confirm.click({ timeout: 8000 });
-  await page.waitForTimeout(500);
+  await safeWait(page,500);
 });
 
 Then("이용권 또는 소장권이 취소 되었습니다. 토스트 메세지가 노출되는 걸 확인한다", async ({ page }) => {
   if ((page as any).__kpa085NoCancellable === true) {
-    expect(true).toBe(true);
+    test.skip(true, "취소 가능한 이용권이 없어 토스트 검증을 수행할 수 없음");
     return;
   }
   const toastPattern = /이용권.*취소\s*되었습니다|소장권.*취소\s*되었습니다|취소\s*되었습니다|취소되었습니다/;
   const checkToast = async (target: any) => (await target.getByText(toastPattern).count()) > 0 && (await target.getByText(toastPattern).first().isVisible().catch(() => false));
   let visible = false;
   for (let wait = 0; wait < 8 && !visible; wait++) {
-    await page.waitForTimeout(wait === 0 ? 1200 : 800);
+    await safeWait(page,wait === 0 ? 1200 : 800);
     const scope = await getTicketScope(page).catch(() => page);
     visible = await checkToast(scope) || await checkToast(page);
     if (!visible && (page as any).__ticketPopup && typeof (page as any).__ticketPopup.getByText === "function") {
@@ -950,8 +981,8 @@ And("이용권 내역 상세 팝업 우측 상단의 닫기 버튼을 클릭한�
     return;
   }
   const scope = await getTicketScope(page);
-  await page.waitForTimeout(400);
+  await safeWait(page,400);
   const closeBtn = scope.getByRole("button", { name: "닫기" }).or(scope.getByRole("button", { name: /닫기/ })).first();
   if ((await closeBtn.count()) > 0 && (await closeBtn.isVisible().catch(() => false))) await closeBtn.click({ timeout: 6000 });
-  await page.waitForTimeout(300);
+  await safeWait(page,300);
 });

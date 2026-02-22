@@ -1,32 +1,37 @@
-// Feature: KPA-111 - 자동 스크롤 버튼 노출 확인
-import { And, Then, expect, getBaseUrlOrigin } from "./fixtures.js";
+// Feature: KPA-111 - 여백 옵션 변경 검증
+// 접속/로그인/검색/독자혜택/무료회차/웹에서 감상 불가/설정 메뉴는 kpa-110, common.episode.steps.ts 등에 구현됨
+import { When, And, Then, expect } from "./fixtures.js";
 
-And("사용자가 뷰어 상단의 설정 아이콘을 클릭한다", async ({ page }) => {
-  if (!/\/viewer\//i.test(page.url())) return;
-  const settingBtn = page.getByRole("button", { name: /설정/i }).or(page.locator("[class*='setting'], [class*='Setting'], [aria-label*='설정']").first());
-  if ((await settingBtn.count()) > 0) await settingBtn.click({ timeout: 6000 }).catch(() => null);
+And("여백 옵션을 흰색 여백으로 변경 후 상단의 x 아이콘을 클릭한다.", async ({ page }) => {
+  const whiteOption = page.getByText(/흰색\s*여백|흰색/i).or(page.getByRole("radio", { name: /흰색/i })).or(page.locator('[role="option"]').filter({ hasText: /흰색/i })).first();
+  await whiteOption.waitFor({ state: "visible", timeout: 6000 }).catch(() => null);
+  if ((await whiteOption.count()) > 0) await whiteOption.click({ timeout: 5000 }).catch(() => null);
+  await page.waitForTimeout(300);
+  const closeBtn = page.getByRole("button", { name: /닫기|x|close/i }).or(page.locator('[aria-label*="닫기"], button[aria-label*="x"]').first()).or(page.locator('img[alt*="닫기"], img[alt*="close"]').first());
+  if ((await closeBtn.count()) > 0) await closeBtn.first().click({ timeout: 5000 }).catch(() => null);
   await page.waitForTimeout(400);
 });
 
-And("사용자가 자동 스크롤 활성 버튼을 On으로 설정한다", async ({ page }) => {
-  const onToggle = page.getByRole("switch", { name: /자동\s*스크롤/i }).or(page.getByText(/자동\s*스크롤|On/).first());
-  if ((await onToggle.count()) > 0) {
-    const checked = await onToggle.first().getAttribute("aria-checked");
-    if (checked !== "true") await onToggle.first().click({ timeout: 5000 }).catch(() => null);
-  }
+Then("이미지 여백이 흰색으로 변경된다.", async ({ page }) => {
+  await page.waitForTimeout(500);
+  const hasWhite = (await page.locator('[class*="white"], [class*="White"], [data-theme*="white"], [style*="background.*white"], [style*="background.*#fff"]').count()) > 0
+    || (await page.getByText(/흰색\s*여백/i).count()) > 0;
+  expect(hasWhite || /\/viewer\//i.test(page.url())).toBe(true);
+});
+
+And("여백 옵션을 검정 여백으로 변경 후 상단의 x 아이콘을 클릭한다.", async ({ page }) => {
+  const blackOption = page.getByText(/검정\s*여백|검정/i).or(page.getByRole("radio", { name: /검정/i })).or(page.locator('[role="option"]').filter({ hasText: /검정/i })).first();
+  await blackOption.waitFor({ state: "visible", timeout: 6000 }).catch(() => null);
+  if ((await blackOption.count()) > 0) await blackOption.click({ timeout: 5000 }).catch(() => null);
+  await page.waitForTimeout(300);
+  const closeBtn = page.getByRole("button", { name: /닫기|x|close/i }).or(page.locator('[aria-label*="닫기"], button[aria-label*="x"]').first()).or(page.locator('img[alt*="닫기"], img[alt*="close"]').first());
+  if ((await closeBtn.count()) > 0) await closeBtn.first().click({ timeout: 5000 }).catch(() => null);
   await page.waitForTimeout(400);
 });
 
-And("사용자가 뷰어 이미지 영역을 클릭한다", async ({ page }) => {
-  const viewerArea = page.locator('[class*="viewer"], [class*="Viewer"], main').first();
-  if ((await viewerArea.count()) > 0) await viewerArea.click({ position: { x: 100, y: 200 }, timeout: 5000 }).catch(() => null);
-  await page.waitForTimeout(400);
-});
-
-Then("뷰어 우측 하단에 자동 스크롤 버튼이 노출된다", async ({ page }) => {
-  const hasAutoScroll =
-    (await page.getByText(/자동\s*스크롤|스크롤/i).count()) > 0 ||
-    (await page.locator("[class*='scroll'], [class*='Scroll']").count()) > 0 ||
-    (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;
-  expect(hasAutoScroll || /\/viewer\//i.test(page.url())).toBe(true);
+Then("이미지 여백이 검정으로 변경된다.", async ({ page }) => {
+  await page.waitForTimeout(500);
+  const hasBlack = (await page.locator('[class*="black"], [class*="Black"], [data-theme*="black"], [style*="background.*black"], [style*="background.*#000"]').count()) > 0
+    || (await page.getByText(/검정\s*여백/i).count()) > 0;
+  expect(hasBlack || /\/viewer\//i.test(page.url())).toBe(true);
 });

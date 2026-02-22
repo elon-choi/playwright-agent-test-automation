@@ -2,7 +2,7 @@
 // Scenario: 검색 기능 및 작품 상세 페이지 이동 검증
 import { When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
 
-When("사용자가 웹 페이지에 진입하여 우 상단의 검색 아이콘을 클릭한다", async ({ page }) => {
+When("사용자가 웹 페이지에 진입하여 우 상단의 {string} 아이콘을 클릭한다", async ({ page }, iconName: string) => {
   await page.waitForLoadState("domcontentloaded").catch(() => null);
   await page.waitForTimeout(400);
   const searchIcon = page.getByRole("button", { name: /검색/i })

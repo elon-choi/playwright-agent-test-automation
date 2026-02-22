@@ -1,7 +1,6 @@
-// Feature: KPA-051 시나리오 검증
-import { When, Then, And, expect } from "./fixtures.js";
-
-And("운영중인 배너가 3개 이상 존재한다", async () => {});
+// Feature: KPA-051 시나리오 검증 - 운영중인 배너의 동작 및 노출 (웹툰 GNB)
+// 배너 화살표/저장 클릭/이동 확인/운영 배너 노출 스텝은 kpa-048.steps.ts 공유
+import { When, And, expect } from "./fixtures.js";
 
 When("사용자가 웹 페이지에 진입한 후 상단의 웹툰 GNB 메뉴를 클릭한다", async ({ page }) => {
   await page.waitForTimeout(400);
@@ -12,6 +11,7 @@ When("사용자가 웹 페이지에 진입한 후 상단의 웹툰 GNB 메뉴를
 
 And("배너는 다음 요소로 구성되어 있다:", async ({ page }) => {
   await page.waitForTimeout(400);
-  const hasContent = await page.locator('img').count() > 0 || await page.getByText(/배너|타이틀|뱃지/i).count() > 0;
-  expect(hasContent).toBe(true);
+  const hasImg = (await page.locator('img').count()) > 0;
+  const hasText = (await page.getByText(/배너|타이틀|뱃지|메인타이틀|서브타이틀/i).count()) > 0;
+  expect(hasImg || hasText).toBe(true);
 });

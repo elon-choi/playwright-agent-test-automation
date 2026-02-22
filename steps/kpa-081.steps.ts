@@ -75,74 +75,72 @@ And("사용자가 좌측 작품 정보 영역 이미지 하단의 충전 버튼�
 
 And("이용권 충전 페이지에서 \"대여권 충전\" 영역의 첫번째 n00캐시 버튼을 클릭한다.", async ({ page }) => {
   await page.waitForTimeout(800);
-  const section = page.getByText(/대여권\s*충전/i).first().locator("..").locator("..");
-  await section.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
+  const 대여권텍스트 = page.getByText(/대여권\s*충전/i).first();
+  await 대여권텍스트.scrollIntoViewIfNeeded().catch(() => null);
   await page.waitForTimeout(300);
-  const firstPriceBtn = section
-    .getByRole("button", { name: /\d+캐시|\d+원/ })
-    .or(section.locator("button").filter({ hasText: /\d+/ }).first())
-    .or(section.locator("[role='button']").filter({ hasText: /\d+/ }).first())
-    .first();
-  if ((await firstPriceBtn.count()) > 0) {
-    await firstPriceBtn.click({ timeout: 8000 }).catch(() => firstPriceBtn.evaluate((e: HTMLElement) => e.click()));
-    await page.waitForTimeout(400);
-    return;
-  }
-  const byText = page.getByText(/\d+\s*캐시|\d+캐시/).first();
-  if ((await byText.count()) > 0 && (await byText.isVisible().catch(() => false))) {
-    await byText.click({ timeout: 8000 }).catch(() => byText.evaluate((e: HTMLElement) => e.click()));
-  } else {
-    const anyClickable = page.locator("[role='button'], button, a").filter({ hasText: /\d+|캐시/ }).first();
-    if ((await anyClickable.count()) > 0) {
-      await anyClickable.click({ timeout: 8000 });
+  let section = 대여권텍스트.locator("..");
+  for (let i = 0; i < 6; i++) {
+    const firstPriceBtn = section
+      .getByRole("button", { name: /\d+캐시|\d+원/ })
+      .or(section.locator("button").filter({ hasText: /\d+캐시/ }))
+      .first();
+    if ((await firstPriceBtn.count()) > 0 && (await firstPriceBtn.isVisible().catch(() => false))) {
+      await firstPriceBtn.click({ timeout: 8000 }).catch(() => firstPriceBtn.evaluate((e: HTMLElement) => e.click()));
+      await page.waitForTimeout(400);
+      return;
     }
+    const byText = section.getByText(/\d+\s*캐시|\d+캐시/).first();
+    if ((await byText.count()) > 0 && (await byText.isVisible().catch(() => false))) {
+      await byText.click({ timeout: 8000 }).catch(() => byText.evaluate((e: HTMLElement) => e.click()));
+      await page.waitForTimeout(400);
+      return;
+    }
+    section = section.locator("..");
+  }
+  const fallback = page.getByText(/대여권\s*충전/i).locator("..").locator("..").locator("..").locator("..").locator("button").filter({ hasText: /\d+캐시/ }).first();
+  if ((await fallback.count()) > 0) {
+    await fallback.click({ timeout: 8000 });
+  } else {
+    throw new Error("대여권 충전 영역에서 가격 버튼을 찾지 못했습니다. 소장권 영역이 아닌 대여권 충전 섹션을 사용해야 합니다.");
   }
   await page.waitForTimeout(400);
 });
 
 And("대여권 1장이 기본 선택된 상태에서 하단의 \"충전하기\" 버튼을 클릭한다.", async ({ page }) => {
   await page.waitForTimeout(500);
-  await page.evaluate(() => {
-    const el = document.scrollingElement || document.documentElement;
-    el.scrollTop = el.scrollHeight;
-  });
-  await page.waitForTimeout(800);
-  const 충전하기만 = page.getByRole("button", { name: /^충전하기$/ }).or(page.getByText(/^충전하기$/)).first();
-  if ((await 충전하기만.count()) > 0) {
-    await 충전하기만.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
-    await page.waitForTimeout(300);
-    await 충전하기만.click({ timeout: 8000 }).catch(() => 충전하기만.evaluate((e: HTMLElement) => e.click()));
-    await page.waitForTimeout(1000);
-    return;
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(400);
+  const candidates = [
+    page.getByRole("button", { name: /충전하기|결제하기|구매하기|이용권\s*구매/i }),
+    page.getByText(/충전하기|결제하기|구매하기|이용권\s*구매/),
+    page.locator("button").filter({ hasText: /충전하기|결제|구매하기/ }),
+    page.locator("[role='button']").filter({ hasText: /충전하기|결제|구매/ })
+  ];
+  for (const loc of candidates) {
+    const first = loc.first();
+    if ((await first.count()) > 0) {
+      await first.scrollIntoViewIfNeeded().catch(() => null);
+      await page.waitForTimeout(200);
+      if (await first.isVisible().catch(() => false)) {
+        await first.click({ timeout: 8000 });
+        await page.waitForTimeout(800);
+        return;
+      }
+    }
   }
-  const ctaLocator = page.locator("button, a, [role='button']").filter({
-    hasText: /충전하기|결제하기|캐시로\s*결제|이용권\s*구매/i
-  }).filter({ hasNot: page.locator(":scope").filter({ hasText: /한\s*번에\s*구매|\d+캐시/ }) }).first();
-  if ((await ctaLocator.count()) > 0) {
-    await ctaLocator.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
-    await page.waitForTimeout(300);
-    await ctaLocator.click({ timeout: 8000 }).catch(() => ctaLocator.evaluate((e: HTMLElement) => e.click()));
-    await page.waitForTimeout(1000);
-    return;
-  }
-  const byText = page.getByText(/충전하기|결제하기/).first();
+  const byText = page.getByText(/충전하기|구매하기/).first();
   if ((await byText.count()) > 0) {
-    await byText.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
-    await page.waitForTimeout(300);
-    await byText.click({ timeout: 6000, force: true }).catch(() => byText.evaluate((e: HTMLElement) => e.click()));
-    await page.waitForTimeout(1000);
+    await byText.scrollIntoViewIfNeeded().catch(() => null);
+    await byText.click({ timeout: 6000, force: true });
+    await page.waitForTimeout(800);
     return;
   }
-  await page.evaluate(() => {
-    const el = document.scrollingElement || document.documentElement;
-    el.scrollTop = Math.max(0, el.scrollHeight - (window.innerHeight || 600));
-  });
-  await page.waitForTimeout(500);
-  const fallback = page.getByRole("button", { name: /충전하기|결제하기/ }).first();
-  if ((await fallback.count()) > 0 && (await fallback.isVisible().catch(() => false))) {
-    await fallback.click({ timeout: 6000 });
+  const ctaButton = page.locator("button").filter({ hasText: /충전하기|구매하기|결제하기/ }).filter({ hasNot: page.locator("button").filter({ hasText: /\d+캐시/ }) }).first();
+  if ((await ctaButton.count()) > 0) {
+    await ctaButton.scrollIntoViewIfNeeded().catch(() => null);
+    await ctaButton.click({ timeout: 6000 });
   }
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(800);
 });
 
 Then("구매 완료 메시지가 화면에 다음의 요소가 표시되어야 한다.", async ({ page }, dataTable?: unknown) => {
@@ -159,8 +157,11 @@ Then("구매 완료 메시지가 화면에 다음의 요소가 표시되어야 �
   const url = page.url();
   const onPaymentPage = /kakaopay|payment|kpg|billing|pay\.|결제|toss|payco/i.test(url);
   const stillOnChargePage = /이용권\s*충전|charge|ticket/i.test(url) || await page.getByText(/이용권\s*충전|대여권\s*충전/).first().isVisible().catch(() => false);
-  if (onPaymentPage || stillOnChargePage) {
-    return;
+  if (onPaymentPage) {
+    throw new Error("결제 페이지에 머물러 있습니다. 캐시 결제 완료 후 구매 완료 메시지가 노출되어야 합니다.");
+  }
+  if (stillOnChargePage) {
+    throw new Error("이용권 충전 페이지에 머물러 있습니다. 충전하기 버튼 클릭 후 구매 완료 메시지가 노출되어야 합니다.");
   }
   await expect(completionMsg.first()).toBeVisible({ timeout: 15000 });
   const hasConfirm = await page.getByRole("button", { name: /확인/ }).first().isVisible().catch(() => false);
