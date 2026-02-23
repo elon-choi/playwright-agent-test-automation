@@ -60,21 +60,25 @@ const getLinkTitleForLog = async (linkLocator: any): Promise<string> => {
   }
 };
 
-const clickFirstAllAgeContentLink = async (page: any, scope: any): Promise<boolean> => {
+const clickFirstAllAgeContentLink = async (page: any, scope: any, filterAllAge = false): Promise<boolean> => {
   const links = await scope.locator(CONTENT_LINK_SELECTOR).all();
-  const allAgeLinks: any[] = [];
-  for (const link of links) {
-    try {
-      const ok = await isAllAgeCard(link);
-      if (ok) allAgeLinks.push(link);
-    } catch {
-      continue;
+  let candidateLinks: any[] = [];
+  if (filterAllAge) {
+    for (const link of links) {
+      try {
+        const ok = await isAllAgeCard(link);
+        if (ok) candidateLinks.push(link);
+      } catch {
+        continue;
+      }
     }
+  } else {
+    candidateLinks = links;
   }
   if (DEBUG_EPISODE_STEPS) {
-    console.log(`[episode.steps] content links=${links.length} allAge=${allAgeLinks.length}`);
+    console.log(`[episode.steps] content links=${links.length} candidateLinks=${candidateLinks.length} filterAllAge=${filterAllAge}`);
   }
-  for (const link of allAgeLinks) {
+  for (const link of candidateLinks) {
     const hasPreferred = await linkContainsText(link, PREFERRED_WEBTOON_TITLE);
     if (hasPreferred) {
       if (DEBUG_EPISODE_STEPS) console.log(`[episode.steps] click preferred: ${PREFERRED_WEBTOON_TITLE}`);
@@ -84,7 +88,7 @@ const clickFirstAllAgeContentLink = async (page: any, scope: any): Promise<boole
       return true;
     }
   }
-  for (const link of allAgeLinks) {
+  for (const link of candidateLinks) {
     const hasAvoid = await linkContainsText(link, AVOID_WEBTOON_TITLE);
     if (hasAvoid) {
       if (DEBUG_EPISODE_STEPS) {
@@ -102,16 +106,16 @@ const clickFirstAllAgeContentLink = async (page: any, scope: any): Promise<boole
     await link.click({ force: true, timeout: 10000 });
     return true;
   }
-  if (allAgeLinks.length > 0) {
-    if (DEBUG_EPISODE_STEPS) console.log(`[episode.steps] click first allAge (fallback)`);
-    await allAgeLinks[0].scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => null);
+  if (candidateLinks.length > 0) {
+    if (DEBUG_EPISODE_STEPS) console.log(`[episode.steps] click first candidate (fallback)`);
+    await candidateLinks[0].scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => null);
     await page.waitForTimeout(400);
-    await allAgeLinks[0].click({ force: true, timeout: 10000 });
+    await candidateLinks[0].click({ force: true, timeout: 10000 });
     return true;
   }
   const firstLink = scope.locator(CONTENT_LINK_SELECTOR).first();
   if ((await firstLink.count()) > 0) {
-    if (DEBUG_EPISODE_STEPS) console.log(`[episode.steps] click first content link (no allAge)`);
+    if (DEBUG_EPISODE_STEPS) console.log(`[episode.steps] click first content link (fallback)`);
     await firstLink.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => null);
     await page.waitForTimeout(400);
     await firstLink.click({ force: true, timeout: 10000 });
@@ -130,7 +134,8 @@ const waitForContentLinks = async (page: any, scope: any, timeoutMs = 12000) => 
   return 0;
 };
 
-const ensureContentPage = async (page: any) => {
+const ensureContentPage = async (page: any, options?: { filterAllAge?: boolean }) => {
+  const filterAllAge = options?.filterAllAge ?? false;
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
     return;
   }
@@ -155,7 +160,7 @@ const ensureContentPage = async (page: any) => {
     const sectionScope = sectionTitle.locator('xpath=following-sibling::*[1]');
     if (await sectionScope.count()) {
       sectionLinks = await sectionScope.locator(CONTENT_LINK_SELECTOR).count();
-      const clicked = await clickFirstAllAgeContentLink(page, sectionScope);
+      const clicked = await clickFirstAllAgeContentLink(page, sectionScope, filterAllAge);
       if (clicked) {
         await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
         await dismissFirstTimeReaderBenefitIfPresent(page);
@@ -166,7 +171,7 @@ const ensureContentPage = async (page: any) => {
 
   if (await mainScope.count()) {
     mainLinks = await mainScope.locator(CONTENT_LINK_SELECTOR).count();
-    const clicked = await clickFirstAllAgeContentLink(page, mainScope);
+    const clicked = await clickFirstAllAgeContentLink(page, mainScope, filterAllAge);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       await dismissFirstTimeReaderBenefitIfPresent(page);
@@ -175,7 +180,7 @@ const ensureContentPage = async (page: any) => {
   }
   const fullPageLinks = await page.locator(CONTENT_LINK_SELECTOR).count();
   if (fullPageLinks > 0) {
-    const clicked = await clickFirstAllAgeContentLink(page, page);
+    const clicked = await clickFirstAllAgeContentLink(page, page, filterAllAge);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       await dismissFirstTimeReaderBenefitIfPresent(page);
@@ -184,13 +189,16 @@ const ensureContentPage = async (page: any) => {
   }
   const url = page.url();
   console.log(`[episode.steps] ensureContentPage FAIL url=${url} sectionLinks=${sectionLinks} mainLinks=${mainLinks} fullPageLinks=${fullPageLinks}`);
-  throw new Error("전체 연령 작품 상세 페이지로 이동하지 못했습니다. 19세 뱃지가 없는 작품을 선택해 주세요.");
+  throw new Error(filterAllAge
+    ? "전체 연령 작품 상세 페이지로 이동하지 못했습니다. 19세 뱃지가 없는 작품을 선택해 주세요."
+    : "콘텐츠 상세 페이지로 이동하지 못했습니다.");
 };
 
 const WEBTOON_RANKING_SCREEN_PATH = "/menu/10010/screen/93";
 const RANKING_TAB_NAME = /실시간\s*랭킹/;
 
-const ensureWebtoonContentPage = async (page: any) => {
+const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: boolean }) => {
+  const filterAllAge = options?.filterAllAge ?? false;
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
     return;
   }
@@ -231,7 +239,7 @@ const ensureWebtoonContentPage = async (page: any) => {
   await waitForContentLinks(page, mainScope, 10000);
   const linkCount = await mainScope.locator(CONTENT_LINK_SELECTOR).count();
   if (linkCount > 0) {
-    const clicked = await clickFirstAllAgeContentLink(page, mainScope);
+    const clicked = await clickFirstAllAgeContentLink(page, mainScope, filterAllAge);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
@@ -251,7 +259,7 @@ const ensureWebtoonContentPage = async (page: any) => {
     const sectionScope = sectionTitle.locator('xpath=following-sibling::*[1]');
     if (await sectionScope.count()) {
       sectionLinks = await sectionScope.locator(CONTENT_LINK_SELECTOR).count();
-      const clicked = await clickFirstAllAgeContentLink(page, sectionScope);
+      const clicked = await clickFirstAllAgeContentLink(page, sectionScope, filterAllAge);
       if (clicked) {
         await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
         return;
@@ -260,7 +268,7 @@ const ensureWebtoonContentPage = async (page: any) => {
   }
   if (await mainScope.count()) {
     mainLinks = await mainScope.locator(CONTENT_LINK_SELECTOR).count();
-    const clicked = await clickFirstAllAgeContentLink(page, mainScope);
+    const clicked = await clickFirstAllAgeContentLink(page, mainScope, filterAllAge);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
@@ -268,14 +276,16 @@ const ensureWebtoonContentPage = async (page: any) => {
   }
   const fullPageLinks = await page.locator(CONTENT_LINK_SELECTOR).count();
   if (fullPageLinks > 0) {
-    const clicked = await clickFirstAllAgeContentLink(page, page);
+    const clicked = await clickFirstAllAgeContentLink(page, page, filterAllAge);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
     }
   }
   console.log(`[episode.steps] ensureWebtoonContentPage FAIL url=${page.url()} sectionLinks=${sectionLinks} mainLinks=${mainLinks} fullPageLinks=${fullPageLinks}`);
-  throw new Error("웹툰 전체 연령 작품 상세 페이지로 이동하지 못했습니다. 19세 뱃지가 없는 웹툰 작품을 선택해 주세요.");
+  throw new Error(filterAllAge
+    ? "웹툰 전체 연령 작품 상세 페이지로 이동하지 못했습니다. 19세 뱃지가 없는 웹툰 작품을 선택해 주세요."
+    : "웹툰 콘텐츠 상세 페이지로 이동하지 못했습니다.");
 };
 
 Given("사용자가 특정 작품홈에 진입한다", async ({ page }) => {
@@ -286,6 +296,18 @@ Given("사용자가 특정 작품홈에 진입한다", async ({ page }) => {
   }
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
+  }
+  await dismissFirstTimeReaderBenefitIfPresent(page);
+});
+
+Given("사용자가 전체 연령만 특정 작품홈에 진입한다", async ({ page }) => {
+  const url = page.url();
+  if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
+    await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.waitForTimeout(300);
+  }
+  if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
+    await ensureContentPage(page, { filterAllAge: true });
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
 });
@@ -330,11 +352,17 @@ And("사용자가 홈 탭 하단의 회차 리스트를 확인한다", async ({ 
       if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
         await ensureContentPage(page);
       }
-      const episodeTabCandidates = [
-        page.getByRole("tab", { name: /회차/i }),
-        page.getByRole("link", { name: /회차/i }),
-        page.getByRole("button", { name: /회차/i })
-      ];
+      const isOnContentPage = /\/content\/|\/landing\/series\//i.test(page.url());
+      const episodeTabCandidates = isOnContentPage
+        ? [
+            page.getByRole("tab", { name: /회차/i }),
+            page.getByRole("button", { name: /회차/i })
+          ]
+        : [
+            page.getByRole("tab", { name: /회차/i }),
+            page.getByRole("link", { name: /회차/i }),
+            page.getByRole("button", { name: /회차/i })
+          ];
       for (const locator of episodeTabCandidates) {
         if (await locator.count()) {
           await locator.first().click({ force: true });
@@ -369,6 +397,46 @@ When("사용자가 정렬 메뉴를 클릭한다", async ({ page, ai }) => {
         }
       }
       throw new Error("정렬 메뉴를 찾지 못했습니다.");
+    },
+    "회차 정렬 메뉴(첫화부터 또는 최신순)를 클릭한다",
+    ai
+  );
+});
+
+const EPISODE_SORT_SPAN_SELECTOR = 'span.font-small2-bold.text-el-40, span[class*="font-small2-bold"]';
+
+When("사용자가 회차 정렬 메뉴를 클릭한다", async ({ page, ai }) => {
+  await withAiFallback(
+    async () => {
+      const episodeSortLabel = page.locator(EPISODE_SORT_SPAN_SELECTOR).filter({ hasText: /^첫화부터$/ });
+      if (await episodeSortLabel.count() > 0) {
+        const trigger = episodeSortLabel.first().locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox' or contains(@class,'button')][1]").first();
+        if (await trigger.count() > 0) {
+          await trigger.scrollIntoViewIfNeeded().catch(() => null);
+          await page.waitForTimeout(200);
+          await trigger.click({ force: true });
+          return;
+        }
+        await episodeSortLabel.first().locator("xpath=..").click({ force: true });
+        return;
+      }
+      const sortButtons = await page.getByRole("button", { name: /첫화부터|최신순|최신\s*순|정렬/i }).all();
+      for (const btn of sortButtons) {
+        const isEpisodeSortButton = await btn.evaluate((b) => {
+          const parent = b.closest("section") || b.closest("main") || b.closest("div");
+          if (!parent) return false;
+          const hasViewerLinks = parent.querySelectorAll('a[href*="/viewer/"]').length >= 2;
+          const hasFirstEpisodeLabel = (parent.textContent || "").includes("첫화부터");
+          return hasViewerLinks && hasFirstEpisodeLabel;
+        }).catch(() => false);
+        if (isEpisodeSortButton) {
+          await btn.scrollIntoViewIfNeeded().catch(() => null);
+          await page.waitForTimeout(200);
+          await btn.click({ force: true });
+          return;
+        }
+      }
+      throw new Error("회차 정렬 메뉴를 찾지 못했습니다. span.font-small2-bold(첫화부터) 또는 회차 영역 정렬 버튼을 확인해 주세요.");
     },
     "회차 정렬 메뉴(첫화부터 또는 최신순)를 클릭한다",
     ai

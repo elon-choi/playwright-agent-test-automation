@@ -23,11 +23,12 @@ And("사용자가 이벤트 서브탭을 클릭한다", async ({ page }) => {
 });
 
 And("사용자가 이벤트 전체 보기 배너를 클릭한다", async ({ page }) => {
-  const banner = page.getByText(/이벤트\s*전체\s*보기/i).or(page.getByRole("link", { name: /이벤트\s*전체\s*보기/i }));
+  const banner = page.getByText(/이벤트\s*전체\s*보기/i).or(page.getByRole("link", { name: /이벤트\s*전체\s*보기/i })).first();
   if (await banner.count()) {
-    await banner.first().scrollIntoViewIfNeeded();
-    await page.waitForTimeout(300);
-    await banner.first().click({ timeout: 8000, force: true });
+    await banner.scrollIntoViewIfNeeded({ timeout: 8000 });
+    await banner.evaluate((el: Element) => el.scrollIntoView({ block: "center", behavior: "auto" }));
+    await page.waitForTimeout(400);
+    await banner.click({ timeout: 8000, force: true });
     await page.waitForTimeout(500);
   }
 });

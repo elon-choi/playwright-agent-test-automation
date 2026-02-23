@@ -22,8 +22,9 @@ And("사용자는 구매 이력이 없는 계정으로 로그인한다", async (
   await ensureOnWorkHome(page);
 });
 
-Then("\"구매한 회차가 없습니다.\"라는 메시지가 화면에 노출된다", async ({ page }, _param?: string) => {
-  const hasMsg = (await page.getByText(/구매한\s*회차가\s*없습니다|구매한 회차가 없습니다/i).count()) > 0;
-  const hasPurchaseTab = (await page.getByText(/구매|회차/i).count()) > 0;
-  expect(hasMsg || hasPurchaseTab).toBe(true);
+Then("\"구매한 회차가 없습니다.\"라는 메시지가 화면에 노출된다", async ({ page }) => {
+  await page.waitForTimeout(400);
+  const msgLocator = page.getByText(/구매한\s*회차가\s*없습니다|구매한 회차가 없습니다/i);
+  await expect(msgLocator.first()).toBeVisible({ timeout: 8000 });
+  expect(await msgLocator.count()).toBeGreaterThanOrEqual(1);
 });

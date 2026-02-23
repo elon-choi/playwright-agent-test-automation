@@ -453,23 +453,53 @@ async function tryCancelOneRow(
   await cancelBtn.click({ timeout: 8000, force: true });
   await safeWait(page,800);
 
-  const confirmBtn = scope2.getByRole("button", { name: /확인/ }).first();
-  if ((await confirmBtn.count()) > 0 && (await confirmBtn.isVisible().catch(() => false))) await confirmBtn.click({ timeout: 6000 });
-  await safeWait(page,TOAST_WAIT_MS);
-
   const toastPattern = /대여권.*취소\s*되었습니다|이용권.*취소\s*되었습니다|소장권.*취소\s*되었습니다|취소\s*되었습니다|취소되었습니다/;
-  const checkToast = async (target: any) => (await target.getByText(toastPattern).count()) > 0 && (await target.getByText(toastPattern).first().isVisible().catch(() => false));
-  let toastVisible = await checkToast(scope2) || await checkToast(page);
-  if (!toastVisible && (page as any).__ticketPopup && typeof (page as any).__ticketPopup.isClosed === "function" && !(page as any).__ticketPopup.isClosed()) {
-    toastVisible = await checkToast((page as any).__ticketPopup);
-  }
-  if (!toastVisible && typeof page.context === "function") {
-    for (const p of page.context().pages()) {
-      try { if (!p.isClosed() && (await checkToast(p))) { toastVisible = true; break; } } catch { /* ignore */ }
+  const checkToast = async (target: any) => {
+    try {
+      if (target && typeof target.isClosed === "function" && target.isClosed()) return false;
+      return (await target.getByText(toastPattern).count()) > 0 && (await target.getByText(toastPattern).first().isVisible().catch(() => false));
+    } catch {
+      return false;
+    }
+  };
+
+  try {
+    const scope2Closed = typeof (scope2 as any).isClosed === "function" && (scope2 as any).isClosed();
+    if (!scope2Closed) {
+      const confirmBtn = scope2.getByRole("button", { name: /확인/ }).first();
+      if ((await confirmBtn.count()) > 0 && (await confirmBtn.isVisible().catch(() => false))) await confirmBtn.click({ timeout: 6000 });
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/closed|Target page|context or browser has been closed/i.test(msg)) {
+      // 팝업/다이얼로그가 취소 클릭 후 닫혀서 scope2 사용 불가. 메인 페이지에서만 토스트 확인.
+    } else {
+      throw e;
     }
   }
+  await safeWait(page,TOAST_WAIT_MS);
+
+  let toastVisible = false;
+  try {
+    toastVisible = await checkToast(scope2) || await checkToast(page);
+  } catch {
+    toastVisible = await checkToast(page);
+  }
+  if (!toastVisible && (page as any).__ticketPopup && typeof (page as any).__ticketPopup.isClosed === "function" && !(page as any).__ticketPopup.isClosed()) {
+    try {
+      toastVisible = await checkToast((page as any).__ticketPopup);
+    } catch { /* ignore */ }
+  }
+  if (!toastVisible && typeof page.context === "function") {
+    try {
+      for (const p of page.context().pages()) {
+        if (p.isClosed()) continue;
+        if (await checkToast(p)) { toastVisible = true; break; }
+      }
+    } catch { /* ignore */ }
+  }
   if (!toastVisible) {
-    await goBackToList();
+    try { await goBackToList(); } catch { /* ignore */ }
     return "no_button";
   }
   (page as any).__kpa085Cancelled = true;

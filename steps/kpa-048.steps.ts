@@ -390,41 +390,48 @@ Then("저장된 링크 주소로 페이지가 이동하였는지 확인한다", 
   }
   const normalizedTarget = decodeURIComponent(targetBannerUrl);
   const targetUrl = new URL(normalizedTarget, page.url());
-  const targetPath = targetUrl.pathname;
+  const targetPath = targetUrl.pathname.replace(/\/$/, "") || "/";
   const navigationPatterns = /\/content\/|\/event\/|\/open\/webview\/|\/landing\/|\/menu\//i;
 
-  let currentUrlRaw = lastNavigatedUrl || page.url();
-  if (!currentUrlRaw || currentUrlRaw === new URL("/", page.url()).toString() || !navigationPatterns.test(currentUrlRaw)) {
-    await page.waitForTimeout(1500);
+  const collectCurrentUrl = (): string | null => {
     const ctx = page.context();
-    if (ctx && typeof ctx.pages === "function") {
-      for (const p of ctx.pages()) {
-        if (p.isClosed()) continue;
-        const u = p.url();
-        if (u && (u.includes(targetPath) || navigationPatterns.test(u))) {
-          currentUrlRaw = u;
-          break;
-        }
-      }
+    if (!ctx || typeof ctx.pages !== "function") return lastNavigatedUrl || page.url();
+    const urls = ctx.pages().filter((p) => !p.isClosed()).map((p) => p.url());
+    for (const u of urls) {
+      if (u && (u.includes(targetPath) || navigationPatterns.test(u))) return u;
     }
+    return urls[0] || lastNavigatedUrl || page.url();
+  };
+
+  const maxWaitMs = 10000;
+  const pollMs = 2000;
+  const deadline = Date.now() + maxWaitMs;
+  let currentUrlRaw: string | null = lastNavigatedUrl || page.url();
+  let isMatched = false;
+
+  while (Date.now() < deadline) {
+    if (!currentUrlRaw || currentUrlRaw === new URL("/", page.url()).toString() || !navigationPatterns.test(currentUrlRaw)) {
+      currentUrlRaw = collectCurrentUrl();
+    }
+    const normalizedCurrent = decodeURIComponent(currentUrlRaw || "");
+    const currentUrl = new URL(normalizedCurrent, page.url());
+    const currentPath = currentUrl.pathname.replace(/\/$/, "") || "/";
+    const isMainPage = !currentPath || currentPath === "/";
+    const allowMainAsResult = navigationPatterns.test(targetUrl.href) && isMainPage && bannerVisibleConfirmed;
+    isMatched =
+      normalizedCurrent.includes(normalizedTarget) ||
+      currentPath === targetPath ||
+      (navigationPatterns.test(currentUrl.href) && navigationPatterns.test(targetUrl.href)) ||
+      (targetUrl.pathname && currentPath.startsWith(targetUrl.pathname.replace(/\/$/, ""))) ||
+      allowMainAsResult;
+    if (isMatched) break;
+    await page.waitForTimeout(pollMs);
+    currentUrlRaw = collectCurrentUrl();
   }
-
-  const normalizedCurrent = decodeURIComponent(currentUrlRaw);
-  const currentUrl = new URL(normalizedCurrent, page.url());
-  const currentPath = currentUrl.pathname;
-  const isMainPage = !currentPath || currentPath === "/";
-  const allowMainAsResult = navigationPatterns.test(targetUrl.href) && isMainPage && bannerVisibleConfirmed;
-
-  const isMatched =
-    normalizedCurrent.includes(normalizedTarget) ||
-    currentPath === targetPath ||
-    (navigationPatterns.test(currentUrl.href) && navigationPatterns.test(targetUrl.href)) ||
-    (targetUrl.pathname && currentPath.startsWith(targetUrl.pathname)) ||
-    allowMainAsResult;
 
   if (!isMatched) {
     throw new Error(
-      `배너 이동 URL이 일치하지 않습니다. 기대: ${normalizedTarget} / 현재: ${normalizedCurrent}`
+      `배너 이동 URL이 일치하지 않습니다. 기대: ${normalizedTarget} / 현재: ${decodeURIComponent(currentUrlRaw || page.url())}`
     );
   }
 });
