@@ -1,6 +1,20 @@
 # Allure 리포트 연동 설계
 
-## 목적
+## Allure Report 구현 목적 (정리)
+
+| 목적 | 설명 |
+|------|------|
+| **실행 이력·대시보드** | "언제 몇 개 통과/실패했는지", "이전 Run과 비교"를 한 화면에서 확인 |
+| **결과 시각화** | Playwright 실행 결과를 Allure 형식으로 내보내 HTML 대시보드(스위트/케이스/스크린샷·트레이스) 제공 |
+| **로컬 확인** | `allure serve`로 실행 직후 브라우저에서 결과 확인 |
+| **CI 연동** | 매 Run마다 `allure-results` 수집 → `allure generate` → 아티팩트 업로드 또는 정적 호스팅(GitHub Pages 등) 배포 |
+| **요약 수치 공급** | `allure-results/*-result.json`을 `write-report-summary.mjs`가 읽어 Run별 총계/통과/실패/스킵/소요를 리포트 페이지에 반영 |
+
+**한 줄 요약:** 테스트 결과를 Allure 형식으로 남겨, 로컬·CI 모두에서 실행 이력과 상세 결과를 한 곳에서 보기 위함.
+
+---
+
+## 목적 (상세)
 
 - **실행 이력·대시보드**: "언제 몇 개 통과/실패했는지", "이전 실행들과 비교"를 한 페이지에서 확인
 - Playwright 실행 결과를 Allure 형식으로 내보내고, Allure Report로 HTML 대시보드 생성
