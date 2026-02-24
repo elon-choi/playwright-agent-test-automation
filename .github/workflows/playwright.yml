@@ -111,22 +111,29 @@ jobs:
           echo "date_iso=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
 
       - name: Download Playwright report
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: playwright-report
           path: playwright-report
 
       - name: Download test results
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: test-results
           path: test-results
 
       - name: Download Allure results
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: allure-results
           path: allure-results
+
+      - name: Ensure report dirs exist
+        run: |
+          mkdir -p playwright-report test-results allure-results
 
       - name: Add this run to report history
         run: |
