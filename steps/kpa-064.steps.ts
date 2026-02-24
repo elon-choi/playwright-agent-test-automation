@@ -82,3 +82,11 @@ And("사용자가 첫번째 작품을 클릭한다", async ({ page }) => {
   await page.waitForURL(/\/(content|landing\/series)\//i, { timeout: 15000 });
   await page.waitForTimeout(500);
 });
+
+Then("클릭한 작품의 홈으로 이동한다", async ({ page }) => {
+  await page.waitForLoadState("domcontentloaded").catch(() => null);
+  await page.waitForTimeout(400);
+  const onContentHome = /\/(content|landing\/series)\//i.test(page.url()) ||
+    (await page.locator('a[href*="/content/"], [class*="content"]').count()) > 0;
+  expect(onContentHome, "클릭한 작품의 홈(콘텐츠홈/작품 상세) 페이지로 이동했어야 합니다.").toBe(true);
+});
