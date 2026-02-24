@@ -35,7 +35,7 @@ jobs:
 
       - name: Run Playwright tests
         id: test
-        run: npx playwright test ".features-gen/features/pcw/비로그인 케이스/kpa-008.feature.spec.js" --project=chromium
+        run: npx playwright test --project=chromium
 
       - name: Ensure test results for report
         if: always() && steps.test.outcome == 'failure'
