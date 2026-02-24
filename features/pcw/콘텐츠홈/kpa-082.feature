@@ -1,4 +1,4 @@
-Feature: KPA-082 시나리오 검증
+네에 Feature: KPA-082 시나리오 검증
 
   Scenario: 사용자가 소장권을 정상적으로 구매할 수 있는지 검증
     Given 사용자가 "https://page.kakao.com/" 사이트에 접속한다

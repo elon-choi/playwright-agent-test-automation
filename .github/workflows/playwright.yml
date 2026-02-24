@@ -122,6 +122,12 @@ jobs:
           name: test-results
           path: test-results
 
+      - name: Download Allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+
       - name: Add this run to report history
         run: |
           RUN_ID="${{ steps.run.outputs.id }}"
@@ -136,6 +142,7 @@ jobs:
           SUMMARY_JSON="report-site/reports/$RUN_ID/summary.json" \
           RUN_DATE_ISO="$RUN_DATE_ISO" \
           RUN_ID="$RUN_ID" \
+          ALLURE_RESULTS_DIR=allure-results \
           node scripts/write-report-summary.mjs
 
       - name: Generate index
