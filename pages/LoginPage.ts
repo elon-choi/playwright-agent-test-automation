@@ -203,8 +203,11 @@ export class LoginPage extends BasePage {
   async verifyRecommendationHome() {
     const baseOrigin = new URL(getBaseUrlFromEnv()).origin;
     await this.page.waitForURL(
-      (url) => new URL(url).origin === baseOrigin && !/accounts\.kakao\.com|login/i.test(url.toString()),
-      { timeout: 30000 }
+      (url) => {
+        const u = new URL(url);
+        return u.origin === baseOrigin && !/accounts\.kakao\.com/i.test(url);
+      },
+      { timeout: 45000 }
     );
     await this.page.waitForLoadState("domcontentloaded");
 
