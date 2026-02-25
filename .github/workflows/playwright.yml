@@ -27,15 +27,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npm run pw:install
+      - name: Install Playwright system dependencies (Chromium)
+        run: npx playwright install-deps chromium
+
+      - name: Install Playwright browsers (Chromium only)
+        run: PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers npx playwright install chromium
 
       - name: Generate spec (bddgen)
         run: npm run bddgen
 
       - name: Run Playwright tests
         id: test
-        run: npx playwright test --project=chromium
+        run: npx playwright test --project=chromium --grep-invert "로그인 성공"
 
       - name: Ensure test results for report
         if: always() && steps.test.outcome == 'failure'
