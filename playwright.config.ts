@@ -213,6 +213,19 @@ export default defineConfig({
       name: "chromium",
       testMatch: ["**/pcw/**/*.feature.spec.js"],
       testIgnore: ["**/adult/**", ...STUB_TEST_IGNORE],
+      dependencies: ["login"],
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
+        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
+        launchOptions: {
+          args: ["--disable-features=LocalNetworkAccess"]
+        }
+      }
+    },
+    {
+      name: "login",
+      testMatch: ["**/00-login.feature.spec.js"],
       use: {
         ...devices["Desktop Chrome"],
         ...(useChannelChrome ? { channel: "chrome" as const } : {}),
@@ -248,8 +261,9 @@ export default defineConfig({
     },
     {
       name: "chromium-085",
-      testMatch: ["**/pcw/콘텐츠홈/kpa-085.feature.spec.js"],
+      testMatch: ["**/pcw/06-콘텐츠홈/kpa-085.feature.spec.js"],
       timeout: 300000,
+      dependencies: ["login"],
       use: {
         ...devices["Desktop Chrome"],
         ...(useChannelChrome ? { channel: "chrome" as const } : {}),

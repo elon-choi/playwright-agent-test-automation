@@ -20,10 +20,12 @@
     "test:ui:demo": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test --ui --project=chromium",
     "test:ui:remaining": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test --ui --project=chromium-remaining",
     "test:ui:stub": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test --ui --project=chromium-remaining",
-    "test:ui:085": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test .features-gen/features/pcw/콘텐츠홈/kpa-085.feature.spec.js --ui --project=chromium-085",
+    "test:ui:085": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test .features-gen/features/pcw/06-콘텐츠홈/kpa-085.feature.spec.js --ui --project=chromium-085",
     "test:failed12": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 CI=true playwright test --grep \"KPA-(070|071|073|074|032|066|093|107|112|127|085)\" --project=chromium --project=chromium-mw",
     "allure:generate": "allure generate allure-results -o allure-report --clean",
-    "allure:serve": "allure serve allure-results"
+    "allure:serve": "allure serve allure-results",
+    "sync:pull": "npx ts-node --esm scripts/sync-pull.ts",
+    "sync:push": "npx ts-node --esm scripts/sync-push.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.58.1",
@@ -34,5 +36,8 @@
     "playwright-bdd": "^8.4.2",
     "ts-node": "^10.9.2",
     "typescript": "latest"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
   }
 }

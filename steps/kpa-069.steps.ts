@@ -14,7 +14,7 @@ async function ensureOnWorkHome(page: import("@playwright/test").Page) {
   await page.waitForTimeout(500);
 }
 
-And("사용자가 로그인하여 좋아요가 활성화된 상태이다", async ({ page }) => {
+And("사용자가 좋아요가 활성화된 상태이다", async ({ page }) => {
   if (/accounts\.kakao\.com|kauth\.kakao/i.test(page.url())) {
     throw new Error("로그인 상태가 필요합니다. 00-login.feature을 먼저 실행해 주세요.");
   }

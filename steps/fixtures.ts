@@ -18,6 +18,31 @@ export const getBaseUrlOrigin = () => {
   }
 };
 
+const origin = () => getBaseUrlOrigin();
+
+/** 테스트용 고정 작품 URL 1개. 설정 시 랜덤 클릭 대신 이 URL로 직접 이동 */
+export const getTestWorkUrl = (): string | null => {
+  const url = process.env.TEST_WORK_URL?.trim();
+  if (!url) return null;
+  if (!/\/content\/|\/landing\/series\//i.test(url)) return null;
+  return url.startsWith("http") ? url : new URL(url, origin()).href;
+};
+
+/** 테스트용 고정 작품 URL 목록(쉼표 구분). 설정 시 이 중 하나를 랜덤 선택해 이동 */
+export const getTestWorkUrls = (): string[] => {
+  const raw = process.env.TEST_WORK_URLS?.trim();
+  if (!raw) return [];
+  const list = raw.split(",").map((u) => u.trim()).filter((u) => /\/content\/|\/landing\/series\//i.test(u));
+  return list.map((u) => (u.startsWith("http") ? u : new URL(u, origin()).href));
+};
+
+/** 고정 작품 목록이 있으면 그중 랜덤 1개, 단일 URL이 있으면 그대로, 없으면 null */
+export const getRandomTestWorkUrl = (): string | null => {
+  const list = getTestWorkUrls();
+  if (list.length > 0) return list[Math.floor(Math.random() * list.length)];
+  return getTestWorkUrl();
+};
+
 export const dismissPermissionPopup = async (page: any) => {
   if (!page || page.isClosed()) return;
   const closeSelectors = [
@@ -181,13 +206,7 @@ export const test = base.extend<MyFixtures>({
       testInfo.title.includes("KPA-012") ||
       testInfo.title.includes("KPA-013") ||
       testInfo.title.includes("KPA-048") ||
-      testInfo.title.includes("KPA-059") ||
-      testInfo.title.includes("KPA-065") ||
-      testInfo.title.includes("KPA-091") ||
-      testInfo.title.includes("KPA-092") ||
-      testInfo.title.includes("KPA-099") ||
-      testInfo.title.includes("KPA-101") ||
-      testInfo.title.includes("KPA-103");
+      testInfo.title.includes("KPA-059");
     const skipAuthByFile =
       testInfo.file &&
       (testInfo.file.includes("kpa-061") ||
@@ -198,13 +217,7 @@ export const test = base.extend<MyFixtures>({
         testInfo.file.includes("kpa-012") ||
         testInfo.file.includes("kpa-013") ||
         testInfo.file.includes("kpa-048") ||
-        testInfo.file.includes("kpa-059") ||
-        testInfo.file.includes("kpa-065") ||
-        testInfo.file.includes("kpa-091") ||
-        testInfo.file.includes("kpa-092") ||
-        testInfo.file.includes("kpa-099") ||
-        testInfo.file.includes("kpa-101") ||
-        testInfo.file.includes("kpa-103"));
+        testInfo.file.includes("kpa-059"));
     const skipAuth = (skipAuthByTitle || skipAuthByFile) && !isLoginScenario;
     if (skipAuth) {
       const context = await browser.newContext();

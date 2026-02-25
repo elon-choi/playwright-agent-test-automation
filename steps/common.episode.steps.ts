@@ -1,4 +1,4 @@
-import { Given, When, Then, And, expect, withAiFallback, getBaseUrl } from "./fixtures.js";
+import { Given, When, Then, And, expect, withAiFallback, getBaseUrl, getRandomTestWorkUrl } from "./fixtures.js";
 
 const RESTRICTED_AGE_BADGE_SELECTOR = 'img[alt*="19세"]';
 const RESTRICTED_TITLE_PATTERN = /\[19세\s*완전판\]/;
@@ -138,6 +138,14 @@ const ensureContentPage = async (page: any, options?: { filterAllAge?: boolean }
   const filterAllAge = options?.filterAllAge ?? false;
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
     return;
+  }
+  const fixedWorkUrl = getRandomTestWorkUrl();
+  if (fixedWorkUrl) {
+    await page.goto(fixedWorkUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+    if (/\/content\/|\/landing\/series\//i.test(page.url())) {
+      await dismissFirstTimeReaderBenefitIfPresent(page);
+      return;
+    }
   }
   const webtoonTab = page.getByRole("link", { name: /웹툰\s*탭/i });
   if (await webtoonTab.count()) {

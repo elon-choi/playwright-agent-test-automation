@@ -179,7 +179,7 @@ function main() {
     const destPcw = path.join("features", "pcw", destPart, basename);
     const destMw = path.join("features", "mw", destPart, basename);
 
-    if (["kpa-070.feature", "kpa-071.feature", "kpa-072.feature"].includes(basename)) {
+    if (["kpa-070.feature", "kpa-071.feature", "kpa-072.feature", "kpa-077.feature"].includes(basename)) {
       const mwContentHomePath = path.join(FEATURES, "mw", "콘텐츠홈", basename);
       if (fs.existsSync(mwContentHomePath)) mwPaths.push(`features/mw/콘텐츠홈/${basename}`);
       continue;

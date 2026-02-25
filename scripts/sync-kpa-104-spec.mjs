@@ -11,8 +11,8 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const featurePath = path.join(root, "features/pcw/뷰어/kpa-104.feature");
-const specPath = path.join(root, ".features-gen/features/pcw/뷰어/kpa-104.feature.spec.js");
+const featurePath = path.join(root, "features/pcw/07-뷰어/kpa-104.feature");
+const specPath = path.join(root, ".features-gen/features/pcw/07-뷰어/kpa-104.feature.spec.js");
 
 const featureContent = fs.readFileSync(featurePath, "utf8");
 const steps = [];
@@ -47,7 +47,7 @@ const bddSteps = steps.map((s, i) => ({
 
 const bddData = JSON.stringify([{ pwTestLine: 6, pickleLine: 3, tags: [], steps: bddSteps }]);
 
-const specContent = `// Generated from: features/pcw/뷰어/kpa-104.feature
+const specContent = `// Generated from: features/pcw/07-뷰어/kpa-104.feature
 import { test } from "../../../../steps/fixtures.ts";
 
 test.describe('KPA-104 시나리오 검증', () => {
@@ -62,7 +62,7 @@ ${stepCalls}
 
 test.use({
   $test: [({}, use) => use(test), { scope: 'test', box: true }],
-  $uri: [({}, use) => use('features/pcw/뷰어/kpa-104.feature'), { scope: 'test', box: true }],
+  $uri: [({}, use) => use('features/pcw/07-뷰어/kpa-104.feature'), { scope: 'test', box: true }],
   $bddFileData: [({}, use) => use(bddFileData), { scope: "test", box: true }],
 });
 

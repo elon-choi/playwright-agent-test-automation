@@ -1,10 +1,15 @@
 // Feature: KPA-103 시나리오 검증
 // Scenario: 소식 탭 UI 검증
-import { Given, When, Then, expect, withAiFallback } from "./fixtures.js";
+import { Given, When, Then, expect, withAiFallback, getRandomTestWorkUrl } from "./fixtures.js";
 
 const ensureContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
     return;
+  }
+  const fixedWorkUrl = getRandomTestWorkUrl();
+  if (fixedWorkUrl) {
+    await page.goto(fixedWorkUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+    if (/\/content\/|\/landing\/series\//i.test(page.url())) return;
   }
   const webtoonTab = page.getByRole("link", { name: /웹툰\s*탭/i });
   if (await webtoonTab.count()) {

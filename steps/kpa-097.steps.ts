@@ -1,8 +1,13 @@
 // Feature: KPA-097 시나리오 검증 - 유료회차 이용권 미보유 시 이용권 충전 페이지 이동
-import { And, Then, expect, getBaseUrl } from "./fixtures.js";
+import { And, Then, expect, getBaseUrl, getRandomTestWorkUrl } from "./fixtures.js";
 
 const ensureContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) return;
+  const fixedWorkUrl = getRandomTestWorkUrl();
+  if (fixedWorkUrl) {
+    await page.goto(fixedWorkUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+    if (/\/content\/|\/landing\/series\//i.test(page.url())) return;
+  }
   const fallbackCard = page.locator('main a[href*="/content/"], a[href*="/content/"]').first();
   if ((await fallbackCard.count()) > 0 && (await fallbackCard.isVisible().catch(() => false))) {
     await fallbackCard.click({ timeout: 10000, force: true }).catch(() => null);

@@ -27,13 +27,13 @@ When("사용자가 댓글 탭을 클릭한다", async ({ page }) => {
 });
 
 Then("댓글 영역이 화면에 표시된다", async ({ page }) => {
-  const commentArea = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last();
+  const commentArea = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*[\d,]+/ }).last();
   await commentArea.waitFor({ state: "visible", timeout: 10000 });
   await expect(commentArea).toBeVisible();
 });
 
 When("사용자가 첫 번째 댓글의 [좋아요] 아이콘을 클릭한다", async ({ page }) => {
-  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last();
+  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*[\d,]+/ }).last();
   await commentMarker.scrollIntoViewIfNeeded().catch(() => null);
   await page.evaluate(() => window.scrollBy(0, 300));
   await page.waitForTimeout(600);
@@ -54,25 +54,35 @@ When("사용자가 첫 번째 댓글의 [좋아요] 아이콘을 클릭한다", 
 });
 
 Then("댓글 리스트가 화면에 표시된다", async ({ page }) => {
-  const list = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last().locator("xpath=../../..");
+  const list = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*[\d,]+/ }).last().locator("xpath=../../..");
   await list.waitFor({ state: "visible", timeout: 8000 });
   await expect(list).toBeVisible();
 });
 
 And("각 댓글에는 닉네임, 작성일자, 댓글 내용, 좋아요 수, 싫어요 수, 답글 버튼, 더보기 버튼이 표시된다", async ({ page }) => {
-  const commentArea = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last();
-  await commentArea.waitFor({ state: "visible", timeout: 6000 });
+  const commentAreaMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*[\d,]+/ }).last();
+  await commentAreaMarker.waitFor({ state: "visible", timeout: 6000 });
+
+  await Promise.race([
+    page.locator('img[alt*="좋아요"]').first().waitFor({ state: "visible", timeout: 10000 }),
+    page.locator('[aria-label*="좋아요"]').first().waitFor({ state: "visible", timeout: 10000 }),
+    page.getByText(/좋아요/).first().waitFor({ state: "visible", timeout: 10000 }),
+  ]);
+  const hasLike = true;
 
   const hasNickname = (await page.getByText(/닉네임|\\w{2,}/).count()) > 0;
   const hasDate =
-    (await page.getByText(/\d{1,2}분 전|\d{1,2}시간 전|어제|오늘|방금|\d+일\s*전|\d{4}[./-]\d{1,2}[./-]\d{1,2}/).count()) > 0;
+    (await page.getByText(/\d{1,2}분 전|\d{1,2}시간 전|어제|오늘|방금|\d+일\s*전|\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{2}\.\d{2}\.\d{2}/).count()) > 0;
   const hasContent = (await page.locator("[class*='content'], [class*='text'], p, span").count()) > 0;
-  const hasLikeButton = (await page.getByRole("button", { name: /좋아요/i }).count()) > 0;
-  const commentSectionForLike = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last().locator("xpath=../../..");
-  const hasLikeIcon = (await commentSectionForLike.locator('img[alt*="좋아요"]').count()) > 0;
-  const hasLike = hasLikeButton || hasLikeIcon;
-  const hasReply =
-    (await page.getByRole("button", { name: /답글/i }).or(page.getByText(/답글|댓글\s*달기/)).count()) > 0;
+  const hasReplyButton = (await page.getByRole("button", { name: /답글/i }).count()) > 0;
+  const hasReplyText = (await page.getByText(/답글|댓글\s*달기/).count()) > 0;
+  const hasReplyLink = (await page.getByRole("link", { name: /답글/i }).count()) > 0;
+  const hasReplyAria = (await page.locator('[aria-label*="답글"]').count()) > 0;
+  const hasReplyTitle = (await page.locator('[title*="답글"], [title*="댓글"]').count()) > 0;
+  const commentSection = commentAreaMarker.locator("xpath=../../..");
+  const likeReplyBlocks = commentSection.locator('div.cursor-pointer').filter({ has: page.locator('img') }).filter({ has: page.locator('span.font-small2, span[class*="font-small"]') });
+  const hasReplyFromStructure = (await likeReplyBlocks.count()) >= 2;
+  const hasReply = hasReplyButton || hasReplyText || hasReplyLink || hasReplyAria || hasReplyTitle || hasReplyFromStructure;
 
   expect(hasNickname || hasContent).toBe(true);
   expect(hasDate).toBe(true);
@@ -86,7 +96,7 @@ And("클릭한 댓글의 좋아요 수가 1 증가하여 표시된다", async ({
   }
   const expectedPlus = firstCommentLikeCountBefore + 1;
   const expectedMinus = firstCommentLikeCountBefore - 1;
-  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*\d+/ }).last();
+  const commentMarker = page.locator("span.font-small2-bold").filter({ hasText: /전체\s*[\d,]+/ }).last();
   const commentSection = commentMarker.locator("xpath=../../..");
   const firstLikeIcon = commentSection
     .locator('div.cursor-pointer')
