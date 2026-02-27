@@ -134,6 +134,15 @@ const waitForContentLinks = async (page: any, scope: any, timeoutMs = 12000) => 
   return 0;
 };
 
+const clickFirstContentLink = async (page: any, scope: any): Promise<boolean> => {
+  const first = scope.locator(CONTENT_LINK_SELECTOR).first();
+  if ((await first.count()) === 0) return false;
+  await first.scrollIntoViewIfNeeded({ timeout: 4000 }).catch(() => null);
+  await page.waitForTimeout(300);
+  await first.click({ force: true, timeout: 8000 });
+  return true;
+};
+
 const ensureContentPage = async (page: any, options?: { filterAllAge?: boolean }) => {
   const filterAllAge = options?.filterAllAge ?? false;
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
@@ -205,8 +214,7 @@ const ensureContentPage = async (page: any, options?: { filterAllAge?: boolean }
 const WEBTOON_RANKING_SCREEN_PATH = "/menu/10010/screen/93";
 const RANKING_TAB_NAME = /실시간\s*랭킹/;
 
-const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: boolean }) => {
-  const filterAllAge = options?.filterAllAge ?? false;
+const ensureWebtoonContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
     return;
   }
@@ -220,8 +228,8 @@ const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: bo
   await page.waitForTimeout(800);
 
   const rankingUrl = new URL(WEBTOON_RANKING_SCREEN_PATH, getBaseUrl()).href;
-  await page.goto(rankingUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
-  await page.waitForTimeout(1200);
+  await page.goto(rankingUrl, { waitUntil: "domcontentloaded", timeout: 12000 }).catch(() => null);
+  await page.waitForTimeout(600);
 
   const rankingTabCandidates = [
     page.getByRole("tab", { name: RANKING_TAB_NAME }),
@@ -233,30 +241,30 @@ const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: bo
     const count = await candidate.count();
     if (count > 0) {
       await candidate.first().scrollIntoViewIfNeeded().catch(() => null);
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(200);
       await candidate.first().click({ force: true }).catch(() => null);
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(800);
       break;
     }
   }
 
   const mainScope = page.locator('main').first();
-  await mainScope.waitFor({ state: "attached", timeout: 12000 }).catch(() => null);
+  await mainScope.waitFor({ state: "attached", timeout: 6000 }).catch(() => null);
   await mainScope.scrollIntoViewIfNeeded().catch(() => null);
-  await page.waitForTimeout(500);
-  await waitForContentLinks(page, mainScope, 10000);
+  await page.waitForTimeout(300);
+  await waitForContentLinks(page, mainScope, 6000);
   const linkCount = await mainScope.locator(CONTENT_LINK_SELECTOR).count();
   if (linkCount > 0) {
-    const clicked = await clickFirstAllAgeContentLink(page, mainScope, filterAllAge);
+    const clicked = await clickFirstContentLink(page, mainScope);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
     }
   }
 
-  await mainScope.waitFor({ state: "attached", timeout: 12000 }).catch(() => null);
+  await mainScope.waitFor({ state: "attached", timeout: 5000 }).catch(() => null);
   if (await mainScope.count()) {
-    await waitForContentLinks(page, mainScope, 12000);
+    await waitForContentLinks(page, mainScope, 6000);
   }
   let sectionLinks = 0;
   let mainLinks = 0;
@@ -267,7 +275,7 @@ const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: bo
     const sectionScope = sectionTitle.locator('xpath=following-sibling::*[1]');
     if (await sectionScope.count()) {
       sectionLinks = await sectionScope.locator(CONTENT_LINK_SELECTOR).count();
-      const clicked = await clickFirstAllAgeContentLink(page, sectionScope, filterAllAge);
+      const clicked = await clickFirstContentLink(page, sectionScope);
       if (clicked) {
         await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
         return;
@@ -276,7 +284,7 @@ const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: bo
   }
   if (await mainScope.count()) {
     mainLinks = await mainScope.locator(CONTENT_LINK_SELECTOR).count();
-    const clicked = await clickFirstAllAgeContentLink(page, mainScope, filterAllAge);
+    const clicked = await clickFirstContentLink(page, mainScope);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
@@ -284,16 +292,14 @@ const ensureWebtoonContentPage = async (page: any, options?: { filterAllAge?: bo
   }
   const fullPageLinks = await page.locator(CONTENT_LINK_SELECTOR).count();
   if (fullPageLinks > 0) {
-    const clicked = await clickFirstAllAgeContentLink(page, page, filterAllAge);
+    const clicked = await clickFirstContentLink(page, page);
     if (clicked) {
       await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i);
       return;
     }
   }
   console.log(`[episode.steps] ensureWebtoonContentPage FAIL url=${page.url()} sectionLinks=${sectionLinks} mainLinks=${mainLinks} fullPageLinks=${fullPageLinks}`);
-  throw new Error(filterAllAge
-    ? "웹툰 전체 연령 작품 상세 페이지로 이동하지 못했습니다. 19세 뱃지가 없는 웹툰 작품을 선택해 주세요."
-    : "웹툰 콘텐츠 상세 페이지로 이동하지 못했습니다.");
+  throw new Error("웹툰 콘텐츠 상세 페이지로 이동하지 못했습니다.");
 };
 
 Given("사용자가 특정 작품홈에 진입한다", async ({ page }) => {
@@ -484,11 +490,36 @@ And("전체 연령 작품 목록을 확인한다", async ({ page }) => {
 const WEB_CANT_VIEW_PATTERN = /웹에서\s*감상\s*불가|웹에서\s*감상불가|앱에서만|PC 웹에서는 볼 수 없는/i;
 const TRAILER_OR_CANT_VIEW_PATTERN = /웹에서\s*감상\s*불가|웹에서\s*감상불가|앱에서만|PC 웹에서는 볼 수 없는|트레일러/i;
 
+const FREE_BADGE_SELECTOR = 'span[class*="small2-bold"], span[class*="font-x-small2"], span.font-x-small2-bold';
 const getViewableFreeRows = (page: any) =>
-  page.locator('[class*="item"], [class*="row"], tr, li')
-    .filter({ hasText: /무료/ })
+  page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ has: page.locator(FREE_BADGE_SELECTOR).filter({ hasText: /^무료$/ }) })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
     .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+
+const ensureEpisodeListSortedByFirst = async (page: any): Promise<void> => {
+  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
+  if ((await episodeTab.count()) > 0) {
+    await episodeTab.first().scrollIntoViewIfNeeded().catch(() => null);
+    await episodeTab.first().click({ force: true }).catch(() => null);
+    await page.waitForTimeout(500);
+  }
+  const sortLabel = page.locator(EPISODE_SORT_SPAN_SELECTOR).filter({ hasText: /^첫화부터$/ });
+  if ((await sortLabel.count()) > 0) {
+    const trigger = sortLabel.first().locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]").first();
+    if ((await trigger.count()) > 0) {
+      await trigger.scrollIntoViewIfNeeded().catch(() => null);
+      await page.waitForTimeout(200);
+      await trigger.click({ force: true }).catch(() => null);
+      await page.waitForTimeout(400);
+    }
+  }
+  const firstOption = page.getByRole("option", { name: /첫화부터/i }).or(page.getByText(/^첫화부터$/).first());
+  if ((await firstOption.count()) > 0) {
+    await firstOption.first().click({ force: true }).catch(() => null);
+    await page.waitForTimeout(800);
+  }
+};
 
 const step무료뱃지찾아서클릭 = async ({ page }: { page: any }) => {
   if (/\/viewer\//i.test(page.url())) return;
@@ -502,10 +533,32 @@ const step무료뱃지찾아서클릭 = async ({ page }: { page: any }) => {
     await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
     await page.waitForTimeout(400);
   }
-  const viewableFree = getViewableFreeRows(page);
-  const fallbackFree = page.locator('[class*="item"], [class*="row"], tr, li').filter({ hasText: /무료/ }).filter({ has: page.locator('a[href*="/viewer/"]') }).filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
-  const rowsToTry = (await viewableFree.count()) > 0 ? viewableFree : fallbackFree;
-  const maxTry = Math.min(await rowsToTry.count(), 10);
+  let viewableFree = getViewableFreeRows(page);
+  let freeCount = await viewableFree.count();
+  if (freeCount === 0) {
+    await ensureEpisodeListSortedByFirst(page);
+    viewableFree = getViewableFreeRows(page);
+    freeCount = await viewableFree.count();
+  }
+  const fallbackByBadge = page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ has: page.locator(FREE_BADGE_SELECTOR).filter({ hasText: /^무료$/ }) })
+    .filter({ has: page.locator('a[href*="/viewer/"]') })
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+  const fallbackBySpan무료 = page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ has: page.locator("span").filter({ hasText: /^무료$/ }) })
+    .filter({ has: page.locator('a[href*="/viewer/"]') })
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+  const fallbackByText = page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasText: /무료/ })
+    .filter({ has: page.locator('a[href*="/viewer/"]') })
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+  let rowsToTry = freeCount > 0 ? viewableFree : fallbackByBadge;
+  if ((await rowsToTry.count()) === 0) rowsToTry = (await fallbackBySpan무료.count()) > 0 ? fallbackBySpan무료 : fallbackByText;
+  const totalRows = await rowsToTry.count();
+  if (totalRows === 0) {
+    throw new Error("무료 뱃지가 달린 회차를 찾지 못했습니다. 회차 탭에서 '무료' 뱃지가 있는 회차가 노출되는지 확인해 주세요.");
+  }
+  const maxTry = Math.min(totalRows, 10);
   for (let i = 0; i < maxTry; i++) {
     const link = rowsToTry.nth(i).locator('a[href*="/viewer/"]').first();
     if ((await link.count()) === 0) continue;
@@ -522,6 +575,7 @@ const step무료뱃지찾아서클릭 = async ({ page }: { page: any }) => {
     const gotViewer = await page.waitForURL(/\/viewer\//i, { timeout: 12000 }).then(() => true).catch(() => false);
     if (gotViewer) return;
   }
+  throw new Error("무료 뱃지 회차를 클릭했으나 뷰어로 이동하지 못했습니다. 웹에서 감상 불가 회차만 있거나 네트워크 문제일 수 있습니다.");
 };
 
 When("사용자가 무료 뱃지가 표시된 회차를 찾아서 클릭한다", step무료뱃지찾아서클릭);

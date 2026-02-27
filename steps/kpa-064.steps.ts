@@ -62,12 +62,14 @@ Then("장르전체 메뉴 하단에 다음 UI 요소들이 노출된다:", async
 });
 
 And("전체탭을 클릭한다.", async ({ page }) => {
-  await page.waitForTimeout(400);
-  const mainArea = page.locator("main").first();
-  const wholeTab = mainArea.locator("a, button, [role='tab'], span").filter({ hasText: /^전체$/ }).first();
-  const hasInMain = (await mainArea.count()) > 0 && (await wholeTab.count()) > 0 && (await wholeTab.isVisible().catch(() => false));
-  const clickTarget = hasInMain ? wholeTab : page.getByRole("tab", { name: "전체" }).or(page.getByText("전체", { exact: true }).first());
-  await clickTarget.waitFor({ state: "visible", timeout: 8000 });
+  await page.waitForTimeout(800);
+  const visibleTimeout = 20000;
+  const inMain = page.locator("main").locator("a, button, [role='tab'], [role='button'], span").filter({ hasText: /^전체$/ }).first();
+  const asTabOrButton = page.getByRole("tab", { name: /전체/ }).or(page.getByRole("button", { name: /전체/ }));
+  const asLink = page.getByRole("link", { name: /전체\s*탭.*총 7개 중 1번째/ });
+  const asText = page.getByText("전체", { exact: true }).first();
+  const clickTarget = inMain.or(asTabOrButton).or(asLink).or(asText);
+  await clickTarget.waitFor({ state: "visible", timeout: visibleTimeout });
   await clickTarget.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => null);
   await page.waitForTimeout(200);
   await clickTarget.click({ timeout: 8000, force: true });
@@ -75,9 +77,20 @@ And("전체탭을 클릭한다.", async ({ page }) => {
 });
 
 And("사용자가 첫번째 작품을 클릭한다", async ({ page }) => {
-  const workCard = page.locator('a[href*="/content/"]').first();
-  await workCard.waitFor({ state: "visible", timeout: 15000 });
-  await workCard.scrollIntoViewIfNeeded({ block: "center" }).catch(() => null);
+  await page.waitForTimeout(800);
+  const listTimeout = 20000;
+  const mainArea = page.locator("main").first();
+  const firstWorkByThumb = mainArea.locator('a[href*="/content/"]').filter({
+    has: page.locator('[class*="border-sp-thumb-line"]'),
+  }).first();
+  const workLinksInMain = mainArea.locator('a[href*="/content/"]');
+  const hasMain = (await mainArea.count()) > 0;
+  const workCard = hasMain
+    ? ((await firstWorkByThumb.count()) > 0 ? firstWorkByThumb : workLinksInMain.first())
+    : page.locator('a[href*="/content/"]').first();
+  await workCard.waitFor({ state: "visible", timeout: listTimeout });
+  await workCard.scrollIntoViewIfNeeded({ block: "center", timeout: 8000 }).catch(() => null);
+  await page.waitForTimeout(300);
   await workCard.click({ timeout: 15000, force: true });
   await page.waitForURL(/\/(content|landing\/series)\//i, { timeout: 15000 });
   await page.waitForTimeout(500);

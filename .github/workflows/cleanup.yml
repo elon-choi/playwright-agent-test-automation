@@ -1,0 +1,29 @@
+# 덤프·allure-results 정리: 1일 초과분만 삭제 (매일 02:00 UTC)
+# 로컬/서버에서 크론으로 돌릴 경우:
+#   0 2 * * * node /path/to/scripts/clean-old-dumps.mjs 1
+#   0 2 * * * node /path/to/scripts/clean-allure-results.mjs --older-than 1
+name: Cleanup old dumps and allure-results
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Clean dom_dumps and dom_logs (older than 1 day)
+        run: node scripts/clean-old-dumps.mjs 1
+
+      - name: Clean allure-results (older than 1 day)
+        run: node scripts/clean-allure-results.mjs --older-than 1

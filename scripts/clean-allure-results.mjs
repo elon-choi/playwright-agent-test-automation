@@ -1,10 +1,11 @@
 /**
  * allure-results 디렉터리 정리. 용량 부담이 큰 trace zip/스크린샷을 줄인다.
+ * 보관: 1일 전 자료만 유지 (그 이전 파일 삭제). 스케줄러에서는 --older-than 1 사용.
  *
  * 사용:
- *   node scripts/clean-allure-results.mjs           # 전체 삭제 (--all 동일)
- *   node scripts/clean-allure-results.mjs --all     # 전체 삭제
- *   node scripts/clean-allure-results.mjs --older-than 3   # 3일 초과된 파일만 삭제
+ *   node scripts/clean-allure-results.mjs                  # 전체 삭제 (--all 동일)
+ *   node scripts/clean-allure-results.mjs --all             # 전체 삭제
+ *   node scripts/clean-allure-results.mjs --older-than 1    # 1일 초과된 파일만 삭제 (스케줄 권장)
  *   node scripts/clean-allure-results.mjs --only-attachments  # 첨부(zip/png 등)만 삭제, result.json 유지
  */
 import { readdir, stat, unlink } from "node:fs/promises";

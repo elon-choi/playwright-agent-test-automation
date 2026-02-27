@@ -1,9 +1,9 @@
 /**
  * dom_dumps, dom_logs 디렉터리에서 지정 일수보다 오래된 파일만 삭제한다.
+ * 보관: 1일 전 자료만 유지 (그 이전 파일 삭제).
  * 사용: node scripts/clean-old-dumps.mjs [보관일수]
- * 기본 보관일수: 1 (오늘 기준 1일 초과된 파일 삭제)
- * 프로젝트 루트는 스크립트 위치(scripts/) 기준으로 결정하므로, cron에서 cwd 없이 실행해도 동작한다.
- * cron 예시 (매일 새벽 2시): 0 2 * * * /usr/bin/node /Volumes/Project/playwright-agent-test-automation/scripts/clean-old-dumps.mjs 1
+ * 기본 보관일수: 1 (인자 없으면 1일 초과분 삭제)
+ * cron 예시 (매일 새벽 2시, 1일치만 보관): 0 2 * * * /usr/bin/node /path/to/scripts/clean-old-dumps.mjs 1
  */
 import { readdir, stat, unlink } from "node:fs/promises";
 import { dirname, join } from "node:path";

@@ -9,22 +9,38 @@ import { syncConfig, columnLetter } from "../config/sync.config.js";
 let authClient: JWT | null = null;
 
 /**
- * 서비스 계정으로 JWT 클라이언트 생성. GOOGLE_APPLICATION_CREDENTIALS 경로 사용.
+ * 서비스 계정으로 JWT 클라이언트 생성.
+ * 1) GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY 가 있으면 사용
+ * 2) 없으면 GOOGLE_APPLICATION_CREDENTIALS(JSON 파일 경로) 사용
  */
 export async function getSheetsAuth(): Promise<JWT> {
   if (authClient) return authClient;
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const rawKey = process.env.GOOGLE_PRIVATE_KEY;
   const keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (!keyFile) {
-    throw new Error(
-      "GOOGLE_APPLICATION_CREDENTIALS 환경 변수가 필요합니다. 서비스 계정 JSON 경로를 지정하세요."
-    );
+
+  if (email && rawKey) {
+    const privateKey = rawKey.replace(/\\n/g, "\n");
+    const auth = new google.auth.GoogleAuth({
+      credentials: { client_email: email, private_key: privateKey },
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+    authClient = (await auth.getClient()) as JWT;
+    return authClient;
   }
-  const auth = new google.auth.GoogleAuth({
-    keyFile,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-  authClient = (await auth.getClient()) as JWT;
-  return authClient;
+  if (keyFile) {
+    const auth = new google.auth.GoogleAuth({
+      keyFile,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+    authClient = (await auth.getClient()) as JWT;
+    return authClient;
+  }
+  throw new Error(
+    "Google 인증이 필요합니다. 다음 중 하나를 설정하세요. " +
+      "1) GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY " +
+      "2) GOOGLE_APPLICATION_CREDENTIALS (서비스 계정 JSON 파일 경로)"
+  );
 }
 
 /**

@@ -38,7 +38,7 @@ jobs:
 
       - name: Run Playwright tests
         id: test
-        run: npx playwright test --project=chromium --grep-invert "로그인 성공"
+        run: npx playwright test --project=chromium-ci
 
       - name: Ensure test results for report
         if: always() && steps.test.outcome == 'failure'
