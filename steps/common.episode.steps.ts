@@ -489,21 +489,31 @@ And("전체 연령 작품 목록을 확인한다", async ({ page }) => {
 
 const WEB_CANT_VIEW_PATTERN = /웹에서\s*감상\s*불가|웹에서\s*감상불가|앱에서만|PC 웹에서는 볼 수 없는/i;
 const TRAILER_OR_CANT_VIEW_PATTERN = /웹에서\s*감상\s*불가|웹에서\s*감상불가|앱에서만|PC 웹에서는 볼 수 없는|트레일러/i;
+const PAID_INDICATOR_PATTERN = /\d+캐시|캐시\s*결제|대여권|소장권|이용권\s*충전|한 번에 구매|구매하기|결제/i;
 
 const FREE_BADGE_SELECTOR = 'span[class*="small2-bold"], span[class*="font-x-small2"], span.font-x-small2-bold';
-const getViewableFreeRows = (page: any) =>
-  page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+
+const getEpisodeListScope = async (page: any): Promise<any> => {
+  const firstSort = page.getByText(/^첫화부터$|^최신순$/).first();
+  if ((await firstSort.count()) === 0) return page;
+  const withViewer = firstSort.locator("xpath=ancestor::*[.//a[contains(@href,'/viewer/')]][1]");
+  if ((await withViewer.count()) > 0) return withViewer.first();
+  return page;
+};
+
+const OTHER_WORK_CARD_MARKER = "[class*=\"border-sp-thumb-line\"]";
+
+const getViewableFreeRows = (scope: any, page: any) =>
+  scope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: scope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ has: page.locator(FREE_BADGE_SELECTOR).filter({ hasText: /^무료$/ }) })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
-    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })
+    .filter({ hasNotText: PAID_INDICATOR_PATTERN });
 
 const ensureEpisodeListSortedByFirst = async (page: any): Promise<void> => {
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if ((await episodeTab.count()) > 0) {
-    await episodeTab.first().scrollIntoViewIfNeeded().catch(() => null);
-    await episodeTab.first().click({ force: true }).catch(() => null);
-    await page.waitForTimeout(500);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
+  await page.waitForTimeout(200);
   const sortLabel = page.locator(EPISODE_SORT_SPAN_SELECTOR).filter({ hasText: /^첫화부터$/ });
   if ((await sortLabel.count()) > 0) {
     const trigger = sortLabel.first().locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]").first();
@@ -521,47 +531,155 @@ const ensureEpisodeListSortedByFirst = async (page: any): Promise<void> => {
   }
 };
 
+const getCurrentContentId = (url: string): string | null => {
+  const m = url.match(/\/content\/(\d+)/);
+  if (m) return m[1];
+  const m2 = url.match(/\/landing\/series\/([^/?#]+)/);
+  return m2 ? m2[1] : null;
+};
+
+const isLinkSameWork = (hrefNorm: string, currentContentId: string | null, baseUrl?: string): boolean => {
+  if (!currentContentId) return true;
+  if (hrefNorm.includes(`/content/${currentContentId}/`) || hrefNorm.includes(`/landing/series/${currentContentId}`)) return true;
+  const otherContent = hrefNorm.match(/\/content\/(\d+)/);
+  if (otherContent && otherContent[1] !== currentContentId) return false;
+  if (/^\/viewer\//.test(hrefNorm) && baseUrl && baseUrl.includes(currentContentId)) return true;
+  return false;
+};
+
+const OTHER_WORKS_SECTION_TEXT = "이 작가의 다른 작품";
+
+const getOtherWorksSectionLocator = (page: any) =>
+  page.getByText(OTHER_WORKS_SECTION_TEXT).first().locator("xpath=ancestor::*[.//a[contains(@href,'/content/') or contains(@href,'/viewer/')]][1]");
+
+const isOtherWorkCard = async (rowLoc: { locator: (sel: string) => any }): Promise<boolean> => {
+  return (await rowLoc.locator(OTHER_WORK_CARD_MARKER).count()) > 0;
+};
+
+const isLinkInsideOtherWorkCard = async (linkLoc: { locator: (sel: string) => any }): Promise<boolean> => {
+  return (await linkLoc.locator("xpath=ancestor::*[contains(@class,\"border-sp-thumb-line\")]").count()) > 0;
+};
+
+const isInsideOtherWorksSection = async (page: any, sectionLoc: { elementHandle: () => Promise<unknown> } | null, rowLoc: { elementHandle: () => Promise<unknown> }): Promise<boolean> => {
+  if (!sectionLoc) return false;
+  try {
+    const sectionEl = await sectionLoc.elementHandle();
+    const rowEl = await rowLoc.elementHandle();
+    if (!sectionEl || !rowEl) return false;
+    return await page.evaluate(([s, r]: [Element, Element]) => s.contains(r), [sectionEl, rowEl]);
+  } catch {
+    return false;
+  }
+};
+
+const assertStillSameWorkAfterEpisodeTabClick = (urlBefore: string, urlAfter: string): void => {
+  const beforeId = getCurrentContentId(urlBefore);
+  const afterId = getCurrentContentId(urlAfter);
+  if (beforeId != null && afterId != null && beforeId !== afterId) {
+    throw new Error(`회차 탭 클릭 후 다른 작품 페이지로 이동함. 기대 contentId: ${beforeId}, 실제 URL: ${urlAfter}`);
+  }
+  const beforeContentMatch = urlBefore.match(/\/content\/(\d+)/);
+  const afterContentMatch = urlAfter.match(/\/content\/(\d+)/);
+  if (beforeContentMatch && afterContentMatch && beforeContentMatch[1] !== afterContentMatch[1]) {
+    throw new Error(`회차 탭 클릭 후 다른 작품 페이지로 이동함. 기대 contentId: ${beforeContentMatch[1]}, 실제 URL: ${urlAfter}`);
+  }
+};
+
+const clickEpisodeTabOfCurrentWork = async (page: any): Promise<void> => {
+  const urlBeforeClick = page.url();
+  const currentContentId = getCurrentContentId(urlBeforeClick);
+  const tabCandidates = page.getByRole("tab", { name: /회차/i });
+  const linkCandidates = page.getByRole("link", { name: /회차/i });
+  const tabCount = await tabCandidates.count();
+  for (let i = 0; i < tabCount; i++) {
+    const tab = tabCandidates.nth(i);
+    const href = await tab.getAttribute("href").catch(() => null);
+    if (href != null && currentContentId) {
+      const path = new URL(href, page.url()).pathname;
+      const m = path.match(/\/content\/(\d+)/);
+      if (m && m[1] !== currentContentId) continue;
+    }
+    await tab.scrollIntoViewIfNeeded().catch(() => null);
+    await tab.click({ force: true }).catch(() => null);
+    await page.waitForTimeout(600);
+    assertStillSameWorkAfterEpisodeTabClick(urlBeforeClick, page.url());
+    return;
+  }
+  const linkCount = await linkCandidates.count();
+  for (let i = 0; i < linkCount; i++) {
+    const link = linkCandidates.nth(i);
+    const href = await link.getAttribute("href").catch(() => null);
+    if (href != null && currentContentId) {
+      const path = new URL(href, page.url()).pathname;
+      const m = path.match(/\/content\/(\d+)/);
+      if (m && m[1] !== currentContentId) continue;
+    }
+    await link.scrollIntoViewIfNeeded().catch(() => null);
+    await link.click({ force: true }).catch(() => null);
+    await page.waitForTimeout(600);
+    assertStillSameWorkAfterEpisodeTabClick(urlBeforeClick, page.url());
+    return;
+  }
+};
+
 const step무료뱃지찾아서클릭 = async ({ page }: { page: any }) => {
   if (/\/viewer\//i.test(page.url())) return;
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
-  let viewableFree = getViewableFreeRows(page);
+  await clickEpisodeTabOfCurrentWork(page);
+  const episodeScope = await getEpisodeListScope(page);
+  const currentContentId = getCurrentContentId(page.url());
+  let viewableFree = getViewableFreeRows(episodeScope, page);
   let freeCount = await viewableFree.count();
   if (freeCount === 0) {
     await ensureEpisodeListSortedByFirst(page);
-    viewableFree = getViewableFreeRows(page);
+    const scopeAgain = await getEpisodeListScope(page);
+    viewableFree = getViewableFreeRows(scopeAgain, page);
     freeCount = await viewableFree.count();
   }
-  const fallbackByBadge = page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+  const fallbackByBadge = episodeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ has: page.locator(FREE_BADGE_SELECTOR).filter({ hasText: /^무료$/ }) })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
-    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
-  const fallbackBySpan무료 = page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })
+    .filter({ hasNotText: PAID_INDICATOR_PATTERN });
+  const fallbackBySpan무료 = episodeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ has: page.locator("span").filter({ hasText: /^무료$/ }) })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
-    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
-  const fallbackByText = page.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })
+    .filter({ hasNotText: PAID_INDICATOR_PATTERN });
+  const fallbackByText = episodeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ hasText: /무료/ })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
-    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+    .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })
+    .filter({ hasNotText: PAID_INDICATOR_PATTERN });
   let rowsToTry = freeCount > 0 ? viewableFree : fallbackByBadge;
   if ((await rowsToTry.count()) === 0) rowsToTry = (await fallbackBySpan무료.count()) > 0 ? fallbackBySpan무료 : fallbackByText;
   const totalRows = await rowsToTry.count();
   if (totalRows === 0) {
     throw new Error("무료 뱃지가 달린 회차를 찾지 못했습니다. 회차 탭에서 '무료' 뱃지가 있는 회차가 노출되는지 확인해 주세요.");
   }
+  const otherWorksSection = (await page.getByText(OTHER_WORKS_SECTION_TEXT).first().count()) > 0 ? getOtherWorksSectionLocator(page) : null;
+  const chargeOrTicketUrl = /\/charge|\/ticket|이용권\s*충전|충전/i;
   const maxTry = Math.min(totalRows, 10);
   for (let i = 0; i < maxTry; i++) {
-    const link = rowsToTry.nth(i).locator('a[href*="/viewer/"]').first();
+    const row = rowsToTry.nth(i);
+    if (await isInsideOtherWorksSection(page, otherWorksSection, row)) continue;
+    if (await isOtherWorkCard(row)) continue;
+    const rowText = await row.textContent().catch(() => "");
+    if (PAID_INDICATOR_PATTERN.test(rowText ?? "")) continue;
+    const link = row.locator('a[href*="/viewer/"]').first();
     if ((await link.count()) === 0) continue;
+    if (await isLinkInsideOtherWorkCard(link)) continue;
+    if (currentContentId) {
+      const href = await link.getAttribute("href").catch(() => null);
+      const hrefNorm = href ? new URL(href, page.url()).pathname : "";
+      if (!isLinkSameWork(hrefNorm, currentContentId, page.url())) continue;
+    }
     await link.waitFor({ state: "visible", timeout: 8000 }).catch(() => null);
     await link.scrollIntoViewIfNeeded().catch(() => null);
     await page.waitForTimeout(300);
@@ -572,8 +690,23 @@ const step무료뱃지찾아서클릭 = async ({ page }: { page: any }) => {
       await page.waitForTimeout(600);
       continue;
     }
+    if (chargeOrTicketUrl.test(page.url()) || (await page.getByText(/이용권\s*충전|캐시\s*충전/i).count()) > 0) {
+      await page.goBack({ waitUntil: "domcontentloaded", timeout: 8000 }).catch(() => null);
+      await page.waitForTimeout(600);
+      continue;
+    }
     const gotViewer = await page.waitForURL(/\/viewer\//i, { timeout: 12000 }).then(() => true).catch(() => false);
-    if (gotViewer) return;
+    if (gotViewer) {
+      const viewerUrl = page.url();
+      if (currentContentId && !viewerUrl.includes(currentContentId)) {
+        throw new Error(`무료 회차 클릭 후 다른 작품 뷰어로 이동함. 기대 contentId: ${currentContentId}, 실제 URL: ${viewerUrl}`);
+      }
+      const contentIdInViewerUrl = viewerUrl.match(/\/content\/(\d+)\/viewer\//)?.[1] ?? viewerUrl.match(/\/viewer\/(\d+)/)?.[1];
+      if (currentContentId && contentIdInViewerUrl && contentIdInViewerUrl !== currentContentId) {
+        throw new Error(`무료 회차 클릭 후 다른 작품 뷰어로 이동함. 기대 contentId: ${currentContentId}, 실제 URL: ${viewerUrl}`);
+      }
+      return;
+    }
   }
   throw new Error("무료 뱃지 회차를 클릭했으나 뷰어로 이동하지 못했습니다. 웹에서 감상 불가 회차만 있거나 네트워크 문제일 수 있습니다.");
 };
@@ -595,13 +728,28 @@ And("사용자가 무료 회차에 진입한다", async ({ page }) => {
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
+  await clickEpisodeTabOfCurrentWork(page);
+  const contentId = getCurrentContentId(page.url());
+  let viewerLink = contentId
+    ? page.locator(`a[href*="/content/${contentId}/viewer/"], a[href*="/landing/series/${contentId}"]`).first()
+    : page.locator('a[href*="/viewer/"]').first();
+  if (contentId && (await viewerLink.count()) === 0) {
+    const otherWorksSection = (await page.getByText(OTHER_WORKS_SECTION_TEXT).first().count()) > 0 ? getOtherWorksSectionLocator(page) : null;
+    const allViewerLinks = page.locator('a[href*="/viewer/"]');
+    const n = await allViewerLinks.count();
+    for (let i = 0; i < n && i < 30; i++) {
+      const lnk = allViewerLinks.nth(i);
+      if (await isInsideOtherWorksSection(page, otherWorksSection, lnk)) continue;
+      const href = await lnk.getAttribute("href").catch(() => null);
+      if (!href) continue;
+      const pathname = new URL(href, page.url()).pathname;
+      if (!isLinkSameWork(pathname, contentId, page.url())) continue;
+      await lnk.waitFor({ state: "visible", timeout: 5000 }).catch(() => null);
+      await lnk.click({ force: true });
+      await page.waitForURL(/\/viewer\//i, { timeout: 15000 }).catch(() => null);
+      return;
+    }
   }
-  const viewerLink = page.locator('a[href*="/viewer/"]').first();
   await viewerLink.waitFor({ state: "visible", timeout: 10000 }).catch(() => null);
   if (await viewerLink.count()) {
     await viewerLink.click({ force: true });
@@ -614,12 +762,7 @@ And("사용자가 무료 회차 목록에 진입한다", async ({ page }) => {
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
 });
 
 When("사용자가 무료 회차를 클릭한다", async ({ page }) => {
@@ -677,12 +820,24 @@ const closeCantViewPopup = async (page: any) => {
 };
 
 const clickNextViewableFreeAndWaitViewer = async (page: any) => {
-  const viewableFree = getViewableFreeRows(page);
+  const episodeScope = await getEpisodeListScope(page);
+  const currentContentId = getCurrentContentId(page.url());
+  const otherWorksSection = (await page.getByText(OTHER_WORKS_SECTION_TEXT).first().count()) > 0 ? getOtherWorksSectionLocator(page) : null;
+  const viewableFree = getViewableFreeRows(episodeScope, page);
   const count = await viewableFree.count();
   const attemptTimeout = 12000;
   for (let i = 0; i < count && i < 10; i++) {
-    const link = viewableFree.nth(i).locator('a[href*="/viewer/"]').first();
+    const row = viewableFree.nth(i);
+    if (await isInsideOtherWorksSection(page, otherWorksSection, row)) continue;
+    if (await isOtherWorkCard(row)) continue;
+    const link = row.locator('a[href*="/viewer/"]').first();
     if ((await link.count()) === 0) continue;
+    if (await isLinkInsideOtherWorkCard(link)) continue;
+    if (currentContentId) {
+      const href = await link.getAttribute("href").catch(() => null);
+      const hrefNorm = href ? new URL(href, page.url()).pathname : "";
+      if (!isLinkSameWork(hrefNorm, currentContentId, page.url())) continue;
+    }
     await link.waitFor({ state: "visible", timeout: 5000 }).catch(() => null);
     await link.scrollIntoViewIfNeeded().catch(() => null);
     await page.waitForTimeout(300);
@@ -691,25 +846,50 @@ const clickNextViewableFreeAndWaitViewer = async (page: any) => {
     const waitViewer = page.waitForURL(/\/viewer\//i, { timeout: attemptTimeout });
     const waitPopup = page.getByText(WEB_CANT_VIEW_PATTERN).first().waitFor({ state: "visible", timeout: 5000 }).then(() => "popup" as const).catch(() => null);
     const result = await Promise.race([waitViewer.then(() => "viewer" as const), waitPopup]);
-    if (result === "viewer") return true;
+    if (result === "viewer") {
+      if (currentContentId && !page.url().includes(currentContentId)) {
+        throw new Error(`다음 무료 회차 클릭 후 다른 작품의 뷰어로 이동했습니다. 기대 contentId: ${currentContentId}, 실제 URL: ${page.url()}`);
+      }
+      return true;
+    }
     if (result === "popup") {
       await closeCantViewPopup(page);
       await page.waitForTimeout(600);
       continue;
     }
-    if (/\/viewer\//i.test(page.url())) return true;
+    if (/\/viewer\//i.test(page.url())) {
+      if (currentContentId && !page.url().includes(currentContentId)) {
+        throw new Error(`다음 무료 회차 클릭 후 다른 작품의 뷰어로 이동했습니다. 기대 contentId: ${currentContentId}, 실제 URL: ${page.url()}`);
+      }
+      return true;
+    }
     break;
   }
   if (count === 0) {
-    const fallback = page.locator('[class*="item"], [class*="row"], tr, li').filter({ hasText: /무료/ }).filter({ has: page.locator('a[href*="/viewer/"]') }).filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN });
+    const fallback = episodeScope.locator('[class*="item"], [class*="row"], tr, li')
+      .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
+      .filter({ hasText: /무료/ }).filter({ has: page.locator('a[href*="/viewer/"]') }).filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN }).filter({ hasNotText: PAID_INDICATOR_PATTERN });
     const fallbackCount = await fallback.count();
     for (let i = 1; i < fallbackCount && i < 8; i++) {
       const row = fallback.nth(i);
+      if (await isInsideOtherWorksSection(page, otherWorksSection, row)) continue;
+      if (await isOtherWorkCard(row)) continue;
       if ((await row.locator('a[href*="/viewer/"]').count()) === 0) continue;
       const link = row.locator('a[href*="/viewer/"]').first();
+      if (await isLinkInsideOtherWorkCard(link)) continue;
+      if (currentContentId) {
+        const href = await link.getAttribute("href").catch(() => null);
+        const hrefNorm = href ? new URL(href, page.url()).pathname : "";
+        if (!isLinkSameWork(hrefNorm, currentContentId, page.url())) continue;
+      }
       await link.click({ force: true });
       const got = await page.waitForURL(/\/viewer\//i, { timeout: 10000 }).then(() => true).catch(() => false);
-      if (got) return true;
+      if (got) {
+        if (currentContentId && !page.url().includes(currentContentId)) {
+          throw new Error(`다음 무료 회차 클릭 후 다른 작품의 뷰어로 이동했습니다. 기대 contentId: ${currentContentId}, 실제 URL: ${page.url()}`);
+        }
+        return true;
+      }
       if ((await page.getByText(WEB_CANT_VIEW_PATTERN).count()) > 0) await closeCantViewPopup(page);
       await page.waitForTimeout(500);
     }
@@ -726,15 +906,24 @@ And("\"웹에서 감상 불가\" 팝업이 노출되면 확인을 눌러 닫고 
   await page.waitForTimeout(800);
   const gotViewer = await clickNextViewableFreeAndWaitViewer(page);
   if (gotViewer) return;
-  const viewableFree = getViewableFreeRows(page);
+  const episodeScope = await getEpisodeListScope(page);
+  const currentContentId = getCurrentContentId(page.url());
+  const otherWorksSection = (await page.getByText(OTHER_WORKS_SECTION_TEXT).first().count()) > 0 ? getOtherWorksSectionLocator(page) : null;
+  const viewableFree = getViewableFreeRows(episodeScope, page);
   const cnt = await viewableFree.count();
   for (let i = 0; i < cnt && i < 5; i++) {
-    const href = await viewableFree.nth(i).locator('a[href*="/viewer/"]').first().getAttribute("href").catch(() => null);
-    if (href) {
-      const url = href.startsWith("http") ? href : new URL(href, page.url()).href;
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
-      if (/\/viewer\//i.test(page.url())) return;
-    }
+    const row = viewableFree.nth(i);
+    if (await isInsideOtherWorksSection(page, otherWorksSection, row)) continue;
+    if (await isOtherWorkCard(row)) continue;
+    const link = row.locator('a[href*="/viewer/"]').first();
+    if (await isLinkInsideOtherWorkCard(link)) continue;
+    const href = await link.getAttribute("href").catch(() => null);
+    if (!href) continue;
+    const pathname = new URL(href, page.url()).pathname;
+    if (!isLinkSameWork(pathname, currentContentId, page.url())) continue;
+    const url = href.startsWith("http") ? href : new URL(href, page.url()).href;
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+    if (/\/viewer\//i.test(page.url())) return;
   }
   await expect(page).toHaveURL(/\/viewer\//i, { timeout: 8000 });
 });
@@ -747,15 +936,24 @@ And("\"웹에서 감상 불가\" 팝업이 노출되면 확인을 눌러 닫고 
   await page.waitForTimeout(800);
   const gotViewer = await clickNextViewableFreeAndWaitViewer(page);
   if (gotViewer) return;
-  const viewableFree = getViewableFreeRows(page);
+  const episodeScope = await getEpisodeListScope(page);
+  const currentContentId = getCurrentContentId(page.url());
+  const otherWorksSection = (await page.getByText(OTHER_WORKS_SECTION_TEXT).first().count()) > 0 ? getOtherWorksSectionLocator(page) : null;
+  const viewableFree = getViewableFreeRows(episodeScope, page);
   const cnt = await viewableFree.count();
   for (let i = 0; i < cnt && i < 5; i++) {
-    const href = await viewableFree.nth(i).locator('a[href*="/viewer/"]').first().getAttribute("href").catch(() => null);
-    if (href) {
-      const url = href.startsWith("http") ? href : new URL(href, page.url()).href;
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
-      if (/\/viewer\//i.test(page.url())) return;
-    }
+    const row = viewableFree.nth(i);
+    if (await isInsideOtherWorksSection(page, otherWorksSection, row)) continue;
+    if (await isOtherWorkCard(row)) continue;
+    const link = row.locator('a[href*="/viewer/"]').first();
+    if (await isLinkInsideOtherWorkCard(link)) continue;
+    const href = await link.getAttribute("href").catch(() => null);
+    if (!href) continue;
+    const pathname = new URL(href, page.url()).pathname;
+    if (!isLinkSameWork(pathname, currentContentId, page.url())) continue;
+    const url = href.startsWith("http") ? href : new URL(href, page.url()).href;
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+    if (/\/viewer\//i.test(page.url())) return;
   }
   await expect(page).toHaveURL(/\/viewer\//i, { timeout: 8000 });
 });
@@ -926,12 +1124,7 @@ const step이전다음회차확인 = async ({ page }: { page: any }) => {
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
 };
 
 And("사용자가 이전/다음 회차가 무료인 작품을 확인한다", step이전다음회차확인);
@@ -942,12 +1135,7 @@ And("사용자가 무료 회차 목록을 확인한다", async ({ page }) => {
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
 });
 
 And("무료 회차 목록을 확인한다", async ({ page }) => {
@@ -955,12 +1143,7 @@ And("무료 회차 목록을 확인한다", async ({ page }) => {
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
 });
 
 And("사용자가 전체 연령 작품의 무료 회차에 진입한다", async ({ page }) => {
@@ -969,12 +1152,7 @@ And("사용자가 전체 연령 작품의 무료 회차에 진입한다", async 
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
   const viewerLink = page.locator('a[href*="/viewer/"]').first();
   await viewerLink.waitFor({ state: "visible", timeout: 10000 }).catch(() => null);
   if (await viewerLink.count()) {
@@ -988,12 +1166,7 @@ And("사용자가 전체 연령 작품 목록에서 무료 회차를 선택한�
     await ensureContentPage(page);
   }
   await dismissFirstTimeReaderBenefitIfPresent(page);
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    const first = episodeTab.first();
-    await first.evaluate((el) => { el.scrollIntoView({ block: "center" }); (el as HTMLElement).click(); }).catch(() => null);
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
   const viewerLink = page.locator('a[href*="/viewer/"]').first();
   if (await viewerLink.count()) {
     await viewerLink.click({ force: true });
@@ -1020,11 +1193,7 @@ And("사용자가 무료 회차를 선택하여 진입한다", async ({ page }) 
   if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
     await ensureContentPage(page);
   }
-  const episodeTab = page.getByRole("tab", { name: /회차/i }).or(page.getByRole("link", { name: /회차/i }));
-  if (await episodeTab.count()) {
-    await episodeTab.first().click({ force: true });
-    await page.waitForTimeout(400);
-  }
+  await clickEpisodeTabOfCurrentWork(page);
   const viewerLink = page.locator('a[href*="/viewer/"]').first();
   if (await viewerLink.count()) {
     await viewerLink.click({ force: true });

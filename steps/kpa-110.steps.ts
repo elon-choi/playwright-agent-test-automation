@@ -28,13 +28,26 @@ And("사용자가 {string} 웹툰 작품을 검색 후 클릭한다.", async ({ 
 
 When("사용자가 설정 메뉴를 클릭한다", async ({ page }) => {
   if (!/\/viewer\//i.test(page.url())) return;
-  const settingIcon = page.locator('img[alt="설정"]').first();
-  const clickable = settingIcon.locator("xpath=ancestor::*[self::button or self::a or (self::div and @class and contains(@class,'cursor-pointer') or contains(@class,'flex'))][1]").first();
-  if ((await clickable.count()) > 0) {
-    await clickable.click({ timeout: 6000 }).catch(() => settingIcon.click({ force: true, timeout: 6000 }));
-  } else {
-    await settingIcon.click({ force: true, timeout: 6000 });
+  const settingImg = page.locator('img[alt="설정"], img[alt="이펍 설정"], img[alt*="설정"]').first();
+  await settingImg.waitFor({ state: "visible", timeout: 8000 }).catch(() => null);
+  const candidates = [
+    settingImg,
+    page.getByRole("button", { name: /설정|이펍\s*설정/i }).first(),
+    page.locator("[aria-label*='설정'], [class*='setting'], [class*='Setting']").first()
+  ];
+  for (const loc of candidates) {
+    const n = await loc.count();
+    if (n === 0) continue;
+    const visible = await loc.isVisible().catch(() => false);
+    if (!visible) continue;
+    const clickable = loc.locator("xpath=ancestor::*[self::button or self::a or (self::div and @class and (contains(@class,'cursor-pointer') or contains(@class,'flex') or contains(@class,'click')))][1]").first();
+    const hasClickable = await clickable.count() > 0;
+    const target = hasClickable ? clickable : loc;
+    await target.click({ timeout: 6000 }).catch(() => loc.click({ force: true, timeout: 6000 }));
+    await page.waitForTimeout(500);
+    return;
   }
+  await settingImg.click({ timeout: 6000 });
   await page.waitForTimeout(500);
 });
 

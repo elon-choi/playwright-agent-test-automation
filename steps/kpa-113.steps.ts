@@ -6,18 +6,22 @@ import { Then, And, expect } from "./fixtures.js";
 
 And("사용자가 댓글 아이콘을 클릭한다.", async ({ page }) => {
   if (!/\/viewer\//i.test(page.url())) return;
+  const byLink = page.locator('a[href*="/viewer/"][href*="/comment"]').first();
   const byImg = page.locator('img[alt="댓글"]').first();
   const byRole = page.getByRole("button", { name: /댓글/i }).first();
-  if ((await byImg.count()) > 0) await byImg.click({ timeout: 6000 }).catch(() => null);
+  if ((await byLink.count()) > 0) await byLink.click({ timeout: 6000, force: true }).catch(() => null);
+  else if ((await byImg.count()) > 0) await byImg.click({ timeout: 6000, force: true }).catch(() => null);
   else if ((await byRole.count()) > 0) await byRole.click({ timeout: 6000 }).catch(() => null);
   await page.waitForTimeout(500);
 });
 
 And("사용자가 뷰어 하단의 댓글 아이콘을 클릭한다", async ({ page }) => {
   if (!/\/viewer\//i.test(page.url())) return;
+  const byLink = page.locator('a[href*="/viewer/"][href*="/comment"]').first();
   const byImg = page.locator('img[alt="댓글"]').first();
   const byRole = page.getByRole("button", { name: /댓글/i }).first();
-  if ((await byImg.count()) > 0) await byImg.click({ timeout: 6000 }).catch(() => null);
+  if ((await byLink.count()) > 0) await byLink.click({ timeout: 6000, force: true }).catch(() => null);
+  else if ((await byImg.count()) > 0) await byImg.click({ timeout: 6000, force: true }).catch(() => null);
   else if ((await byRole.count()) > 0) await byRole.click({ timeout: 6000 }).catch(() => null);
   await page.waitForTimeout(500);
 });

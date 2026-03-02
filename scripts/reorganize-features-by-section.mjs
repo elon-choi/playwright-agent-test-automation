@@ -193,6 +193,11 @@ function main() {
       }
       continue;
     }
+    if (basename === "kpa-136.feature") {
+      const mwViewerPath = path.join(FEATURES, "mw", section, basename);
+      if (fs.existsSync(mwViewerPath)) mwPaths.push(destMw.replace(path.sep, "/"));
+      continue;
+    }
 
     if (fs.existsSync(srcRoot)) {
       moveFile(srcRoot, "pcw", section, detail);

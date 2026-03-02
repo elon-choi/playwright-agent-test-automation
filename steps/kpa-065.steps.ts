@@ -19,6 +19,8 @@ And("사용자가 메인에서 임의의 작품 카드를 클릭한다", async (
     return;
   }
 
+  // TEST_WORK_URL / TEST_WORK_URLS 미설정 시 메인 첫 번째 작품 링크를 클릭함.
+  // 뷰어 시나리오(109, 112, 113 등)에서는 테스트 풀 제어를 위해 .env에 TEST_WORK_URLS를 설정할 것.
   const webtoonTab = page.getByRole("link", { name: /웹툰\s*탭|웹툰/i }).or(page.locator('a[href*="/menu/10010"]'));
   if ((await webtoonTab.count()) > 0) {
     await webtoonTab.first().click({ timeout: 8000 }).catch(() => null);

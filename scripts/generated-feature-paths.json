@@ -40,7 +40,6 @@
     "features/pcw/07-뷰어/kpa-119.feature",
     "features/pcw/07-뷰어/kpa-120.feature",
     "features/pcw/07-뷰어/kpa-121.feature",
-    "features/pcw/07-뷰어/kpa-122.feature",
     "features/pcw/07-뷰어/kpa-123.feature",
     "features/pcw/07-뷰어/kpa-124.feature",
     "features/pcw/07-뷰어/kpa-125.feature",
@@ -53,7 +52,6 @@
     "features/pcw/07-뷰어/kpa-133.feature",
     "features/pcw/07-뷰어/kpa-134.feature",
     "features/pcw/07-뷰어/kpa-135.feature",
-    "features/pcw/07-뷰어/kpa-136.feature",
     "features/pcw/07-뷰어/kpa-137.feature",
     "features/pcw/04-숏컷/검색/kpa-027.feature",
     "features/pcw/04-숏컷/검색/kpa-028.feature",
@@ -124,6 +122,8 @@
     "features/mw/뷰어/kpa-075.feature",
     "features/mw/뷰어/kpa-076.feature",
     "features/mw/뷰어/kpa-079.feature",
+    "features/mw/뷰어/kpa-122.feature",
+    "features/mw/뷰어/kpa-136.feature",
     "features/mw/콘텐츠홈/kpa-077.feature"
   ],
   "allPaths": [
@@ -167,7 +167,6 @@
     "features/pcw/07-뷰어/kpa-119.feature",
     "features/pcw/07-뷰어/kpa-120.feature",
     "features/pcw/07-뷰어/kpa-121.feature",
-    "features/pcw/07-뷰어/kpa-122.feature",
     "features/pcw/07-뷰어/kpa-123.feature",
     "features/pcw/07-뷰어/kpa-124.feature",
     "features/pcw/07-뷰어/kpa-125.feature",
@@ -180,7 +179,6 @@
     "features/pcw/07-뷰어/kpa-133.feature",
     "features/pcw/07-뷰어/kpa-134.feature",
     "features/pcw/07-뷰어/kpa-135.feature",
-    "features/pcw/07-뷰어/kpa-136.feature",
     "features/pcw/07-뷰어/kpa-137.feature",
     "features/pcw/04-숏컷/검색/kpa-027.feature",
     "features/pcw/04-숏컷/검색/kpa-028.feature",
@@ -249,6 +247,8 @@
     "features/mw/뷰어/kpa-074.feature",
     "features/mw/뷰어/kpa-075.feature",
     "features/mw/뷰어/kpa-076.feature",
-    "features/mw/뷰어/kpa-079.feature"
+    "features/mw/뷰어/kpa-079.feature",
+    "features/mw/뷰어/kpa-122.feature",
+    "features/mw/뷰어/kpa-136.feature"
   ]
 }

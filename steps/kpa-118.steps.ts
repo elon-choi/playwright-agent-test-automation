@@ -38,8 +38,15 @@ And("사용자가 회차 별점을 선택한 후 완료 버튼을 클릭한다",
   } else {
     await starBtnInPopup.click({ timeout: 4000 });
   }
-  await page.waitForTimeout(200);
-  const doneBtn = page.getByRole("button", { name: /완료/i }).or(page.getByText(/완료/).first());
+  await page.waitForTimeout(500);
+
+  // 이미 별점을 남긴 회차는 '완료' 대신 '수정' 버튼이 노출됨
+  const doneInPopup = scope.getByRole("button", { name: /완료|수정/i })
+    .or(scope.locator('button, [role="button"], a').filter({ hasText: /완료|수정/i }))
+    .or(scope.getByText(/완료|수정/).first());
+  const doneFallback = page.getByRole("button", { name: /완료|수정/i }).or(page.getByText(/완료|수정/).first());
+  const doneBtn = doneInPopup.or(doneFallback);
+  await doneBtn.first().waitFor({ state: "visible", timeout: 6000 });
   const doneCount = await doneBtn.count();
   expect(doneCount).toBeGreaterThan(0);
   await doneBtn.first().click({ timeout: 5000 });
