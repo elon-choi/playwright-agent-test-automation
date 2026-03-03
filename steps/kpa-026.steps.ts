@@ -1,6 +1,12 @@
 // Feature: KPA-026 기능 검증
 // Scenario: 이용권 사용 확인 팝업 동작 검증
 import { When, Then, And, expect, getBaseUrlOrigin } from "./fixtures.js";
+import {
+  getEpisodeListScope,
+  OTHER_WORK_CARD_MARKER,
+  getCurrentContentId,
+  isLinkSameWork
+} from "./common.episode.steps.js";
 
 const BADGE_IMG_NAME = /기다무|3다무|시계/i;
 const BADGE_IMG_ALT =
@@ -101,60 +107,85 @@ And("더보기 메뉴를 이탈하여 대여권을 보유한 임의의 작품을
   throw new Error("작품홈 좌측 상단에 기다무/3다무 뱃지가 있는 작품 카드를 찾지 못했습니다.");
 });
 
-async function clickBadgeEpisodeIfFound(page: import("playwright").Page): Promise<boolean> {
-  const viewerLinks = page.locator('a[href*="/viewer/"]');
-  const withBadgeImg = viewerLinks.filter({
-    has: page.getByRole("img", { name: BADGE_IMG_NAME })
-  });
-  if (await withBadgeImg.count() > 0) {
-    await withBadgeImg.first().scrollIntoViewIfNeeded();
-    await withBadgeImg.first().click({ timeout: 10000, force: true });
-    await page.waitForTimeout(800);
-    return true;
-  }
-  const withBadgeAlt = viewerLinks.filter({ has: page.locator(BADGE_IMG_ALT) });
-  if (await withBadgeAlt.count() > 0) {
-    await withBadgeAlt.first().scrollIntoViewIfNeeded();
-    await withBadgeAlt.first().click({ timeout: 10000, force: true });
-    await page.waitForTimeout(800);
-    return true;
-  }
-  const badgeImgThenViewerLink = page.getByRole("img", { name: BADGE_IMG_NAME });
-  const badgeCount = await badgeImgThenViewerLink.count();
-  for (let i = 0; i < badgeCount; i++) {
-    const link = badgeImgThenViewerLink.nth(i).locator("xpath=ancestor::a[contains(@href,'/viewer/')][1]");
-    if (await link.count() > 0 && (await link.first().isVisible().catch(() => false))) {
-      await link.first().scrollIntoViewIfNeeded();
-      await link.first().click({ timeout: 10000, force: true });
-      await page.waitForTimeout(800);
-      return true;
-    }
-  }
-  return false;
-}
+const PAID_INDICATOR = /구매|대여|소장|잠금|유료|\d+캐시|캐시\s*결제|대여권|소장권|결제/i;
 
 And("감상 이력이 없는 유료 회차를 클릭한 후 취소 버튼을 클릭한다", async ({ page }) => {
-  await page.waitForTimeout(600);
-  if (await clickBadgeEpisodeIfFound(page)) return;
-  const expandArrow = page.getByRole("img", { name: "아래 화살표" }).or(
-    page.locator('img[alt="아래 화살표"]')
-  );
-  if (await expandArrow.count() > 0 && (await expandArrow.first().isVisible().catch(() => false))) {
-    await expandArrow.first().scrollIntoViewIfNeeded();
-    await expandArrow.first().click({ timeout: 5000, force: true });
-    await page.waitForTimeout(800);
-    if (await clickBadgeEpisodeIfFound(page)) return;
-  }
-  throw new Error(
-    "1번에서 선택한 작품과 동일한 뱃지(기다무/3다무)가 달린 회차를 찾지 못했습니다. 회차 리스트 확장 후에도 해당 회차가 없을 수 있습니다."
-  );
+  await page.waitForTimeout(1200);
+  const sortLabel = page.getByText(/^최신순$|^최신\s*순$/).first();
+  await sortLabel.waitFor({ state: "visible", timeout: 5000 }).catch(() => null);
+  await page.waitForTimeout(800);
+  const currentContentId = getCurrentContentId(page.url());
+
+  const clickCancelIfPresent = async () => {
+    const cancelBtn = page.getByRole("button", { name: /취소/i }).or(page.getByText(/^취소$/i));
+    if (await cancelBtn.count() > 0) {
+      await cancelBtn.first().click({ timeout: 5000 }).catch(() => null);
+      await page.waitForTimeout(400);
+    }
+  };
+
+  const tryFindAndClickPaid = async (scope: Awaited<ReturnType<typeof getEpisodeListScope>>): Promise<boolean> => {
+    const rows = scope
+      .locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+      .filter({ hasNot: scope.locator(OTHER_WORK_CARD_MARKER) })
+      .filter({ has: page.locator('a[href*="/viewer/"]') });
+    const rowCount = await rows.count();
+    for (let i = 0; i < rowCount; i++) {
+      const row = rows.nth(i);
+      const rowText = await row.textContent().catch(() => "") ?? "";
+      const hasFree = /무료/.test(rowText);
+      const hasPaid = PAID_INDICATOR.test(rowText);
+      if (hasFree && !hasPaid) continue;
+      const link = row.locator('a[href*="/viewer/"]').first();
+      if ((await link.count()) === 0) continue;
+      const href = await link.getAttribute("href").catch(() => null);
+      const path = href ? new URL(href, page.url()).pathname : "";
+      if (!isLinkSameWork(path, currentContentId, page.url())) continue;
+      await link.scrollIntoViewIfNeeded().catch(() => null);
+      await link.click({ force: true });
+      await page.waitForTimeout(800);
+      await clickCancelIfPresent();
+      return true;
+    }
+    const scopeViewerLinks = scope.locator('a[href*="/viewer/"]');
+    const scopeLinkCount = await scopeViewerLinks.count();
+    for (let i = 0; i < scopeLinkCount; i++) {
+      const link = scopeViewerLinks.nth(i);
+      const inOtherWork = await link.locator("xpath=ancestor::*[contains(@class,\"border-sp-thumb-line\")]").count() > 0;
+      if (inOtherWork) continue;
+      const href = await link.getAttribute("href").catch(() => null);
+      const path = href ? new URL(href, page.url()).pathname : "";
+      if (!isLinkSameWork(path, currentContentId, page.url())) continue;
+      const text = await link.innerText().catch(() => "");
+      if (/무료/.test(text) && !PAID_INDICATOR.test(text)) continue;
+      await link.scrollIntoViewIfNeeded().catch(() => null);
+      await link.click({ force: true });
+      await page.waitForTimeout(800);
+      await clickCancelIfPresent();
+      return true;
+    }
+    return false;
+  };
+
+  let episodeScope = await getEpisodeListScope(page);
+  if (await tryFindAndClickPaid(episodeScope)) return;
+  await page.waitForTimeout(1500);
+  episodeScope = await getEpisodeListScope(page);
+  if (await tryFindAndClickPaid(episodeScope)) return;
+  throw new Error("회차 리스트 영역에서 감상 이력이 없는 유료 회차를 찾지 못했습니다. 최신순 정렬 후 리스트가 갱신되었는지 확인해 주세요.");
 });
 
 Then("이용권 사용 확인 메뉴를 클릭할 때 다음과 같은 팝업이 노출된다:", async ({ page }, _dataTable?: unknown) => {
-  const cancel = page.getByRole("button", { name: /취소/i }).or(page.getByText(/^취소$/i));
-  await expect(cancel.first()).toBeVisible({ timeout: 10000 });
-  const popupContent = page.getByText(/기다무\s*대여권|대여권\s*\d+\s*장|소장권\s*\d+\s*장|이용권\s*사용\s*확인\s*다시/i).first();
-  await expect(popupContent).toBeVisible({ timeout: 5000 }).catch(() => null);
+  const popupContent = page.getByText(/기다무\s*대여권|대여권\s*\d+\s*장|소장권\s*\d+\s*장|이용권\s*사용\s*확인\s*다시|미구매\s*회차/i).first();
+  await expect(popupContent).toBeVisible({ timeout: 10000 });
+  const closeButton = page.getByRole("button", { name: /취소|닫기/i }).or(page.getByText(/^취소$|^닫기$/i));
+  const closeVisible = await closeButton.first().isVisible().catch(() => false);
+  if (!closeVisible) {
+    const buttons = page.getByRole("button");
+    await expect(buttons.first()).toBeVisible({ timeout: 5000 });
+  } else {
+    await expect(closeButton.first()).toBeVisible({ timeout: 3000 });
+  }
   const onOffOrCheckbox = page.getByRole("button", { name: /On|Off/i }).or(
     page.getByText(/이용권\s*사용\s*확인.*다시\s*보지\s*않기|다시\s*보지\s*않기/i)
   );
@@ -164,9 +195,37 @@ Then("이용권 사용 확인 메뉴를 클릭할 때 다음과 같은 팝업이
 });
 
 And("이용권 사용 팝업이 노출되며, 취소 버튼을 클릭하면 팝업이 종료되고 회차 리스트가 노출된다", async ({ page }) => {
-  const cancelBtn = page.getByRole("button", { name: /취소/i }).first();
-  await cancelBtn.click({ timeout: 5000 }).catch(() => null);
-  await page.waitForTimeout(500);
-  const episodeList = page.getByText(/회차|화/).or(page.locator('a[href*="/viewer/"]'));
-  await expect(episodeList.first()).toBeVisible({ timeout: 8000 });
+  const dialog = page.getByRole("dialog").first();
+  const dialogVisible = await dialog.isVisible().catch(() => false);
+  const modalScope = dialogVisible ? dialog : null;
+  if (modalScope) {
+    const cancelOrClose = modalScope.getByRole("button", { name: /^취소$|^닫기$/i })
+      .or(modalScope.getByText(/^취소$|^닫기$/));
+    if (await cancelOrClose.count() > 0 && await cancelOrClose.first().isVisible().catch(() => false)) {
+      await cancelOrClose.first().click({ timeout: 5000 }).catch(() => null);
+    } else {
+      await page.keyboard.press("Escape");
+    }
+  } else {
+    const inModal = page.locator('[role="dialog"], [class*="odal"]').filter({
+      has: page.getByText(/미구매\s*회차|이용권\s*사용\s*확인\s*팝업|기다무\s*대여권|소장권\s*\d+\s*캐시/i)
+    }).first();
+    if (await inModal.isVisible().catch(() => false)) {
+      const cancelOrClose = inModal.getByRole("button", { name: /^취소$|^닫기$/i })
+        .or(inModal.getByText(/^취소$|^닫기$/));
+      if (await cancelOrClose.count() > 0 && await cancelOrClose.first().isVisible().catch(() => false)) {
+        await cancelOrClose.first().click({ timeout: 5000 }).catch(() => null);
+      } else {
+        await page.keyboard.press("Escape");
+      }
+    } else {
+      await page.keyboard.press("Escape");
+    }
+  }
+  await page.waitForTimeout(800);
+  await expect(page).toHaveURL(/\/(content|landing\/series)\//i);
+  const episodeListArea = page.getByRole("tab", { name: /회차/i })
+    .or(page.getByText(/첫화부터|최신\s*순|최신순/))
+    .or(page.locator('a[href*="/viewer/"]').first());
+  await expect(episodeListArea.first()).toBeVisible({ timeout: 12000 });
 });

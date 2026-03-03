@@ -4,6 +4,7 @@ import { Given, When, Then, expect, withAiFallback } from "./fixtures.js";
 
 const BADGE_IMG_NAME = /기다무|3다무|시계/i;
 const BADGE_IMG_ALT = "img[alt*='기다무'], img[alt*='3다무'], img[alt*='시계'], img[alt*='기다무 뱃지']";
+const BADGE_IMG_기다무_뱃지 = 'img[alt="기다무 뱃지"]';
 
 Given("사용자는 BM 작품을 기다무로 설정한다", async ({ page }) => {
   const bmToggle = page.getByRole("button", { name: /BM|기다무/i });
@@ -155,9 +156,49 @@ When("사용자가 홈 탭 하단의 회차 리스트에서 동일한 뱃지가 
     async () => {
       await page.waitForTimeout(600);
 
+      const sortTrigger = page.locator('button, [role="button"], span').filter({ hasText: /첫화부터|최신\s*순|최신순/ }).first();
+      if (await sortTrigger.count() > 0 && await sortTrigger.isVisible().catch(() => false)) {
+        await sortTrigger.scrollIntoViewIfNeeded().catch(() => null);
+        await sortTrigger.click({ force: true }).catch(() => null);
+        await page.waitForTimeout(500);
+        const latestOpt = page.getByRole("option", { name: /최신\s*순|최신순/i }).or(page.getByText(/최신\s*순|최신순/).first());
+        if (await latestOpt.count() > 0 && await latestOpt.first().isVisible().catch(() => false)) {
+          await latestOpt.first().click({ force: true }).catch(() => null);
+          await page.waitForTimeout(1200);
+        }
+        await page.keyboard.press("Escape").catch(() => null);
+        await page.waitForTimeout(400);
+      }
+
       const viewerLinks = page.locator('a[href*="/viewer/"]');
+      const badge기다무뱃지 = page.locator(BADGE_IMG_기다무_뱃지);
+      const linksWith기다무뱃지 = viewerLinks.filter({ has: badge기다무뱃지 });
+      const countWithBadge = await linksWith기다무뱃지.count();
+      if (countWithBadge > 0) {
+        let maxNum = 0;
+        let maxIndex = -1;
+        for (let i = 0; i < countWithBadge; i++) {
+          const text = await linksWith기다무뱃지.nth(i).innerText().catch(() => "");
+          const match = text.match(/(\d+)\s*화/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) {
+              maxNum = num;
+              maxIndex = i;
+            }
+          }
+        }
+        const toClick = maxIndex >= 0 ? linksWith기다무뱃지.nth(maxIndex) : linksWith기다무뱃지.first();
+        if (await toClick.isVisible().catch(() => false)) {
+          await toClick.scrollIntoViewIfNeeded();
+          await toClick.click({ force: true });
+          await page.waitForTimeout(1500);
+          return;
+        }
+      }
+
       const withBadgeImg = viewerLinks.filter({
-        has: page.getByRole("img", { name: BADGE_IMG_NAME })
+        has: page.getByRole("img", { name: /기다무 뱃지|기다무|3다무|시계/i })
       });
       if (await withBadgeImg.count()) {
         await withBadgeImg.first().scrollIntoViewIfNeeded();
@@ -172,7 +213,7 @@ When("사용자가 홈 탭 하단의 회차 리스트에서 동일한 뱃지가 
         await page.waitForTimeout(1500);
         return;
       }
-      const badgeImgThenViewerLink = page.getByRole("img", { name: BADGE_IMG_NAME });
+      const badgeImgThenViewerLink = page.getByRole("img", { name: /기다무 뱃지|기다무|3다무|시계/i });
       const badgeCount = await badgeImgThenViewerLink.count();
       for (let i = 0; i < badgeCount; i++) {
         const link = badgeImgThenViewerLink.nth(i).locator("xpath=ancestor::a[contains(@href,'/viewer/')][1]");

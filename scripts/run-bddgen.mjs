@@ -16,7 +16,7 @@ const args = process.argv.slice(2);
 const child = spawn("npx", ["playwright-bdd", ...args], {
   cwd: projectRoot,
   stdio: "inherit",
-  shell: true
+  shell: false
 });
 
 child.on("exit", (code) => {

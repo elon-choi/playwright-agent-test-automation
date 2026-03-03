@@ -52,6 +52,44 @@ And("사용자가 회차 정렬에서 최신순 옵션을 클릭한다", async (
         await page.waitForTimeout(1200);
         return;
       }
+      const sortTrigger = page.locator('button, [role="button"], a, span').filter({ hasText: /^첫화부터$|^최신\s*순$|^최신순$/ }).first();
+      if (await sortTrigger.count() > 0 && await sortTrigger.isVisible().catch(() => false)) {
+        await sortTrigger.scrollIntoViewIfNeeded().catch(() => null);
+        await page.waitForTimeout(300);
+        await sortTrigger.click({ force: true });
+        await page.waitForTimeout(600);
+        const latestOpt = page.getByRole("option", { name: /최신\s*순|최신순/i }).or(page.getByText(/최신\s*순|최신순/).first());
+        if (await latestOpt.count() > 0 && await latestOpt.first().isVisible().catch(() => false)) {
+          await latestOpt.first().click({ force: true });
+          await page.waitForTimeout(600);
+          await page.keyboard.press("Escape").catch(() => null);
+          await page.waitForTimeout(1200);
+          return;
+        }
+      }
+      const anyFirst = page.getByText(/첫화부터/).first();
+      if (await anyFirst.count() > 0 && await anyFirst.isVisible().catch(() => false)) {
+        const parent = anyFirst.locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]");
+        if (await parent.count() > 0) {
+          await parent.first().click({ force: true });
+          await page.waitForTimeout(600);
+        } else {
+          await anyFirst.click({ force: true });
+          await page.waitForTimeout(600);
+        }
+        const reLatestSort = /최신\s*순|최신순/i;
+        const latestOptLoc = page.getByRole("option", { name: reLatestSort });
+        const latestMenuLoc = page.locator('[role="menuitem"]').filter({ hasText: reLatestSort });
+        const latestTextLoc = page.getByText(reLatestSort).first();
+        const latestInPage = latestOptLoc.or(latestMenuLoc).or(latestTextLoc);
+        if (await latestInPage.count() > 0) {
+          await latestInPage.first().click({ force: true });
+          await page.waitForTimeout(800);
+          await page.keyboard.press("Escape").catch(() => null);
+          await page.waitForTimeout(1200);
+          return;
+        }
+      }
       throw new Error("회차 정렬에서 최신순 옵션을 찾지 못했습니다. 첫화부터/최신순이 있는 회차 정렬 드롭다운인지 확인해 주세요.");
     },
     "회차 정렬에서 최신순 옵션을 클릭한다",

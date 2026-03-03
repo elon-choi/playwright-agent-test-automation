@@ -44,28 +44,34 @@ const scrollViewerToEnd = async (page: import("@playwright/test").Page) => {
 };
 
 const re원작소설 = /원작\s*소설|이\s*작품을\s*[''']?원작\s*소설[''']?\s*로\s*보기|동일작\s*보기/i;
-const re웹툰 = /웹툰\s*으로\s*보기|이\s*작품을\s*[''']?웹툰[''']?\s*으로\s*보기/i;
+const re웹툰 = /웹툰\s*으로\s*보기|이\s*작품을\s*.*?웹툰.*?으로\s*보기/i;
+const re웹툰넓음 = /웹툰/;
 
 And("사용자가 {string} 배너를 클릭한다", async ({ page }, param: string) => {
   if (page.isClosed?.()) return;
   await page.waitForTimeout(500);
 
   await scrollViewerToEnd(page);
+  await page.waitForSelector('img[alt="동일작 보기"]', { state: "attached", timeout: 10000 }).catch(() => null);
+  await page.waitForTimeout(300);
 
   const is웹툰 = /웹툰/.test(param);
   const re = is웹툰 ? re웹툰 : re원작소설;
   const byImg = page.locator('img[alt="동일작 보기"]').first();
-  const byContainer = page.locator('div.cursor-pointer').filter({ has: page.locator('img[alt="동일작 보기"]') }).first();
+  const containerSelector = "[class*='cursor-pointer']";
+  const byContainer = page.locator(`div${containerSelector}`).filter({ has: page.locator('img[alt="동일작 보기"]') }).first();
   const byContainer웹툰 = is웹툰
-    ? page.locator('div.cursor-pointer').filter({ has: page.locator('img[alt="동일작 보기"]') }).filter({ hasText: re웹툰 }).first()
+    ? page.locator(`div${containerSelector}`).filter({ has: page.locator('img[alt="동일작 보기"]') }).filter({ hasText: re웹툰넓음 }).first()
     : null;
   const byText = page.getByText(re).first();
+  const byText웹툰 = is웹툰 ? page.getByText(re웹툰넓음).first() : null;
 
   let bannerVisible =
     (await byImg.isVisible().catch(() => false)) ||
     (await byContainer.isVisible().catch(() => false)) ||
     (await byText.isVisible().catch(() => false)) ||
-    (byContainer웹툰 && (await byContainer웹툰.isVisible().catch(() => false)));
+    (byContainer웹툰 && (await byContainer웹툰.isVisible().catch(() => false))) ||
+    (byText웹툰 && (await byText웹툰.isVisible().catch(() => false)));
 
   if (!bannerVisible) {
     for (let i = 0; i < 15; i++) {
@@ -82,7 +88,8 @@ And("사용자가 {string} 배너를 클릭한다", async ({ page }, param: stri
         (await byImg.isVisible().catch(() => false)) ||
         (await byContainer.isVisible().catch(() => false)) ||
         (await byText.isVisible().catch(() => false)) ||
-        (byContainer웹툰 && (await byContainer웹툰.isVisible().catch(() => false)));
+        (byContainer웹툰 && (await byContainer웹툰.isVisible().catch(() => false))) ||
+        (byText웹툰 && (await byText웹툰.isVisible().catch(() => false)));
       if (bannerVisible) break;
     }
   }
@@ -91,9 +98,9 @@ And("사용자가 {string} 배너를 클릭한다", async ({ page }, param: stri
   if (!bannerVisible) throw new Error(`${bannerLabel} 배너를 찾지 못했습니다. 뷰어 엔드 영역까지 스크롤 후에도 노출되지 않습니다.`);
 
   const containerToClick = is웹툰
-    ? page.locator('div.cursor-pointer').filter({ has: page.locator('img[alt="동일작 보기"]') }).filter({ hasText: re웹툰 }).first()
-    : page.locator('div.cursor-pointer').filter({ has: page.locator('img[alt="동일작 보기"]') }).filter({ hasText: re원작소설 }).first();
-  const fallback = page.locator('.cursor-pointer').filter({ hasText: re }).first();
+    ? page.locator(`div${containerSelector}`).filter({ has: page.locator('img[alt="동일작 보기"]') }).filter({ hasText: re웹툰넓음 }).first()
+    : page.locator(`div${containerSelector}`).filter({ has: page.locator('img[alt="동일작 보기"]') }).filter({ hasText: re원작소설 }).first();
+  const fallback = page.locator(containerSelector).filter({ hasText: is웹툰 ? re웹툰넓음 : re원작소설 }).first();
   const img = page.locator('img[alt="동일작 보기"]').first();
 
   if (await containerToClick.isVisible().catch(() => false)) {

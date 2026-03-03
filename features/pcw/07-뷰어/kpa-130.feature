@@ -1,6 +1,6 @@
 Feature: KPA-130 시나리오 검증
 
-  Scenario: 무료 회차에서 원작소설로 이동하기
+  Scenario: 무료 회차에서 웹툰으로 이동하기
     Given 사용자가 "https://page.kakao.com/" 사이트에 접속한다
     And 사용자는 로그인 상태이다
     And 사용자가 "(웹소설) 로드 오브 머니" 작품 상세 페이지에 접속한다

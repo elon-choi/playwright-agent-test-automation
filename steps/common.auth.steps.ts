@@ -73,7 +73,7 @@ Then("콘텐츠 열람 안내 팝업이 다음과 같이 노출된다:", async (
   try {
     await popupMessage.first().waitFor({ state: "visible", timeout: 12000 });
   } catch {
-    await loginButton.first().waitFor({ state: "visible", timeout: 5000 });
+    await loginButton.first().waitFor({ state: "visible", timeout: 10000 });
   }
 
   const ageGateMessage = page.getByText(/연령 확인이 필요|연령 확인/i);
