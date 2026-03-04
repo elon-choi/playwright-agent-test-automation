@@ -1,7 +1,6 @@
 import { test as base, createBdd } from "playwright-bdd";
-import { expect, test as pwTest } from "@playwright/test";
+import { expect } from "@playwright/test";
 import dotenv from "dotenv";
-import { ai as zerostepAi } from "@zerostep/playwright";
 import { LoginPage } from "../pages/LoginPage.js";
 import { mkdir, access, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -214,36 +213,10 @@ export const selfHealLocator = async (page: any, options: HealOptions) => {
   return null;
 };
 
-const hasZerostepToken = () =>
-  Boolean(typeof process !== "undefined" && process.env?.ZEROSTEP_TOKEN);
-
-/**
- * 로케이터 기반 액션을 먼저 실행하고, 실패 시 ZEROSTEP_TOKEN이 있으면
- * 동일 의도를 자연어로 ZeroStep AI에 넘겨 재시도한다.
- * 토큰이 없으면 기존처럼 예외를 그대로 전파한다.
- * (시나리오별로 동일 로직 추가 금지. 이 함수만 사용한다.)
- */
-export const withAiFallback = async <T>(
-  locatorAction: () => Promise<T>,
-  aiPrompt: string,
-  ai: (prompt: string, options?: any) => Promise<any>
-): Promise<T | void> => {
-  try {
-    return await locatorAction();
-  } catch (err) {
-    if (hasZerostepToken() && ai) {
-      console.warn("[ZeroStep fallback] 로케이터 실패, AI 재시도:", aiPrompt);
-      await ai(aiPrompt);
-      return;
-    }
-    throw err;
-  }
-};
 
 // BDD Step에서 사용할 Fixture 타입 정의
 type MyFixtures = {
   loginPage: LoginPage;
-  ai: any;
   dumpOnFailure: void;
 };
 
@@ -315,7 +288,7 @@ export const test = base.extend<MyFixtures>({
   },
   // Page Object 주입
   loginPage: async (
-    { page, ai }: { page: any; ai: any },
+    { page }: { page: any },
     use: any,
     testInfo: any
   ) => {
@@ -323,15 +296,7 @@ export const test = base.extend<MyFixtures>({
       testInfo.project.use?.defaultBrowserType ||
       testInfo.project.use?.browserName ||
       testInfo.project.name;
-    await use(new LoginPage(page, ai, browserName));
-  },
-  // ZeroStep AI 주입 (KPA-048은 배너/클릭 단계가 많아 타임아웃 90초 적용)
-  ai: async ({ page }: { page: any }, use: any, testInfo: any) => {
-    if (testInfo?.file && String(testInfo.file).includes("kpa-048")) {
-      testInfo.setTimeout(90000);
-    }
-    const aiRunner = zerostepAi as any;
-    await use((prompt: string, options: any) => aiRunner(prompt, { ...options, page, test: pwTest }));
+    await use(new LoginPage(page, browserName));
   },
   dumpOnFailure: [
     async ({ page }, use, testInfo) => {

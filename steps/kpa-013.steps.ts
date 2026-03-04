@@ -1,23 +1,25 @@
 // Feature: KPA-013 시나리오 검증
 // Scenario: 비로그인 상태에서 기다무 작품 선물 받기 클릭 시 로그인 페이지로 이동
-import { Given, When, Then, expect, withAiFallback, dismissPermissionPopup } from "./fixtures.js";
+import { Given, When, Then, expect, dismissPermissionPopup, getBaseUrl } from "./fixtures.js";
 
-const KPA013_TEST_WORK_URL = "https://page.kakao.com/content/68532138";
+// 선물받기 버튼 식별자: data-t-obj 속성에 "선물받기" 포함된 클릭 가능한 div
+const GIFT_BUTTON_SELECTOR = '[data-t-obj*="선물받기"]';
 
 let loginDetected = false;
+// 비로그인 선물 받기 클릭 시 카카오 로그인 페이지로 이동 (today-gift는 오탐이므로 허용 안 함)
+const AUTH_REDIRECT_PATTERN = /accounts\.kakao\.com\/login/i;
 const waitForLoginRedirect = async (page: { waitForEvent: any; waitForURL: any; url: () => string }) => {
-  const loginPattern = /accounts\.kakao\.com\/login/i;
   await Promise.all([
     page
       .waitForEvent("popup", { timeout: 5000 })
       .then(async (popup: { waitForURL: any; close: () => Promise<void> }) => {
-        await popup.waitForURL(loginPattern, { timeout: 5000 });
+        await popup.waitForURL(AUTH_REDIRECT_PATTERN, { timeout: 5000 });
         loginDetected = true;
         await popup.close();
       })
       .catch(() => {}),
     page
-      .waitForURL(loginPattern, { timeout: 5000 })
+      .waitForURL(AUTH_REDIRECT_PATTERN, { timeout: 5000 })
       .then(() => {
         loginDetected = true;
       })
@@ -35,49 +37,41 @@ When("사용자가 테스트 대상 작품의 작품홈으로 이동한다", asy
   } catch {
     // 권한 API 미지원 시 무시 (시스템 권한 창이 뜰 수 있음)
   }
-  await page.goto(KPA013_TEST_WORK_URL, { waitUntil: "domcontentloaded", timeout: 15000 });
-  await page.waitForTimeout(500);
-  await expect(page).toHaveURL(/\/content\/68532138|\/landing\/series\//i);
+
+  const base = getBaseUrl().replace(/\/$/, "");
+
+  // 메인 페이지에서 작품 링크를 수집한 뒤, 선물 대여권 버튼이 있는 작품홈을 동적으로 탐색
+  await page.goto(base, { waitUntil: "domcontentloaded", timeout: 15000 });
+  await page.waitForTimeout(1000);
+
+  const workUrls: string[] = await page
+    .locator('a[href*="/content/"]:not([href*="/list/"])')
+    .evaluateAll((els: HTMLAnchorElement[]) => [...new Set(els.map((el) => el.href))]);
+
+  for (const url of workUrls.slice(0, 30)) {
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+    await page.waitForTimeout(500);
+
+    if (await page.locator(GIFT_BUTTON_SELECTOR).count() > 0) {
+      // 선물 대여권 버튼이 있는 작품홈 진입 성공
+      return;
+    }
+  }
+
+  throw new Error("선물 대여권이 활성화된 작품을 찾지 못했습니다. 운영 설정을 확인하세요.");
 });
 
-When("사용자가 작품홈 이미지 하단의 선물 받기 버튼을 클릭한다", async ({ page, ai }) => {
+When("사용자가 작품홈 이미지 하단의 선물 받기 버튼을 클릭한다", async ({ page }) => {
   loginDetected = false;
-  await withAiFallback(
-    async () => {
-      const giftText = page.getByText(/선물\s*대여권\s*1장/i).first();
-      await giftText.waitFor({ state: "visible", timeout: 15000 });
-
-      const giftSection = giftText.locator('xpath=ancestor::*[self::div or self::section][1]');
-      const giftSpan = giftSection.locator("span.font-small2-bold.text-el-10.text-center.break-keep.w-max");
-      if (await giftSpan.count()) {
-        const span = giftSpan.first();
-        const clickableAncestor = span.locator(
-          "xpath=ancestor::*[self::button or @role='button' or @tabindex][1]"
-        );
-        if (await clickableAncestor.count()) {
-          await clickableAncestor.first().click();
-          await waitForLoginRedirect(page);
-          await dismissPermissionPopup(page);
-          return;
-        }
-        await span.click();
-        await waitForLoginRedirect(page);
-        await dismissPermissionPopup(page);
-        return;
-      }
-
-      const giftByText = giftSection.getByText("받기").first();
-      await giftByText.click();
-      await waitForLoginRedirect(page);
-      await dismissPermissionPopup(page);
-    },
-    "선물 받기 버튼을 클릭한다",
-    ai
-  );
+  const giftBtn = page.locator(GIFT_BUTTON_SELECTOR);
+  await giftBtn.waitFor({ state: "visible", timeout: 10000 });
+  await giftBtn.click();
+  await waitForLoginRedirect(page);
+  await dismissPermissionPopup(page);
 });
 
 Then("사용자는 카카오 로그인 페이지로 이동한다", async ({ page }) => {
-  await page.waitForURL(/accounts\.kakao\.com\/login/i, { timeout: 10000 }).catch(() => null);
+  await page.waitForURL(AUTH_REDIRECT_PATTERN, { timeout: 10000 }).catch(() => null);
   for (let i = 0; i < 3; i++) {
     await dismissPermissionPopup(page);
     await page.waitForTimeout(400);
@@ -85,9 +79,8 @@ Then("사용자는 카카오 로그인 페이지로 이동한다", async ({ page
   if (loginDetected) {
     return;
   }
-  const onLoginPage = /accounts\.kakao\.com\/login/i.test(page.url());
-  if (onLoginPage) {
+  if (AUTH_REDIRECT_PATTERN.test(page.url())) {
     return;
   }
-  await expect(page).toHaveURL(/accounts\.kakao\.com\/login/i);
+  await expect(page).toHaveURL(AUTH_REDIRECT_PATTERN);
 });

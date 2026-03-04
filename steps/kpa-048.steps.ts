@@ -1,4 +1,4 @@
-import { And, Given, When, Then, expect, selfHealLocator, withAiFallback } from "./fixtures.js";
+import { And, Given, When, Then, expect, selfHealLocator } from "./fixtures.js";
 
 const bannerRootSelector = '[data-t-obj*="stop_b_"]';
 const bannerLinkSelector = `${bannerRootSelector} a[href]`;
@@ -257,112 +257,104 @@ const isStaleOrCdpError = (e: unknown) => {
   return /detached|backend id|No node found|getContentQuads|scrollIntoViewIfNeeded/i.test(msg);
 };
 
-When("배너 영역의 다음 화살표 버튼을 클릭하여 배너가 변경됨을 확인한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const beforeKey = await getActiveBannerKey(page);
-      if (!beforeKey) {
-        throw new Error("현재 노출된 배너를 식별하지 못했습니다.");
-      }
-      let clicked = false;
-      for (let attempt = 0; attempt < 2 && !clicked; attempt++) {
-        if (attempt > 0) await page.waitForTimeout(400);
-        try {
-          const nextButton = await getNextArrowButton(page);
-          if (nextButton) {
-            await nextButton.click({ force: true, timeout: 8000 });
-            clicked = true;
-          } else {
-            const bannerRoot = await ensureBannerVisibleOnce(page);
-            const box = await bannerRoot.boundingBox();
-            if (!box) {
-              throw new Error("배너 영역을 찾지 못했습니다.");
-            }
-            await page.mouse.click(box.x + box.width * 0.85, box.y + box.height / 2);
-            clicked = true;
-          }
-        } catch (e) {
-          if (attempt === 0 && isStaleOrCdpError(e)) continue;
-          throw e;
+When("배너 영역의 다음 화살표 버튼을 클릭하여 배너가 변경됨을 확인한다", async ({ page }) => {
+  const beforeKey = await getActiveBannerKey(page);
+  if (!beforeKey) {
+    throw new Error("현재 노출된 배너를 식별하지 못했습니다.");
+  }
+  let clicked = false;
+  for (let attempt = 0; attempt < 2 && !clicked; attempt++) {
+    if (attempt > 0) await page.waitForTimeout(400);
+    try {
+      const nextButton = await getNextArrowButton(page);
+      if (nextButton) {
+        await nextButton.click({ force: true, timeout: 8000 });
+        clicked = true;
+      } else {
+        const bannerRoot = await ensureBannerVisibleOnce(page);
+        const box = await bannerRoot.boundingBox();
+        if (!box) {
+          throw new Error("배너 영역을 찾지 못했습니다.");
         }
+        await page.mouse.click(box.x + box.width * 0.85, box.y + box.height / 2);
+        clicked = true;
       }
-      await page.waitForTimeout(500);
-      const afterKey = await getActiveBannerKey(page);
-      if (!afterKey || afterKey === beforeKey) {
-        return;
-      }
-    },
-    "배너 영역의 다음 화살표 버튼을 클릭하여 다음 배너로 넘긴다",
-    ai
-  );
+    } catch (e) {
+      if (attempt === 0 && isStaleOrCdpError(e)) continue;
+      throw e;
+    }
+  }
+  await page.waitForTimeout(500);
+  const afterKey = await getActiveBannerKey(page);
+  if (!afterKey || afterKey === beforeKey) {
+    return;
+  }
 });
 
-When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const bannerLink = await getActiveBannerLink(page);
-      if (!bannerLink) {
-        throw new Error("클릭할 운영 배너를 찾지 못했습니다.");
-      }
-      bannerVisibleConfirmed = true;
-      await evaluateBannerComponents(page, bannerLink);
+When("현재 노출된 운영 배너의 링크 정보를 저장하고 클릭한다", async ({ page }) => {
+  const bannerLink = await getActiveBannerLink(page);
+  if (!bannerLink) {
+    throw new Error("클릭할 운영 배너를 찾지 못했습니다.");
+  }
+  bannerVisibleConfirmed = true;
+  await evaluateBannerComponents(page, bannerLink);
 
-      const bannerHref = await bannerLink.getAttribute("href");
-      if (!bannerHref) {
-        throw new Error("운영 배너의 링크 정보를 찾지 못했습니다.");
-      }
-      targetBannerUrl = new URL(bannerHref, page.url()).toString();
+  const bannerHref = await bannerLink.getAttribute("href");
+  if (!bannerHref) {
+    throw new Error("운영 배너의 링크 정보를 찾지 못했습니다.");
+  }
+  targetBannerUrl = new URL(bannerHref, page.url()).toString();
 
-      if (!(await bannerLink.isVisible()) && !bannerScrollAttempted) {
-        bannerScrollAttempted = true;
-      }
-      const popupPromise = page.waitForEvent("popup", { timeout: 10000 }).catch(() => null);
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          if (attempt > 0) {
-            const freshLink = await getActiveBannerLink(page);
-            if (freshLink) await freshLink.click({ force: true, timeout: 10000 });
-            else await bannerLink.click({ force: true, timeout: 10000 });
-          } else {
-            await bannerLink.click({ force: true, timeout: 10000 });
-          }
-          break;
-        } catch (e) {
-          if (attempt === 0 && isStaleOrCdpError(e)) {
-            await page.waitForTimeout(400);
-            continue;
-          }
-          throw e;
-        }
-      }
-
-      const popup = await popupPromise;
-      if (popup && !popup.isClosed()) {
-        await popup.waitForLoadState("domcontentloaded", { timeout: 15000 }).catch(() => null);
-        lastNavigatedUrl = popup.url();
+  if (!(await bannerLink.isVisible()) && !bannerScrollAttempted) {
+    bannerScrollAttempted = true;
+    await bannerLink.scrollIntoViewIfNeeded().catch(() => null);
+    await page.waitForTimeout(300);
+  }
+  const popupPromise = page.waitForEvent("popup", { timeout: 10000 }).catch(() => null);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      // Swiper 캐러셀 내부 링크는 overflow:hidden으로 클리핑되어 viewport 밖으로 인식됨.
+      // Playwright click의 viewport 체크를 우회하기 위해 native click 사용
+      if (attempt > 0) {
+        const freshLink = await getActiveBannerLink(page);
+        const target = freshLink ?? bannerLink;
+        await target.evaluate((el: HTMLElement) => el.click());
       } else {
-        await page.waitForURL(/\/content\/|\/event\/|\/open\/webview\/|\/landing\/|\/menu\//i, { timeout: 8000 }).catch(() => null);
-        await page.waitForLoadState("domcontentloaded", { timeout: 10000 }).catch(() => null);
-        lastNavigatedUrl = page.url();
+        await bannerLink.evaluate((el: HTMLElement) => el.click());
       }
-      if (!lastNavigatedUrl || lastNavigatedUrl === new URL("/", page.url()).toString()) {
-        await page.waitForTimeout(2000);
-        const ctx = page.context();
-        if (ctx && typeof ctx.pages === "function") {
-          for (const p of ctx.pages()) {
-            if (p.isClosed()) continue;
-            const u = p.url();
-            if (u && u !== page.url() && (/\/content\/|\/event\/|\/open\/webview\/|\/landing\/|\/menu\//i.test(u) || (bannerHref && u.includes(new URL(bannerHref, page.url()).pathname)))) {
-              lastNavigatedUrl = u;
-              break;
-            }
-          }
+      break;
+    } catch (e) {
+      if (attempt === 0 && isStaleOrCdpError(e)) {
+        await page.waitForTimeout(400);
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  const popup = await popupPromise;
+  if (popup && !popup.isClosed()) {
+    await popup.waitForLoadState("domcontentloaded", { timeout: 15000 }).catch(() => null);
+    lastNavigatedUrl = popup.url();
+  } else {
+    await page.waitForURL(/\/content\/|\/event\/|\/open\/webview\/|\/landing\/|\/menu\//i, { timeout: 8000 }).catch(() => null);
+    await page.waitForLoadState("domcontentloaded", { timeout: 10000 }).catch(() => null);
+    lastNavigatedUrl = page.url();
+  }
+  if (!lastNavigatedUrl || lastNavigatedUrl === new URL("/", page.url()).toString()) {
+    await page.waitForTimeout(2000);
+    const ctx = page.context();
+    if (ctx && typeof ctx.pages === "function") {
+      for (const p of ctx.pages()) {
+        if (p.isClosed()) continue;
+        const u = p.url();
+        if (u && u !== page.url() && (/\/content\/|\/event\/|\/open\/webview\/|\/landing\/|\/menu\//i.test(u) || (bannerHref && u.includes(new URL(bannerHref, page.url()).pathname)))) {
+          lastNavigatedUrl = u;
+          break;
         }
       }
-    },
-    "현재 화면에 보이는 메인 배너(운영 배너)를 클릭한다",
-    ai
-  );
+    }
+  }
   if (!targetBannerUrl) {
     throw new Error("운영 배너 링크를 저장하지 못했습니다. 배너를 찾아 클릭하는 단계가 수행되지 않았을 수 있습니다.");
   }

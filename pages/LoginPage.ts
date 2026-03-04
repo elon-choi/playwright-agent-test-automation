@@ -1,8 +1,5 @@
 import type { Page } from "@playwright/test";
-import { BasePage } from "./BasePage";
-
-type AiOptions = Record<string, unknown>;
-type AiFn = (prompt: string, options?: AiOptions) => Promise<unknown>;
+import { BasePage } from "./BasePage.js";
 
 const getBaseUrlFromEnv = (): string => {
   const u = (process.env.BASE_URL || "https://page.kakao.com/").trim();
@@ -10,8 +7,8 @@ const getBaseUrlFromEnv = (): string => {
 };
 
 export class LoginPage extends BasePage {
-  constructor(page: Page, ai: AiFn, browserName?: string) {
-    super(page, ai, browserName);
+  constructor(page: Page, browserName?: string) {
+    super(page, browserName);
   }
 
   async goto(url: string) {
@@ -38,9 +35,6 @@ export class LoginPage extends BasePage {
       this.page.getByRole("button", { name: /로그인/i })
     ];
     if (onPageKakao && !openLoginFlow) {
-      const hasLoginForm =
-        (await this.page.locator('input[name="loginId"], input[placeholder*="카카오메일"], input[placeholder*="Account"]').count()) > 0 ||
-        (await this.page.getByRole("button", { name: /Log\s*In|로그인/i }).count()) > 0;
       for (const locator of profileOnlyCandidates) {
         const resolved = locator.first();
         if ((await locator.count()) > 0 && (await resolved.isVisible().catch(() => false))) {
@@ -80,12 +74,7 @@ export class LoginPage extends BasePage {
         return;
       }
     }
-    const result = await this.safeAi("우측 상단 프로필 아이콘을 클릭해줘");
-    if (result === null) {
-      throw new Error(
-        "우측 상단 프로필 아이콘을 찾지 못했습니다. 지원되는 locator 후보를 확인해 주세요."
-      );
-    }
+    throw new Error("우측 상단 프로필 아이콘을 찾지 못했습니다. 지원되는 locator 후보를 확인해 주세요.");
   }
 
   async openLogin() {
@@ -114,14 +103,11 @@ export class LoginPage extends BasePage {
 
   async ensureLoggedOut() {
     const loginForm = this.page.locator(
-      ['input[name="loginId"]', "input#loginId--1", 'input[placeholder*="카카오메일"]'].join(
-        ", "
-      )
+      ['input[name="loginId"]', "input#loginId--1", 'input[placeholder*="카카오메일"]'].join(", ")
     );
     if (await loginForm.count()) {
       return;
     }
-
     const loginCtas = [
       this.page.getByRole("link", { name: /로그인/i }),
       this.page.getByRole("button", { name: /로그인/i }),
@@ -160,19 +146,13 @@ export class LoginPage extends BasePage {
     if ((await idInput.count()) > 0 && (await idInput.first().isVisible().catch(() => false))) {
       await idInput.first().fill(username);
     } else {
-      const result = await this.safeAi(`아이디 입력칸에 ${username} 를 입력해줘`);
-      if (result === null) {
-        throw new Error("아이디 입력칸을 찾지 못했습니다.");
-      }
+      throw new Error("아이디 입력칸을 찾지 못했습니다.");
     }
 
     if ((await pwInput.count()) > 0 && (await pwInput.first().isVisible().catch(() => false))) {
       await pwInput.first().fill(password);
     } else {
-      const result = await this.safeAi("비밀번호 입력칸에 비밀번호를 입력해줘");
-      if (result === null) {
-        throw new Error("비밀번호 입력칸을 찾지 못했습니다.");
-      }
+      throw new Error("비밀번호 입력칸을 찾지 못했습니다.");
     }
   }
 
@@ -201,11 +181,7 @@ export class LoginPage extends BasePage {
         return;
       }
     }
-
-    const result = await this.safeAi("로그인 버튼을 클릭해줘");
-    if (result === null) {
-      throw new Error("로그인 버튼을 찾지 못했습니다.");
-    }
+    throw new Error("로그인 버튼을 찾지 못했습니다.");
   }
 
   async verifyRecommendationHome() {
@@ -220,16 +196,6 @@ export class LoginPage extends BasePage {
     await this.page.waitForLoadState("domcontentloaded");
 
     const recommendTab = this.page.getByRole("link", { name: /추천/i });
-    try {
-      await recommendTab.first().waitFor({ state: "visible", timeout: 15000 });
-      return;
-    } catch (error) {
-      // Fall through to AI check
-    }
-
-    const result = await this.safeAi("추천 홈이 화면에 노출되어 있는지 확인해줘");
-    if (result === null) {
-      throw new Error("추천 홈 탭을 확인하지 못했습니다.");
-    }
+    await recommendTab.first().waitFor({ state: "visible", timeout: 15000 });
   }
 }

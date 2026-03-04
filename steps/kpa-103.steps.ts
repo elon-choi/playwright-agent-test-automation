@@ -1,6 +1,6 @@
 // Feature: KPA-103 시나리오 검증
 // Scenario: 소식 탭 UI 검증
-import { Given, When, Then, expect, withAiFallback, getRandomTestWorkUrl } from "./fixtures.js";
+import { Given, When, Then, expect, getRandomTestWorkUrl } from "./fixtures.js";
 
 const ensureContentPage = async (page: any) => {
   if (/\/content\/|\/landing\/series\//i.test(page.url())) {
@@ -38,31 +38,25 @@ const ensureContentPage = async (page: any) => {
   throw new Error("작품 상세 페이지로 이동하지 못했습니다.");
 };
 
-When('사용자가 "소식" 탭을 클릭한다', async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      await ensureContentPage(page);
-      const noticeTabCandidates = [
-        page.getByRole("tab", { name: /소식/i }),
-        page.getByRole("link", { name: /소식/i }),
-        page.getByRole("button", { name: /소식/i })
-      ];
-      for (const locator of noticeTabCandidates) {
-        if (await locator.count()) {
-          await locator.first().click({ force: true });
-          return;
-        }
-      }
-      const noticeText = page.getByText(/소식/i);
-      if (await noticeText.count()) {
-        await noticeText.first().click({ force: true });
-        return;
-      }
+When('사용자가 "소식" 탭을 클릭한다', async ({ page }) => {
+  await ensureContentPage(page);
+  const noticeTabCandidates = [
+    page.getByRole("tab", { name: /소식/i }),
+    page.getByRole("link", { name: /소식/i }),
+    page.getByRole("button", { name: /소식/i })
+  ];
+  for (const locator of noticeTabCandidates) {
+    if (await locator.count()) {
+      await locator.first().click({ force: true });
       return;
-    },
-    "작품 상세 페이지에서 소식 탭을 클릭한다",
-    ai
-  );
+    }
+  }
+  const noticeText = page.getByText(/소식/i);
+  if (await noticeText.count()) {
+    await noticeText.first().click({ force: true });
+    return;
+  }
+  return;
 });
 
 Then('페이지는 "소식" 탭의 내용을 표시한다', async ({ page }) => {

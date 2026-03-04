@@ -1,4 +1,4 @@
-import { Given, When, Then, And, expect, withAiFallback, getBaseUrl, getRandomTestWorkUrl } from "./fixtures.js";
+import { Given, When, Then, And, expect, getBaseUrl, getRandomTestWorkUrl } from "./fixtures.js";
 
 const RESTRICTED_AGE_BADGE_SELECTOR = 'img[alt*="19세"]';
 const RESTRICTED_TITLE_PATTERN = /\[19세\s*완전판\]/;
@@ -326,156 +326,132 @@ Given("사용자가 전체 연령만 특정 작품홈에 진입한다", async ({
   await dismissFirstTimeReaderBenefitIfPresent(page);
 });
 
-When("사용자가 회차 탭을 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const url = page.url();
-      if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
-        await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
-        await page.waitForTimeout(300);
-      }
-      if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
-        await ensureContentPage(page);
-      }
-      const episodeTabCandidates = [
+When("사용자가 회차 탭을 클릭한다", async ({ page }) => {
+  const url = page.url();
+  if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
+    await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.waitForTimeout(300);
+  }
+  if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
+    await ensureContentPage(page);
+  }
+  const episodeTabCandidates = [
+    page.getByRole("tab", { name: /회차/i }),
+    page.getByRole("link", { name: /회차/i }),
+    page.getByRole("button", { name: /회차/i })
+  ];
+  for (const locator of episodeTabCandidates) {
+    if (await locator.count()) {
+      await locator.first().click({ force: true });
+      await page.waitForTimeout(400);
+      return;
+    }
+  }
+});
+
+And("사용자가 홈 탭 하단의 회차 리스트를 확인한다", async ({ page }) => {
+  const url = page.url();
+  if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
+    await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.waitForTimeout(300);
+  }
+  if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
+    await ensureContentPage(page);
+  }
+  const isOnContentPage = /\/content\/|\/landing\/series\//i.test(page.url());
+  const episodeTabCandidates = isOnContentPage
+    ? [
+        page.getByRole("tab", { name: /회차/i }),
+        page.getByRole("button", { name: /회차/i })
+      ]
+    : [
         page.getByRole("tab", { name: /회차/i }),
         page.getByRole("link", { name: /회차/i }),
         page.getByRole("button", { name: /회차/i })
       ];
-      for (const locator of episodeTabCandidates) {
-        if (await locator.count()) {
-          await locator.first().click({ force: true });
-          await page.waitForTimeout(400);
-          return;
-        }
-      }
-    },
-    "작품 상세 페이지에서 회차 탭을 클릭한다",
-    ai
-  );
+  for (const locator of episodeTabCandidates) {
+    if (await locator.count()) {
+      await locator.first().click({ force: true });
+      await page.waitForTimeout(400);
+      return;
+    }
+  }
 });
 
-And("사용자가 홈 탭 하단의 회차 리스트를 확인한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const url = page.url();
-      if (/\/menu\/\d+/i.test(url) && !/\/content\/|\/landing\/series\//i.test(url)) {
-        await page.goto(getBaseUrl(), { waitUntil: "domcontentloaded", timeout: 15000 });
-        await page.waitForTimeout(300);
+When("사용자가 정렬 메뉴를 클릭한다", async ({ page }) => {
+  const sortCandidates = [
+    page.getByRole("button", { name: /첫화부터|최신순|최신\s*순|정렬/i }),
+    page.getByRole("combobox", { name: /첫화|최신|정렬/i }),
+    page.getByRole("listbox", { name: /첫화|최신|정렬/i }),
+    page.getByText(/첫화부터|최신순|최신\s*순/).first(),
+    page.locator("button").filter({ hasText: /첫화|최신|정렬/ }).first(),
+    page.locator("[role='button']").filter({ hasText: /첫화|최신|정렬/ }).first()
+  ];
+  for (const locator of sortCandidates) {
+    if (await locator.count()) {
+      const el = locator.first();
+      if (await el.isVisible().catch(() => false)) {
+        await el.click({ force: true });
+        return;
       }
-      if (!/\/content\/|\/landing\/series\//i.test(page.url())) {
-        await ensureContentPage(page);
-      }
-      const isOnContentPage = /\/content\/|\/landing\/series\//i.test(page.url());
-      const episodeTabCandidates = isOnContentPage
-        ? [
-            page.getByRole("tab", { name: /회차/i }),
-            page.getByRole("button", { name: /회차/i })
-          ]
-        : [
-            page.getByRole("tab", { name: /회차/i }),
-            page.getByRole("link", { name: /회차/i }),
-            page.getByRole("button", { name: /회차/i })
-          ];
-      for (const locator of episodeTabCandidates) {
-        if (await locator.count()) {
-          await locator.first().click({ force: true });
-          await page.waitForTimeout(400);
-          return;
-        }
-      }
-    },
-    "홈 탭 하단의 회차 리스트를 확인한다",
-    ai
-  );
-});
-
-When("사용자가 정렬 메뉴를 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const sortCandidates = [
-        page.getByRole("button", { name: /첫화부터|최신순|최신\s*순|정렬/i }),
-        page.getByRole("combobox", { name: /첫화|최신|정렬/i }),
-        page.getByRole("listbox", { name: /첫화|최신|정렬/i }),
-        page.getByText(/첫화부터|최신순|최신\s*순/).first(),
-        page.locator("button").filter({ hasText: /첫화|최신|정렬/ }).first(),
-        page.locator("[role='button']").filter({ hasText: /첫화|최신|정렬/ }).first()
-      ];
-      for (const locator of sortCandidates) {
-        if (await locator.count()) {
-          const el = locator.first();
-          if (await el.isVisible().catch(() => false)) {
-            await el.click({ force: true });
-            return;
-          }
-        }
-      }
-      throw new Error("정렬 메뉴를 찾지 못했습니다.");
-    },
-    "회차 정렬 메뉴(첫화부터 또는 최신순)를 클릭한다",
-    ai
-  );
+    }
+  }
+  throw new Error("정렬 메뉴를 찾지 못했습니다.");
 });
 
 const EPISODE_SORT_SPAN_SELECTOR = 'span.font-small2-bold.text-el-40, span[class*="font-small2-bold"]';
 
-When("사용자가 회차 정렬 메뉴를 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const episodeSortLabel = page.locator(EPISODE_SORT_SPAN_SELECTOR).filter({ hasText: /^첫화부터$/ });
-      if (await episodeSortLabel.count() > 0) {
-        const trigger = episodeSortLabel.first().locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox' or contains(@class,'button')][1]").first();
-        if (await trigger.count() > 0) {
-          await trigger.scrollIntoViewIfNeeded().catch(() => null);
-          await page.waitForTimeout(200);
-          await trigger.click({ force: true });
-          return;
-        }
-        await episodeSortLabel.first().locator("xpath=..").click({ force: true });
-        return;
-      }
-      const sortButtons = await page.getByRole("button", { name: /첫화부터|최신순|최신\s*순|정렬/i }).all();
-      for (const btn of sortButtons) {
-        const isEpisodeSortButton = await btn.evaluate((b) => {
-          const parent = b.closest("section") || b.closest("main") || b.closest("div");
-          if (!parent) return false;
-          const hasViewerLinks = parent.querySelectorAll('a[href*="/viewer/"]').length >= 2;
-          const hasFirstEpisodeLabel = (parent.textContent || "").includes("첫화부터");
-          return hasViewerLinks && hasFirstEpisodeLabel;
-        }).catch(() => false);
-        if (isEpisodeSortButton) {
-          await btn.scrollIntoViewIfNeeded().catch(() => null);
-          await page.waitForTimeout(200);
-          await btn.click({ force: true });
-          return;
-        }
-      }
-      const anyFirstText = page.getByText(/^첫화부터$|^최신\s*순$|^최신순$/).first();
-      if (await anyFirstText.count() > 0 && await anyFirstText.isVisible().catch(() => false)) {
-        await anyFirstText.scrollIntoViewIfNeeded().catch(() => null);
-        await page.waitForTimeout(200);
-        const parentBtn = anyFirstText.locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]").first();
-        if (await parentBtn.count() > 0) {
-          await parentBtn.click({ force: true });
-          return;
-        }
-        await anyFirstText.click({ force: true });
-        return;
-      }
-      const episodeArea = page.locator("main, section, [class*='episode'], [class*='Episode']").filter({ has: page.locator('a[href*="/viewer/"]') }).filter({ hasText: /첫화부터|최신순/ }).first();
-      if (await episodeArea.count() > 0) {
-        const sortBtn = episodeArea.locator('button, [role="button"], [role="combobox"]').filter({ hasText: /첫화부터|최신순|정렬/ }).first();
-        if (await sortBtn.count() > 0 && await sortBtn.isVisible().catch(() => false)) {
-          await sortBtn.scrollIntoViewIfNeeded().catch(() => null);
-          await sortBtn.click({ force: true });
-          return;
-        }
-      }
-      throw new Error("회차 정렬 메뉴를 찾지 못했습니다. span.font-small2-bold(첫화부터) 또는 회차 영역 정렬 버튼을 확인해 주세요.");
-    },
-    "회차 정렬 메뉴(첫화부터 또는 최신순)를 클릭한다",
-    ai
-  );
+When("사용자가 회차 정렬 메뉴를 클릭한다", async ({ page }) => {
+  const episodeSortLabel = page.locator(EPISODE_SORT_SPAN_SELECTOR).filter({ hasText: /^첫화부터$/ });
+  if (await episodeSortLabel.count() > 0) {
+    const trigger = episodeSortLabel.first().locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox' or contains(@class,'button')][1]").first();
+    if (await trigger.count() > 0) {
+      await trigger.scrollIntoViewIfNeeded().catch(() => null);
+      await page.waitForTimeout(200);
+      await trigger.click({ force: true });
+      return;
+    }
+    await episodeSortLabel.first().locator("xpath=..").click({ force: true });
+    return;
+  }
+  const sortButtons = await page.getByRole("button", { name: /첫화부터|최신순|최신\s*순|정렬/i }).all();
+  for (const btn of sortButtons) {
+    const isEpisodeSortButton = await btn.evaluate((b) => {
+      const parent = b.closest("section") || b.closest("main") || b.closest("div");
+      if (!parent) return false;
+      const hasViewerLinks = parent.querySelectorAll('a[href*="/viewer/"]').length >= 2;
+      const hasFirstEpisodeLabel = (parent.textContent || "").includes("첫화부터");
+      return hasViewerLinks && hasFirstEpisodeLabel;
+    }).catch(() => false);
+    if (isEpisodeSortButton) {
+      await btn.scrollIntoViewIfNeeded().catch(() => null);
+      await page.waitForTimeout(200);
+      await btn.click({ force: true });
+      return;
+    }
+  }
+  const anyFirstText = page.getByText(/^첫화부터$|^최신\s*순$|^최신순$/).first();
+  if (await anyFirstText.count() > 0 && await anyFirstText.isVisible().catch(() => false)) {
+    await anyFirstText.scrollIntoViewIfNeeded().catch(() => null);
+    await page.waitForTimeout(200);
+    const parentBtn = anyFirstText.locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]").first();
+    if (await parentBtn.count() > 0) {
+      await parentBtn.click({ force: true });
+      return;
+    }
+    await anyFirstText.click({ force: true });
+    return;
+  }
+  const episodeArea = page.locator("main, section, [class*='episode'], [class*='Episode']").filter({ has: page.locator('a[href*="/viewer/"]') }).filter({ hasText: /첫화부터|최신순/ }).first();
+  if (await episodeArea.count() > 0) {
+    const sortBtn = episodeArea.locator('button, [role="button"], [role="combobox"]').filter({ hasText: /첫화부터|최신순|정렬/ }).first();
+    if (await sortBtn.count() > 0 && await sortBtn.isVisible().catch(() => false)) {
+      await sortBtn.scrollIntoViewIfNeeded().catch(() => null);
+      await sortBtn.click({ force: true });
+      return;
+    }
+  }
+  throw new Error("회차 정렬 메뉴를 찾지 못했습니다. span.font-small2-bold(첫화부터) 또는 회차 영역 정렬 버튼을 확인해 주세요.");
 });
 
 And("사용자가 전체 연령 작품을 선택한다", async ({ page }) => {

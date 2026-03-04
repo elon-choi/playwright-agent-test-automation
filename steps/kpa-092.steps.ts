@@ -1,125 +1,107 @@
 // Feature: KPA-092 시나리오 검증
 // Scenario: 작품홈 회차 정렬 옵션 - 최신순 선택 시 회차 내림차순 노출 확인
-import { Given, When, Then, And, expect, withAiFallback } from "./fixtures.js";
+import { Given, When, Then, And, expect } from "./fixtures.js";
 
-And('"최신순" 옵션을 클릭한다', async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const optionCandidates = [
-        page.getByRole("option", { name: /최신\s*순|최신순/i }),
-        page.getByRole("button", { name: /최신\s*순|최신순/i }),
-        page.getByText(/최신\s*순|최신순/i)
-      ];
-      for (const locator of optionCandidates) {
-        if (await locator.count()) {
-          await locator.first().click({ force: true });
-          await page.waitForTimeout(300);
-          return;
-        }
-      }
-      throw new Error("최신순 정렬 옵션을 찾지 못했습니다.");
-    },
-    "최신순 옵션을 클릭한다",
-    ai
-  );
+And('"최신순" 옵션을 클릭한다', async ({ page }) => {
+  const optionCandidates = [
+    page.getByRole("option", { name: /최신\s*순|최신순/i }),
+    page.getByRole("button", { name: /최신\s*순|최신순/i }),
+    page.getByText(/최신\s*순|최신순/i)
+  ];
+  for (const locator of optionCandidates) {
+    if (await locator.count()) {
+      await locator.first().click({ force: true });
+      await page.waitForTimeout(300);
+      return;
+    }
+  }
+  throw new Error("최신순 정렬 옵션을 찾지 못했습니다.");
 });
 
 const EPISODE_SORT_SPAN = 'span.font-small2-bold.text-el-40, span[class*="font-small2-bold"]';
 
-And("사용자가 회차 정렬에서 최신순 옵션을 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const episodeSortLabel = page.locator(EPISODE_SORT_SPAN).filter({ hasText: /^첫화부터$/ }).first();
-      if (await episodeSortLabel.count() > 0) {
-        const menuWithFirst = page.locator('[role="menu"], [role="listbox"], [class*="dropdown"], [class*="Dropdown"], [class*="menu"], [class*="Modal"]').filter({ hasText: /첫화부터/ }).filter({ hasText: /최신순/ }).filter({ hasNotText: /좋아요순/ }).first();
-        if (await menuWithFirst.count() > 0) {
-          const latestOption = menuWithFirst.getByRole("option", { name: /최신\s*순|최신순/i })
-            .or(menuWithFirst.getByText(/^최신\s*순$|^최신순$/).first());
-          if (await latestOption.count() > 0) {
-            await latestOption.first().click({ force: true });
-            await page.waitForTimeout(600);
-            await page.keyboard.press("Escape").catch(() => null);
-            await page.waitForTimeout(1200);
-            return;
-          }
-        }
-      }
-      const menuWithFirstOnly = page.locator('[role="menu"], [role="listbox"]').filter({ hasText: /첫화부터/ }).filter({ hasText: /최신순/ }).first();
-      if (await menuWithFirstOnly.count() > 0) {
-        await menuWithFirstOnly.getByText(/최신\s*순|최신순/).first().click({ force: true });
+And("사용자가 회차 정렬에서 최신순 옵션을 클릭한다", async ({ page }) => {
+  const episodeSortLabel = page.locator(EPISODE_SORT_SPAN).filter({ hasText: /^첫화부터$/ }).first();
+  if (await episodeSortLabel.count() > 0) {
+    const menuWithFirst = page.locator('[role="menu"], [role="listbox"], [class*="dropdown"], [class*="Dropdown"], [class*="menu"], [class*="Modal"]').filter({ hasText: /첫화부터/ }).filter({ hasText: /최신순/ }).filter({ hasNotText: /좋아요순/ }).first();
+    if (await menuWithFirst.count() > 0) {
+      const latestOption = menuWithFirst.getByRole("option", { name: /최신\s*순|최신순/i })
+        .or(menuWithFirst.getByText(/^최신\s*순$|^최신순$/).first());
+      if (await latestOption.count() > 0) {
+        await latestOption.first().click({ force: true });
         await page.waitForTimeout(600);
         await page.keyboard.press("Escape").catch(() => null);
         await page.waitForTimeout(1200);
         return;
       }
-      const sortTrigger = page.locator('button, [role="button"], a, span').filter({ hasText: /^첫화부터$|^최신\s*순$|^최신순$/ }).first();
-      if (await sortTrigger.count() > 0 && await sortTrigger.isVisible().catch(() => false)) {
-        await sortTrigger.scrollIntoViewIfNeeded().catch(() => null);
-        await page.waitForTimeout(300);
-        await sortTrigger.click({ force: true });
-        await page.waitForTimeout(600);
-        const latestOpt = page.getByRole("option", { name: /최신\s*순|최신순/i }).or(page.getByText(/최신\s*순|최신순/).first());
-        if (await latestOpt.count() > 0 && await latestOpt.first().isVisible().catch(() => false)) {
-          await latestOpt.first().click({ force: true });
-          await page.waitForTimeout(600);
-          await page.keyboard.press("Escape").catch(() => null);
-          await page.waitForTimeout(1200);
-          return;
-        }
-      }
-      const anyFirst = page.getByText(/첫화부터/).first();
-      if (await anyFirst.count() > 0 && await anyFirst.isVisible().catch(() => false)) {
-        const parent = anyFirst.locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]");
-        if (await parent.count() > 0) {
-          await parent.first().click({ force: true });
-          await page.waitForTimeout(600);
-        } else {
-          await anyFirst.click({ force: true });
-          await page.waitForTimeout(600);
-        }
-        const reLatestSort = /최신\s*순|최신순/i;
-        const latestOptLoc = page.getByRole("option", { name: reLatestSort });
-        const latestMenuLoc = page.locator('[role="menuitem"]').filter({ hasText: reLatestSort });
-        const latestTextLoc = page.getByText(reLatestSort).first();
-        const latestInPage = latestOptLoc.or(latestMenuLoc).or(latestTextLoc);
-        if (await latestInPage.count() > 0) {
-          await latestInPage.first().click({ force: true });
-          await page.waitForTimeout(800);
-          await page.keyboard.press("Escape").catch(() => null);
-          await page.waitForTimeout(1200);
-          return;
-        }
-      }
-      throw new Error("회차 정렬에서 최신순 옵션을 찾지 못했습니다. 첫화부터/최신순이 있는 회차 정렬 드롭다운인지 확인해 주세요.");
-    },
-    "회차 정렬에서 최신순 옵션을 클릭한다",
-    ai
-  );
+    }
+  }
+  const menuWithFirstOnly = page.locator('[role="menu"], [role="listbox"]').filter({ hasText: /첫화부터/ }).filter({ hasText: /최신순/ }).first();
+  if (await menuWithFirstOnly.count() > 0) {
+    await menuWithFirstOnly.getByText(/최신\s*순|최신순/).first().click({ force: true });
+    await page.waitForTimeout(600);
+    await page.keyboard.press("Escape").catch(() => null);
+    await page.waitForTimeout(1200);
+    return;
+  }
+  const sortTrigger = page.locator('button, [role="button"], a, span').filter({ hasText: /^첫화부터$|^최신\s*순$|^최신순$/ }).first();
+  if (await sortTrigger.count() > 0 && await sortTrigger.isVisible().catch(() => false)) {
+    await sortTrigger.scrollIntoViewIfNeeded().catch(() => null);
+    await page.waitForTimeout(300);
+    await sortTrigger.click({ force: true });
+    await page.waitForTimeout(600);
+    const latestOpt = page.getByRole("option", { name: /최신\s*순|최신순/i }).or(page.getByText(/최신\s*순|최신순/).first());
+    if (await latestOpt.count() > 0 && await latestOpt.first().isVisible().catch(() => false)) {
+      await latestOpt.first().click({ force: true });
+      await page.waitForTimeout(600);
+      await page.keyboard.press("Escape").catch(() => null);
+      await page.waitForTimeout(1200);
+      return;
+    }
+  }
+  const anyFirst = page.getByText(/첫화부터/).first();
+  if (await anyFirst.count() > 0 && await anyFirst.isVisible().catch(() => false)) {
+    const parent = anyFirst.locator("xpath=ancestor::*[self::button or self::a or @role='button' or @role='combobox'][1]");
+    if (await parent.count() > 0) {
+      await parent.first().click({ force: true });
+      await page.waitForTimeout(600);
+    } else {
+      await anyFirst.click({ force: true });
+      await page.waitForTimeout(600);
+    }
+    const reLatestSort = /최신\s*순|최신순/i;
+    const latestOptLoc = page.getByRole("option", { name: reLatestSort });
+    const latestMenuLoc = page.locator('[role="menuitem"]').filter({ hasText: reLatestSort });
+    const latestTextLoc = page.getByText(reLatestSort).first();
+    const latestInPage = latestOptLoc.or(latestMenuLoc).or(latestTextLoc);
+    if (await latestInPage.count() > 0) {
+      await latestInPage.first().click({ force: true });
+      await page.waitForTimeout(800);
+      await page.keyboard.press("Escape").catch(() => null);
+      await page.waitForTimeout(1200);
+      return;
+    }
+  }
+  throw new Error("회차 정렬에서 최신순 옵션을 찾지 못했습니다. 첫화부터/최신순이 있는 회차 정렬 드롭다운인지 확인해 주세요.");
 });
 
-When("사용자가 최신 순 정렬 옵션을 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const currentSort = page.getByRole("button", { name: /최신\s*순/i });
-      if (await currentSort.count()) {
-        return;
-      }
-      const optionCandidates = [
-        page.getByRole("option", { name: /최신\s*순/i }),
-        page.getByRole("button", { name: /최신\s*순/i }),
-        page.getByText(/최신\s*순/)
-      ];
-      for (const locator of optionCandidates) {
-        if (await locator.count()) {
-          await locator.first().click({ force: true });
-          return;
-        }
-      }
+When("사용자가 최신 순 정렬 옵션을 클릭한다", async ({ page }) => {
+  const currentSort = page.getByRole("button", { name: /최신\s*순/i });
+  if (await currentSort.count()) {
+    return;
+  }
+  const optionCandidates = [
+    page.getByRole("option", { name: /최신\s*순/i }),
+    page.getByRole("button", { name: /최신\s*순/i }),
+    page.getByText(/최신\s*순/)
+  ];
+  for (const locator of optionCandidates) {
+    if (await locator.count()) {
+      await locator.first().click({ force: true });
       return;
-    },
-    "최신 순 정렬 옵션을 클릭한다",
-    ai
-  );
+    }
+  }
+  return;
 });
 
 Then('"첫화부터"와 "최신순" 옵션이 화면에 노출된다', async ({ page }) => {
@@ -146,25 +128,19 @@ Then('"첫화부터"와 "최신순" 옵션이 화면에 노출된다', async ({ 
   }
 });
 
-When('"첫화부터" 옵션을 클릭한다', async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const optionCandidates = [
-        page.getByRole("option", { name: /첫화부터/i }),
-        page.getByRole("button", { name: /첫화부터/i }),
-        page.getByText(/첫화부터/i)
-      ];
-      for (const locator of optionCandidates) {
-        if (await locator.count()) {
-          await locator.first().click({ force: true });
-          await page.waitForTimeout(300);
-          return;
-        }
-      }
-    },
-    "첫화부터 옵션을 클릭한다",
-    ai
-  );
+When('"첫화부터" 옵션을 클릭한다', async ({ page }) => {
+  const optionCandidates = [
+    page.getByRole("option", { name: /첫화부터/i }),
+    page.getByRole("button", { name: /첫화부터/i }),
+    page.getByText(/첫화부터/i)
+  ];
+  for (const locator of optionCandidates) {
+    if (await locator.count()) {
+      await locator.first().click({ force: true });
+      await page.waitForTimeout(300);
+      return;
+    }
+  }
 });
 
 Then("회차가 첫화부터 순서대로 정렬되어 화면에 노출된다", async ({ page }) => {

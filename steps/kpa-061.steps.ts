@@ -1,6 +1,6 @@
 // Feature: KPA-061 시나리오 검증
 // Scenario: 오늘신작 메뉴 및 작품 홈 이동 검증
-import { Given, When, Then, expect, withAiFallback } from "./fixtures.js";
+import { Given, When, Then, expect } from "./fixtures.js";
 
 let selectedWorkUrl: string | null = null;
 
@@ -8,26 +8,14 @@ export function setSelectedWorkUrl(url: string | null) {
   selectedWorkUrl = url;
 }
 
-When("사용자가 상단의 추천 GNB 메뉴를 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const gnbRecommend = page.getByRole("link", { name: /추천/i });
-      await gnbRecommend.first().click({ force: true });
-    },
-    "상단 추천 메뉴를 클릭한다",
-    ai
-  );
+When("사용자가 상단의 추천 GNB 메뉴를 클릭한다", async ({ page }) => {
+  const gnbRecommend = page.getByRole("link", { name: /추천/i });
+  await gnbRecommend.first().click({ force: true });
 });
 
-When("사용자가 오늘신작 서브탭을 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const subTab = page.getByRole("link", { name: /오늘신작/i });
-      await subTab.first().click({ force: true });
-    },
-    "오늘신작 탭을 클릭한다",
-    ai
-  );
+When("사용자가 오늘신작 서브탭을 클릭한다", async ({ page }) => {
+  const subTab = page.getByRole("link", { name: /오늘신작/i });
+  await subTab.first().click({ force: true });
 });
 
 Then("오늘신작 메뉴 하단에 다음 요소들이 노출된다:", async ({ page }) => {
@@ -43,21 +31,15 @@ Then("오늘신작 메뉴 하단에 다음 요소들이 노출된다:", async ({
   expect(visibleCount).toBeGreaterThanOrEqual(2);
 });
 
-When("사용자가 첫번째 신작 작품을 클릭한다", async ({ page, ai }) => {
-  await withAiFallback(
-    async () => {
-      const todaySectionTitle = page.getByText(/^TODAY$/).first();
-      await todaySectionTitle.waitFor({ state: "visible", timeout: 15000 });
+When("사용자가 첫번째 신작 작품을 클릭한다", async ({ page }) => {
+  const todaySectionTitle = page.getByText(/^TODAY$/).first();
+  await todaySectionTitle.waitFor({ state: "visible", timeout: 15000 });
 
-      const workLink = page.getByRole("link", { name: /^작품,/ });
-      await workLink.first().waitFor({ state: "visible", timeout: 15000 });
+  const workLink = page.getByRole("link", { name: /^작품,/ });
+  await workLink.first().waitFor({ state: "visible", timeout: 15000 });
 
-      selectedWorkUrl = await workLink.first().getAttribute("href");
-      await workLink.first().click();
-    },
-    "TODAY 섹션에서 첫 번째 신작 작품을 클릭한다",
-    ai
-  );
+  selectedWorkUrl = await workLink.first().getAttribute("href");
+  await workLink.first().click();
 });
 
 Then("사용자는 클릭한 작품의 작품홈으로 이동한다", async ({ page }) => {
