@@ -140,17 +140,25 @@ export class LoginPage extends BasePage {
         'input[name="loginId"]',
         "input#loginId--1",
         'input[placeholder*="카카오메일"]',
+        'input[placeholder*="Account"]',
         'input[aria-label*="계정정보"]'
       ].join(", ")
     );
     const pwInput = this.page.locator(
-      ['input[name="password"]', "input#password--2", 'input[placeholder="비밀번호"]'].join(
-        ", "
-      )
+      [
+        'input[name="password"]',
+        "input#password--2",
+        'input[placeholder="비밀번호"]',
+        'input[type="password"]'
+      ].join(", ")
     );
 
-    if (await idInput.count()) {
-      await idInput.fill(username);
+    if (/accounts\.kakao\.com|login/i.test(this.page.url())) {
+      await idInput.first().waitFor({ state: "visible", timeout: 15000 }).catch(() => null);
+    }
+
+    if ((await idInput.count()) > 0 && (await idInput.first().isVisible().catch(() => false))) {
+      await idInput.first().fill(username);
     } else {
       const result = await this.safeAi(`아이디 입력칸에 ${username} 를 입력해줘`);
       if (result === null) {
@@ -158,8 +166,8 @@ export class LoginPage extends BasePage {
       }
     }
 
-    if (await pwInput.count()) {
-      await pwInput.fill(password);
+    if ((await pwInput.count()) > 0 && (await pwInput.first().isVisible().catch(() => false))) {
+      await pwInput.first().fill(password);
     } else {
       const result = await this.safeAi("비밀번호 입력칸에 비밀번호를 입력해줘");
       if (result === null) {

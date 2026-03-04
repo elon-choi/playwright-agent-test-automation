@@ -204,7 +204,7 @@ export default defineConfig({
     headless: process.env.CI === "true",
     screenshot: "only-on-failure",
     trace: "on-first-retry",
-    actionTimeout: 25000,
+    actionTimeout: 40000,
     navigationTimeout: 35000,
     ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {})
   },

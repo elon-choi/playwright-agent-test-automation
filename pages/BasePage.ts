@@ -28,12 +28,25 @@ export class BasePage {
     return Boolean(process.env.ZEROSTEP_TOKEN);
   }
 
+  /**
+   * Zerostep AI 실행. 실패 시 null 반환.
+   * - "No valid target found" (TaskId 포함): AI가 프롬프트에 맞는 클릭/입력 대상을 찾지 못함.
+   *   (예: KPA-002에서 프로필 아이콘 미노출, 로그인 버튼 셀렉터 변경 등)
+   */
   protected async safeAi(prompt: string, options?: AiOptions) {
     if (!this.isAiEnabled()) {
       console.warn(`[Skipped AI] "${prompt}" is skipped on ${this.browserName}.`);
       return null;
     }
-    return await this.ai(prompt, options);
+    try {
+      return await this.ai(prompt, options);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/No valid target found|zerostep\.error/i.test(msg)) {
+        return null;
+      }
+      throw e;
+    }
   }
 
   protected async smartClick(locator: Locator, description: string) {

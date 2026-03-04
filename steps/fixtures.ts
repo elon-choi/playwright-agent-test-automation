@@ -43,6 +43,13 @@ export const getRandomTestWorkUrl = (): string | null => {
   return getTestWorkUrl();
 };
 
+/**
+ * DOM에 있는 권한/다이얼로그만 닫음.
+ * accounts.kakao.com에서만 뜨는 '로컬 네트워크 액세스' 창은 브라우저 시스템 UI라 DOM에 없어
+ * 개발자 도구로 추출 불가하고 여기서도 닫을 수 없음. 대신 context 생성 시 permissions에
+ * local-network-access 부여 및 playwright.config의 --disable-features=LocalNetworkAccess 로
+ * 창이 뜨지 않도록 처리함.
+ */
 export const dismissPermissionPopup = async (page: any) => {
   if (!page || page.isClosed()) return;
   const closeSelectors = [
@@ -59,6 +66,54 @@ export const dismissPermissionPopup = async (page: any) => {
       await btn.click({ timeout: 2000 }).catch(() => null);
       await page.waitForTimeout(300);
       return;
+    }
+  }
+  if (/accounts\.kakao\.com/i.test(page.url())) {
+    const permissionKorean = await page.getByText(/권한을\s*요청|다음\s*권한|로컬\s*네트워크|다른\s*기기에\s*액세스/i).first().isVisible().catch(() => false);
+    const permissionEnglish = await page.getByText(/requesting|local\s*network|Access\s*other\s*devices/i).first().isVisible().catch(() => false);
+    if (permissionKorean || permissionEnglish) {
+      const permissionContainer = page.locator("div, section, [role='dialog']").filter({
+        has: page.getByText(/권한을\s*요청|다음\s*권한|로컬\s*네트워크|requesting|local\s*network|Access\s*other/i)
+      }).first();
+      const hasContainer = await permissionContainer.count() > 0 && (await permissionContainer.isVisible().catch(() => false));
+      if (hasContainer) {
+        const closeX = permissionContainer.locator("[aria-label='닫기'], [aria-label='Close'], [title='닫기'], [title='Close'], button:has(svg)").first();
+        if (await closeX.count() > 0 && (await closeX.isVisible().catch(() => false))) {
+          await closeX.click({ timeout: 2000 }).catch(() => null);
+          await page.waitForTimeout(300);
+          return;
+        }
+      }
+      const blockBtn = page.getByRole("button", { name: /^(차단|Block)$/i })
+        .or(page.locator("button").filter({ hasText: /^(차단|Block)$/i }).first());
+      if (await blockBtn.count() > 0 && (await blockBtn.first().isVisible().catch(() => false))) {
+        await blockBtn.first().click({ timeout: 2000 }).catch(() => null);
+        await page.waitForTimeout(300);
+        return;
+      }
+      const allowBtn = page.getByRole("button", { name: /^(허용|Allow)$/i })
+        .or(page.locator("button").filter({ hasText: /^(허용|Allow)$/i }).first());
+      if (await allowBtn.count() > 0 && (await allowBtn.first().isVisible().catch(() => false))) {
+        await allowBtn.first().click({ timeout: 2000 }).catch(() => null);
+        await page.waitForTimeout(300);
+        return;
+      }
+      const anyDialogButton = page.locator("button").filter({ hasText: /차단|허용|Block|Allow|닫기|취소/i });
+      if (await anyDialogButton.count() > 0) {
+        await anyDialogButton.first().click({ timeout: 2000 }).catch(() => null);
+        await page.waitForTimeout(300);
+        return;
+      }
+      if (hasContainer) {
+        const btnInContainer = permissionContainer.locator("button").first();
+        if (await btnInContainer.count() > 0 && (await btnInContainer.isVisible().catch(() => false))) {
+          await btnInContainer.click({ timeout: 2000 }).catch(() => null);
+          await page.waitForTimeout(300);
+          return;
+        }
+      }
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
     }
   }
 };
@@ -220,7 +275,9 @@ export const test = base.extend<MyFixtures>({
         testInfo.file.includes("kpa-059"));
     const skipAuth = (skipAuthByTitle || skipAuthByFile) && !isLoginScenario;
     if (skipAuth) {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ["local-network-access"]
+      });
       await use(context);
       await context.close();
       return;
@@ -234,7 +291,9 @@ export const test = base.extend<MyFixtures>({
     }
 
     if (isLoginScenario) {
-      const context = await browser.newContext();
+      const context = await browser.newContext({
+        permissions: ["local-network-access"]
+      });
       await use(context);
       await context.storageState({ path: STORAGE_STATE_PATH });
       await context.close();
@@ -247,7 +306,10 @@ export const test = base.extend<MyFixtures>({
       );
     }
 
-    const context = await browser.newContext({ storageState: STORAGE_STATE_PATH });
+    const context = await browser.newContext({
+      storageState: STORAGE_STATE_PATH,
+      permissions: ["local-network-access"]
+    });
     await use(context);
     await context.close();
   },

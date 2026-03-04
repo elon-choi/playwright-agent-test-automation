@@ -824,6 +824,16 @@ async function tryClickCancellable대여권Type(scope: any, page: any): Promise<
       const reBad = /구매\s*취소(?!\s*하기)/;
       const labelPattern = /대여권/;
       const reCancel = /취소\s*완료|취소완료/;
+      const n장Spans = container.querySelectorAll('span.font-small1');
+      for (const span of Array.from(n장Spans)) {
+        const t = ((span as HTMLElement).textContent || "").trim();
+        if (!/^\d+\s*장$/.test(t) && !/\d+\s*장/.test(t)) continue;
+        const row = (span as HTMLElement).closest('[class*="item"], [class*="row"], [class*="Row"], [class*="list"], div');
+        if (row && labelPattern.test((row as HTMLElement).innerText || "") && !reCancel.test((row as HTMLElement).innerText || "") && !reBad.test((row as HTMLElement).innerText || "")) {
+          ((row as HTMLElement).querySelector('a, button, [role="button"], [class*="cursor"]') || row as HTMLElement).click();
+          return true;
+        }
+      }
       const all = container.querySelectorAll('a, button, [role="button"], div[class*="cursor"], div[class*="item"], div[class*="row"]');
       for (const el of Array.from(all)) {
         const text = ((el as HTMLElement).innerText || (el as HTMLElement).textContent || "").replace(/\s+/g, " ");
@@ -863,6 +873,16 @@ async function tryClickCancellable대여권Type(scope: any, page: any): Promise<
         const reBad = /구매\s*취소(?!\s*하기)/;
         const labelPattern = /대여권/;
         const reCancel = /취소\s*완료|취소완료/;
+        const n장Spans = root.querySelectorAll('span.font-small1');
+        for (const span of Array.from(n장Spans)) {
+          const t = ((span as HTMLElement).textContent || "").trim();
+          if (!/\d+\s*장/.test(t)) continue;
+          const row = (span as HTMLElement).closest('[class*="item"], [class*="row"], [class*="Row"], [class*="list"], div');
+          if (row && labelPattern.test((row as HTMLElement).innerText || "") && !reCancel.test((row as HTMLElement).innerText || "") && !reBad.test((row as HTMLElement).innerText || "")) {
+            ((row as HTMLElement).querySelector('a, button, [role="button"], [class*="cursor"]') || row as HTMLElement).click();
+            return true;
+          }
+        }
         const all = root.querySelectorAll('a, button, [role="button"], div[class*="cursor"], div[class*="item"], div[class*="row"]');
         for (const node of Array.from(all)) {
           const text = ((node as HTMLElement).innerText || (node as HTMLElement).textContent || "").replace(/\s+/g, " ");
@@ -885,6 +905,13 @@ async function tryClickCancellable대여권Type(scope: any, page: any): Promise<
     }
   }
   const rowWith대여권 = scope.locator('[class*="item"], [class*="row"], [class*="Row"], a, div').filter({ hasText: /대여권/ }).filter({ hasText: /\d+\s*장/ }).filter({ hasNotText: /취소\s*완료|취소완료|무료/ }).filter({ hasNotText: /구매\s*취소(?!\s*하기)/ });
+  const n장Span대여권 = rowWith대여권.locator('span.font-small1').filter({ hasText: /\d+\s*장/ }).first();
+  if ((await n장Span대여권.count().catch(() => 0)) > 0 && (await n장Span대여권.isVisible().catch(() => false))) {
+    await n장Span대여권.scrollIntoViewIfNeeded().catch(() => null);
+    await safeWait(page, 400);
+    await n장Span대여권.click({ timeout: 15000, force: true });
+    return true;
+  }
   const clickableInRow = rowWith대여권.locator('div[class*="cursor-pointer"], a, button').filter({ hasText: /\d+\s*장/ }).first();
   if ((await clickableInRow.count().catch(() => 0)) > 0 && (await clickableInRow.isVisible().catch(() => false))) {
     await clickableInRow.scrollIntoViewIfNeeded().catch(() => null);
@@ -903,6 +930,86 @@ async function tryClickCancellable대여권Type(scope: any, page: any): Promise<
   if ((await fallback.count().catch(() => 0)) > 0 && (await fallback.isVisible().catch(() => false))) {
     await fallback.scrollIntoViewIfNeeded().catch(() => null);
     await fallback.click({ timeout: 15000, force: true });
+    return true;
+  }
+  return false;
+}
+
+async function tryClickN장ArrowInScope(scope: any, page: any): Promise<boolean> {
+  if (isPageClosed(page)) return false;
+  const isPage = typeof (scope as any).url === "function";
+  if (isPage) {
+    const done = await scope.evaluate(() => {
+      const body = document.body;
+      const reCancel = /취소\s*완료|취소완료/;
+      const rows = body.querySelectorAll('[class*="item"], [class*="row"], [class*="Row"], div[class*="cursor"]');
+      for (const row of Array.from(rows)) {
+        const text = ((row as HTMLElement).innerText || (row as HTMLElement).textContent || "").replace(/\s+/g, " ");
+        if (!/대여권|소장권/.test(text) || !/\d+\s*장/.test(text) || reCancel.test(text)) continue;
+        if (!/>|다음|chevron|arrow/.test(text)) continue;
+        const arrow = (row as HTMLElement).querySelector('img[alt*="다음"], img[alt*="arrow"], [class*="arrow"], [class*="chevron"], svg, a, button, [role="button"], [class*="cursor"]');
+        const toClick = arrow || (row as HTMLElement);
+        (toClick as HTMLElement).click();
+        return true;
+      }
+      const allEls = body.querySelectorAll('*');
+      for (const el of Array.from(allEls)) {
+        const t = ((el as HTMLElement).innerText || (el as HTMLElement).textContent || "").trim();
+        if (t !== ">" && !/^>\s*$/.test(t)) continue;
+        const row = (el as HTMLElement).closest('[class*="item"], [class*="row"], [class*="Row"], div');
+        if (row && /\d+\s*장/.test((row as HTMLElement).innerText || "") && !reCancel.test((row as HTMLElement).innerText || "")) {
+          const clickable = (el as HTMLElement).closest('a, button, [role="button"], [class*="cursor"]') || (el as HTMLElement);
+          (clickable as HTMLElement).click();
+          return true;
+        }
+      }
+      return false;
+    }).catch(() => false);
+    if (done) return true;
+  } else {
+    const el = await scope.first().elementHandle().catch(() => null);
+    if (el) {
+      const done = await el.evaluate((root: HTMLElement) => {
+        const reCancel = /취소\s*완료|취소완료/;
+        const rows = root.querySelectorAll('[class*="item"], [class*="row"], [class*="Row"], div[class*="cursor"]');
+        for (const row of Array.from(rows)) {
+          const text = ((row as HTMLElement).innerText || (row as HTMLElement).textContent || "").replace(/\s+/g, " ");
+          if (!/대여권|소장권/.test(text) || !/\d+\s*장/.test(text) || reCancel.test(text)) continue;
+          if (!/>|다음|chevron|arrow/.test(text)) continue;
+          const arrow = (row as HTMLElement).querySelector('img[alt*="다음"], img[alt*="arrow"], [class*="arrow"], [class*="chevron"], svg, a, button, [role="button"], [class*="cursor"]');
+          const toClick = arrow || (row as HTMLElement);
+          (toClick as HTMLElement).click();
+          return true;
+        }
+        const allEls = root.querySelectorAll('*');
+        for (const elem of Array.from(allEls)) {
+          const t = ((elem as HTMLElement).innerText || (elem as HTMLElement).textContent || "").trim();
+          if (t !== ">" && !/^>\s*$/.test(t)) continue;
+          const row = (elem as HTMLElement).closest('[class*="item"], [class*="row"], [class*="Row"], div');
+          if (row && /\d+\s*장/.test((row as HTMLElement).innerText || "") && !reCancel.test((row as HTMLElement).innerText || "")) {
+            const clickable = (elem as HTMLElement).closest('a, button, [role="button"], [class*="cursor"]') || (elem as HTMLElement);
+            (clickable as HTMLElement).click();
+            return true;
+          }
+        }
+        return false;
+      }).catch(() => false);
+      if (done) return true;
+    }
+  }
+  const rowWithArrow = scope.locator('[class*="item"], [class*="row"], [class*="Row"], div').filter({ hasText: /대여권|소장권/ }).filter({ hasText: /\d+\s*장/ }).filter({ hasText: />|다음/ }).filter({ hasNotText: /취소\s*완료|취소완료/ });
+  const arrowInRow = rowWithArrow.locator('img[alt*="다음"], img[alt*="arrow"], [class*="arrow"], [class*="chevron"], svg').first();
+  if ((await arrowInRow.count().catch(() => 0)) > 0 && (await arrowInRow.isVisible().catch(() => false))) {
+    await arrowInRow.scrollIntoViewIfNeeded().catch(() => null);
+    await safeWait(page, 400);
+    await arrowInRow.click({ timeout: 15000, force: true });
+    return true;
+  }
+  const firstRow = rowWithArrow.first();
+  if ((await firstRow.count().catch(() => 0)) > 0 && (await firstRow.isVisible().catch(() => false))) {
+    await firstRow.scrollIntoViewIfNeeded().catch(() => null);
+    await safeWait(page, 400);
+    await firstRow.click({ timeout: 15000, force: true });
     return true;
   }
   return false;
@@ -987,6 +1094,17 @@ async function tryClickCancellable소장권Type(scope: any, page: any): Promise<
       const container = document.body;
       const reBad = /구매\s*취소(?!\s*하기)/;
       const reCancel = /취소\s*완료|취소완료/;
+      const labelPattern = /소장권/;
+      const n장Spans = container.querySelectorAll('span.font-small1');
+      for (const span of Array.from(n장Spans)) {
+        const t = ((span as HTMLElement).textContent || "").trim();
+        if (!/^\d+\s*장$/.test(t) && !/\d+\s*장/.test(t)) continue;
+        const row = (span as HTMLElement).closest('[class*="item"], [class*="row"], [class*="Row"], [class*="list"], div');
+        if (row && labelPattern.test((row as HTMLElement).innerText || "") && !reCancel.test((row as HTMLElement).innerText || "") && !reBad.test((row as HTMLElement).innerText || "")) {
+          ((row as HTMLElement).querySelector('a, button, [role="button"], [class*="cursor"]') || row as HTMLElement).click();
+          return true;
+        }
+      }
       const all = container.querySelectorAll('a, button, [role="button"], div[class*="cursor"], div[class*="item"], div[class*="row"]');
       for (const el of Array.from(all)) {
         const text = ((el as HTMLElement).innerText || (el as HTMLElement).textContent || "").replace(/\s+/g, " ");
@@ -1021,6 +1139,17 @@ async function tryClickCancellable소장권Type(scope: any, page: any): Promise<
       const done = await el.evaluate((root: HTMLElement) => {
         const reBad = /구매\s*취소(?!\s*하기)/;
         const reCancel = /취소\s*완료|취소완료/;
+        const labelPattern = /소장권/;
+        const n장Spans = root.querySelectorAll('span.font-small1');
+        for (const span of Array.from(n장Spans)) {
+          const t = ((span as HTMLElement).textContent || "").trim();
+          if (!/\d+\s*장/.test(t)) continue;
+          const row = (span as HTMLElement).closest('[class*="item"], [class*="row"], [class*="Row"], [class*="list"], div');
+          if (row && labelPattern.test((row as HTMLElement).innerText || "") && !reCancel.test((row as HTMLElement).innerText || "") && !reBad.test((row as HTMLElement).innerText || "")) {
+            ((row as HTMLElement).querySelector('a, button, [role="button"], [class*="cursor"]') || row as HTMLElement).click();
+            return true;
+          }
+        }
         const all = root.querySelectorAll('a, button, [role="button"], div[class*="cursor"], div[class*="item"], div[class*="row"]');
         for (const node of Array.from(all)) {
           const text = ((node as HTMLElement).innerText || (node as HTMLElement).textContent || "").replace(/\s+/g, " ");
@@ -1043,6 +1172,13 @@ async function tryClickCancellable소장권Type(scope: any, page: any): Promise<
     }
   }
   const row소장권 = scope.locator('[class*="item"], [class*="row"], [class*="Row"], a, div').filter({ hasText: /소장권/ }).filter({ hasText: /\d+\s*장/ }).filter({ hasNotText: /취소\s*완료|취소완료|무료/ }).filter({ hasNotText: /구매\s*취소(?!\s*하기)/ });
+  const n장Span소장권 = row소장권.locator('span.font-small1').filter({ hasText: /\d+\s*장/ }).first();
+  if ((await n장Span소장권.count().catch(() => 0)) > 0 && (await n장Span소장권.isVisible().catch(() => false))) {
+    await n장Span소장권.scrollIntoViewIfNeeded().catch(() => null);
+    await safeWait(page, 400);
+    await n장Span소장권.click({ timeout: 15000, force: true });
+    return true;
+  }
   const inner소장 = row소장권.locator('div[class*="cursor-pointer"], a, button').filter({ hasText: /\d+\s*장/ }).first();
   if ((await inner소장.count().catch(() => 0)) > 0 && (await inner소장.isVisible().catch(() => false))) {
     await inner소장.scrollIntoViewIfNeeded().catch(() => null);
@@ -1114,11 +1250,32 @@ And("이용권 내역 상세 팝업창에서 스크롤 다운 후 구매 취소�
     await safeWait(page,1200);
   };
   await waitForDetailView();
-  const detailVisible = await scope.getByText(/구매\s*취소|취소\s*가능한\s*이용권|취소\s*가능한\s*캐시/).first().waitFor({ state: "visible", timeout: 8000 }).then(() => true).catch(() => false);
+  let detailVisible = await scope.getByText(/구매\s*취소|취소\s*가능한\s*이용권|취소\s*가능한\s*캐시/).first().waitFor({ state: "visible", timeout: 8000 }).then(() => true).catch(() => false);
   if (!detailVisible) {
     const onList = (await scope.getByText(/이용권\s*내역/).count().catch(() => 0)) > 0 && (await scope.getByText(/대여권\s*\d+\s*장|소장권\s*\d+\s*장/).count().catch(() => 0)) > 0;
     if (onList) {
-      throw new Error("이용권 내역 목록 화면에 머물러 있습니다. 취소할 대여권/소장권 행의 'n장 >' 영역을 클릭해 상세로 진입한 뒤 구매 취소하기 버튼이 노출되는지 확인하세요.");
+      const tryOpenDetail = async (s: any) => {
+        const c1 = await tryClickCancellable소장권Type(s, page);
+        if (c1) return true;
+        const c2 = await tryClickCancellable대여권Type(s, page);
+        if (c2) return true;
+        const c3 = await tryClickN장ArrowInScope(s, page);
+        return !!c3;
+      };
+      let clicked = await tryOpenDetail(scope);
+      if (!clicked && !isPage) {
+        const pageScope = await getTicketScope(page);
+        if (pageScope !== scope) clicked = await tryOpenDetail(pageScope);
+      }
+      if (clicked) {
+        await safeWait(page, 3000);
+        const nextScope = await getTicketScope(page);
+        if (isPageClosed(page)) return;
+        detailVisible = await nextScope.getByText(/구매\s*취소|취소\s*가능한\s*이용권|취소\s*가능한\s*캐시/).first().waitFor({ state: "visible", timeout: 10000 }).then(() => true).catch(() => false);
+      }
+      if (!detailVisible) {
+        throw new Error("이용권 내역 목록 화면에 머물러 있습니다. 취소할 대여권/소장권 행의 'n장 >' 영역을 클릭해 상세로 진입한 뒤 구매 취소하기 버튼이 노출되는지 확인하세요.");
+      }
     }
   }
 
