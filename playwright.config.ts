@@ -226,8 +226,19 @@ export default defineConfig({
     },
     {
       name: "chromium-ci",
-      testMatch: ["**/pcw/**/*.feature.spec.js"],
-      testIgnore: ["**/adult/**", "**/00-login.feature.spec.js", ...STUB_TEST_IGNORE],
+      // CI 스모크 테스트: 각 영역 대표 시나리오 10건 (비로그인/회원/검색/GNB/콘텐츠홈/뷰어)
+      testMatch: [
+        "**/kpa-008.feature.spec.js",  // 비로그인 - 프로필 → 로그인 이동
+        "**/kpa-002.feature.spec.js",  // 회원 - 로그인 성공 확인
+        "**/kpa-027.feature.spec.js",  // 검색 - 검색 → 작품 상세 이동
+        "**/kpa-029.feature.spec.js",  // 검색 - 검색 결과 없음
+        "**/kpa-048.feature.spec.js",  // GNB - 배너 UI/동작
+        "**/kpa-059.feature.spec.js",  // GNB - 요일연재 메뉴
+        "**/kpa-061.feature.spec.js",  // GNB - 오늘신작 이동
+        "**/kpa-088.feature.spec.js",  // 콘텐츠홈 - 기다무 팝업
+        "**/kpa-099.feature.spec.js",  // 콘텐츠홈 - 정보 탭 UI
+        "**/kpa-111.feature.spec.js",  // 뷰어 - 여백 옵션
+      ],
       dependencies: ["login"],
       use: {
         ...devices["Desktop Chrome"],
