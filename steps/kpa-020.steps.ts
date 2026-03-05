@@ -3,10 +3,13 @@ import { When, Then, expect, getBaseUrlOrigin } from "./fixtures.js";
 
 When("댓글 내역 메뉴를 클릭한다", async ({ page }) => {
   await page.waitForTimeout(1000);
-  const menu = page.locator("text=댓글 내역").first();
-  await menu.waitFor({ state: "attached", timeout: 12000 }).catch(() => null);
+  const menu = page
+    .getByText(/댓글\s*내역/i)
+    .or(page.locator("text=댓글 내역"))
+    .first();
+  await menu.waitFor({ state: "visible", timeout: 12000 });
   const currentUrl = page.url();
-  await menu.click({ timeout: 10000, force: true });
+  await menu.click({ timeout: 10000 });
   const deadline = Date.now() + 15000;
   while (Date.now() < deadline) {
     if (page.url() !== currentUrl) break;
@@ -24,9 +27,9 @@ Then("댓글 내역 리스트가 화면에 표시된다", async ({ page }) => {
   while (Date.now() < deadline) {
     const hasTitle = await page.getByText(/댓글\s*내역/i).first().isVisible().catch(() => false);
     const hasEmptyMessage = await page.getByText(/댓글\s*내역이\s*없습니다/).first().isVisible().catch(() => false);
-    const hasCommentText = await page.getByText(/댓글/).first().isVisible().catch(() => false);
+    const hasDeletedMessage = await page.getByText(/내가\s*삭제한\s*댓글/i).first().isVisible().catch(() => false);
     const hasListMarker = await page.getByText(/좋아요/).first().isVisible().catch(() => false) && await page.getByText(/댓글\s*달기/).first().isVisible().catch(() => false);
-    if (hasTitle || hasEmptyMessage || hasCommentText || hasListMarker) {
+    if (hasTitle || hasEmptyMessage || hasDeletedMessage || hasListMarker) {
       ok = true;
       break;
     }

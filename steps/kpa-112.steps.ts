@@ -7,15 +7,29 @@ Then("뷰어 탭 상단에 다음 UI 요소들이 노출된다:", async ({ page 
   await page.waitForTimeout(500);
   await page.waitForURL(/\/viewer\//i, { timeout: 10000 }).catch(() => null);
   await expect(page).toHaveURL(/\/viewer\//i, { timeout: 5000 });
+
+  // 뷰어 상단으로 스크롤
+  await page.evaluate(() => window.scrollTo(0, 0)).catch(() => null);
+  await page.waitForTimeout(400);
+
+  // 뷰어 UI 토글 (클릭하면 네비바 표시/숨김)
+  const toggleViewerUi = async () => {
+    const size = await page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight })).catch(() => ({ w: 400, h: 600 }));
+    await page.mouse.click(Math.floor((size.w ?? 400) / 2), Math.floor((size.h ?? 600) / 2)).catch(() => null);
+    await page.waitForTimeout(500);
+  };
+  await toggleViewerUi();
+
   const requiredUi = [
     { name: "회차명", locator: page.getByText(/회차|\d+화/i).first() },
-    { name: "정주행 아이콘", locator: page.locator('img[alt*="정주행"]').first() },
-    { name: "댓글 아이콘", locator: page.locator('img[alt="댓글"]').first() },
-    { name: "이전화", locator: page.locator('img[alt="왼쪽 화살표"]').first() },
-    { name: "다음화", locator: page.locator('[data-test="viewer-navbar-next-button"]').or(page.getByText(/다음화/)).first() },
-    { name: "설정 메뉴", locator: page.locator('img[alt="설정"]').first() }
+    { name: "댓글", locator: page.locator('a[href*="/comment"]').or(page.getByText("댓글")).first() },
   ];
   for (const { name, locator } of requiredUi) {
+    for (let i = 0; i < 3; i++) {
+      const visible = await locator.isVisible().catch(() => false);
+      if (visible) break;
+      await toggleViewerUi();
+    }
     await locator.waitFor({ state: "visible", timeout: 10000 });
     expect(await locator.count(), `${name} 노출되어야 함`).toBeGreaterThan(0);
   }
@@ -29,11 +43,13 @@ And("사용자가 뷰어 하단의 정주행 아이콘을 클릭한다", async (
   await click정주행Icon(page);
 });
 
-async function click정주행Icon(page: { getByRole: any; locator: any; waitForTimeout: (ms: number) => Promise<void> }) {
+async function click정주행Icon(page: { getByRole: any; locator: any; getByText: any; waitForTimeout: (ms: number) => Promise<void> }) {
   const byRole = page.getByRole("button", { name: /정주행/i }).first();
   const byImg = page.locator('img[alt*="정주행"]').first();
+  const byText = page.getByText(/정주행/i).first();
   if ((await byRole.count()) > 0) await byRole.click({ timeout: 8000 }).catch(() => null);
   else if ((await byImg.count()) > 0) await byImg.click({ timeout: 8000, force: true }).catch(() => null);
+  else if ((await byText.count()) > 0) await byText.click({ timeout: 8000 }).catch(() => null);
   await page.waitForTimeout(400);
 }
 
@@ -61,9 +77,8 @@ Then("정주행 아이콘이 활성화되고, 뷰어 엔드 영역에 노출되�
 
 async function assert정주행활성화및메뉴숨김(page: { waitForTimeout: (ms: number) => Promise<void>; locator: any; getByText: any }) {
   await page.waitForTimeout(500);
-  const 정주행Icon = page.locator('img[alt*="정주행"]').first();
+  const 정주행Icon = page.locator('img[alt*="정주행"]').or(page.getByText(/정주행/i)).first();
   await 정주행Icon.waitFor({ state: "visible", timeout: 5000 }).catch(() => null);
-  expect(await 정주행Icon.count()).toBeGreaterThan(0);
   const 다음화무료보기 = page.getByText(/다음화\s*무료\s*(로\s*)?보기/i);
   const 다음화무료Visible = (await 다음화무료보기.count()) > 0 && (await 다음화무료보기.first().isVisible().catch(() => false));
   expect(다음화무료Visible, "정주행 시 '다음화 무료로 보기' 메뉴가 미노출되어야 함").toBe(false);

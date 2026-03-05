@@ -630,26 +630,29 @@ const step무료뱃지찾아서클릭 = async ({ page }: { page: any }) => {
   const currentContentId = getCurrentContentId(page.url());
   let viewableFree = getViewableFreeRows(episodeScope, page);
   let freeCount = await viewableFree.count();
+  // 무료 회차가 없으면 "첫화부터" 정렬로 변경 후 재탐색
+  let activeScope = episodeScope;
   if (freeCount === 0) {
     await ensureEpisodeListSortedByFirst(page);
-    const scopeAgain = await getEpisodeListScope(page);
-    viewableFree = getViewableFreeRows(scopeAgain, page);
+    activeScope = await getEpisodeListScope(page);
+    viewableFree = getViewableFreeRows(activeScope, page);
     freeCount = await viewableFree.count();
   }
-  const fallbackByBadge = episodeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
-    .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
+  // 정렬 후 새 scope 기반으로 fallback 로케이터 생성
+  const fallbackByBadge = activeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: activeScope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ has: page.locator(FREE_BADGE_SELECTOR).filter({ hasText: /^무료$/ }) })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
     .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })
     .filter({ hasNotText: PAID_INDICATOR_PATTERN });
-  const fallbackBySpan무료 = episodeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
-    .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
+  const fallbackBySpan무료 = activeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: activeScope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ has: page.locator("span").filter({ hasText: /^무료$/ }) })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
     .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })
     .filter({ hasNotText: PAID_INDICATOR_PATTERN });
-  const fallbackByText = episodeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
-    .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
+  const fallbackByText = activeScope.locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
+    .filter({ hasNot: activeScope.locator(OTHER_WORK_CARD_MARKER) })
     .filter({ hasText: /무료/ })
     .filter({ has: page.locator('a[href*="/viewer/"]') })
     .filter({ hasNotText: TRAILER_OR_CANT_VIEW_PATTERN })

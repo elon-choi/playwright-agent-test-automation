@@ -54,11 +54,15 @@ When("닉네임 영역을 클릭한다", async ({ page }) => {
 
 When("새로운 임의의 닉네임을 입력하고 저장 버튼을 클릭한다", async ({ page }) => {
   const nickname = `테스트닉네임${Date.now().toString(36).slice(-6)}`;
-  await nicknameInputLocator(page).first().fill(nickname, { timeout: 10000 });
+  const input = nicknameInputLocator(page).first();
+  await input.click({ timeout: 10000 });
+  await input.clear();
+  await input.pressSequentially(nickname, { delay: 30 });
+  await page.waitForTimeout(500);
   const saveBtn = page
     .getByRole("button", { name: /저장/i })
     .or(page.getByText(/저장/i).first());
-  await saveBtn.first().click({ timeout: 8000 });
+  await saveBtn.first().click({ timeout: 8000, force: true });
 });
 
 Then("사용자는 더보기 페이지로 이동한다", async ({ page }) => {
