@@ -15,9 +15,17 @@ const PROJECT_ROOT = path.resolve(__dirname, "..");
 dotenv.config({ path: path.join(PROJECT_ROOT, ".env"), quiet: true });
 const RESULTS_PATH = path.join(PROJECT_ROOT, "test-results", "results.json");
 
-function collectFailedTitles(suites, out) {
+function extractKpaId(suite) {
+  // suite.file or suite.title から kpa-XXX を抽出
+  const file = suite?.file ?? suite?.title ?? "";
+  const m = file.match(/kpa-(\d+(?:-\d+)?)/i);
+  return m ? `KPA-${m[1].toUpperCase()}` : null;
+}
+
+function collectFailedTitles(suites, out, parentKpaId) {
   if (!Array.isArray(suites)) return;
   for (const suite of suites) {
+    const kpaId = extractKpaId(suite) ?? parentKpaId;
     const specs = suite?.specs;
     if (Array.isArray(specs)) {
       for (const spec of specs) {
@@ -26,13 +34,14 @@ function collectFailedTitles(suites, out) {
           for (const test of tests) {
             if (test?.status === "unexpected") {
               const title = test.title ?? spec.title ?? suite.title ?? "Unknown";
-              out.push(String(title));
+              const prefix = kpaId ? `[${kpaId}] ` : "";
+              out.push(`${prefix}${String(title)}`);
             }
           }
         }
       }
     }
-    if (Array.isArray(suite?.suites)) collectFailedTitles(suite.suites, out);
+    if (Array.isArray(suite?.suites)) collectFailedTitles(suite.suites, out, kpaId);
   }
 }
 
@@ -60,6 +69,8 @@ async function loadSummary(exitCode) {
   return summary;
 }
 
+const REPORT_PAGE_URL = "https://elon-choi.github.io/playwright-agent-test-automation/";
+
 function buildMessage(summary, runUrl) {
   const status = summary.failed > 0 ? "실패" : "성공";
   const lines = [
@@ -74,7 +85,10 @@ function buildMessage(summary, runUrl) {
       lines.push(`… 외 ${summary.failedTitles.length - 10}건`);
     }
   }
-  if (runUrl) lines.push("", `<${runUrl}|워크플로 보기>`);
+  const links = [];
+  if (runUrl) links.push(`<${runUrl}|워크플로 보기>`);
+  links.push(`<${REPORT_PAGE_URL}|리포트 페이지>`);
+  lines.push("", links.join(" | "));
   return { text: lines.join("\n") };
 }
 

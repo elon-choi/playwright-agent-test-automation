@@ -75,22 +75,35 @@ async function main() {
   execSync("REPORT_SITE=report-site node scripts/generate-report-index.mjs", { cwd: ROOT, stdio: "inherit" });
 
   const currentBranch = execSync("git rev-parse --abbrev-ref HEAD", { cwd: ROOT, encoding: "utf-8" }).trim();
-  run("git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages");
-  const toCopy = ["index.html", "reports"];
-  for (const name of toCopy) {
-    const src = join(REPORT_SITE, name);
-    const dest = join(ROOT, name);
-    await cp(src, dest, { recursive: true });
+
+  // 미커밋 변경사항이 있으면 stash 후 복원
+  const hasChanges = execSync("git status --porcelain", { cwd: ROOT, encoding: "utf-8" }).trim().length > 0;
+  if (hasChanges) {
+    run("git stash push -m \"publish-local-report auto-stash\"", { stdio: "pipe" });
   }
-  run("git add index.html reports");
-  run("git status");
+
   try {
-    run("git commit -m \"Report: add local run " + runId + "\"");
-  } catch {
-    run("git commit -m \"Report: add local run " + runId + "\" --allow-empty");
+    run("git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages");
+    const toCopy = ["index.html", "reports"];
+    for (const name of toCopy) {
+      const src = join(REPORT_SITE, name);
+      const dest = join(ROOT, name);
+      await cp(src, dest, { recursive: true });
+    }
+    run("git add index.html reports");
+    run("git status");
+    try {
+      run("git commit -m \"Report: add local run " + runId + "\"");
+    } catch {
+      run("git commit -m \"Report: add local run " + runId + "\" --allow-empty");
+    }
+    run("git push origin gh-pages");
+  } finally {
+    run("git checkout " + currentBranch);
+    if (hasChanges) {
+      run("git stash pop", { stdio: "pipe" });
+    }
   }
-  run("git push origin gh-pages");
-  run("git checkout " + currentBranch);
 
   console.log("Done. See https://elon-choi.github.io/playwright-agent-test-automation/");
 }
