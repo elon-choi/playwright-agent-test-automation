@@ -208,12 +208,12 @@ export default defineConfig({
     navigationTimeout: 35000,
     ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {})
   },
-  testIgnore: process.env.CI === "true" ? ["**/00-login.feature.spec.js"] : [],
+  testIgnore: [],
   projects: [
     {
       name: "chromium",
       testMatch: ["**/pcw/**/*.feature.spec.js"],
-      testIgnore: ["**/adult/**", ...STUB_TEST_IGNORE, ...(process.env.CI === "true" ? ["**/00-login.feature.spec.js"] : [])],
+      testIgnore: ["**/adult/**", "**/00-login.feature.spec.js", ...STUB_TEST_IGNORE],
       dependencies: ["login"],
       use: {
         ...devices["Desktop Chrome"],
