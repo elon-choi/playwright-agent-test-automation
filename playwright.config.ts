@@ -228,6 +228,7 @@ export default defineConfig({
       name: "chromium-ci",
       testMatch: ["**/pcw/**/*.feature.spec.js"],
       testIgnore: ["**/adult/**", "**/00-login.feature.spec.js", ...STUB_TEST_IGNORE],
+      dependencies: ["login"],
       use: {
         ...devices["Desktop Chrome"],
         ...(useChannelChrome ? { channel: "chrome" as const } : {}),

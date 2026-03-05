@@ -38,7 +38,12 @@ jobs:
 
       - name: Run Playwright tests
         id: test
-        run: npx playwright test --project=chromium-ci
+        env:
+          AUTH_ADULT_USERNAME: ${{ secrets.AUTH_ADULT_USERNAME }}
+          AUTH_ADULT_PASSWORD: ${{ secrets.AUTH_ADULT_PASSWORD }}
+          AUTH_NON_ADULT_USERNAME: ${{ secrets.AUTH_NON_ADULT_USERNAME }}
+          AUTH_NON_ADULT_PASSWORD: ${{ secrets.AUTH_NON_ADULT_PASSWORD }}
+        run: npx playwright test --project=login --project=chromium-ci
 
       - name: Ensure test results for report
         if: always() && steps.test.outcome == 'failure'
