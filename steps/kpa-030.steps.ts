@@ -18,8 +18,8 @@ Then("보관함 메뉴 화면이 구성되어야 한다", async ({ page }) => {
 
 And("보관함 화면에 진입하며, 다음과 같은 메뉴가 노출되어야 한다:", async ({ page }) => {
   await page.waitForTimeout(400);
-  const hasTab = await page.getByText(/최근\s*본|좋아요|구매\s*작품/i).count() > 0;
-  const hasCategory = await page.getByText(/검색|전체|웹툰|웹소설|책/i).count() > 0;
-  const hasControl = await page.getByText(/편집|정렬/i).count() > 0;
-  expect(hasTab || hasCategory || hasControl).toBe(true);
+  // 보관함 고유 탭: 최근 본, 좋아요, 구매 작품 (GNB가 아닌 보관함 전용 메뉴)
+  const tab = page.getByRole("tab", { name: /최근\s*본|좋아요|구매\s*작품/i })
+    .or(page.locator("[class*='tab'], [role='tablist']").getByText(/최근\s*본|좋아요|구매\s*작품/i));
+  await expect(tab.first()).toBeVisible({ timeout: 8000 });
 });
