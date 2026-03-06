@@ -21,7 +21,7 @@ And("최근본 탭에 작품 리스트가 존재한다", async ({ page }) => {
   }
   const list = page.locator('a[href*="/content/"]');
   const count = await list.count();
-  expect(count).toBeGreaterThanOrEqual(0);
+  expect(count).toBeGreaterThanOrEqual(1);
 });
 
 When("사용자가 최근본 탭을 클릭한다", async ({ page }) => {

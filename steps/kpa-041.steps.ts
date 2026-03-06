@@ -16,16 +16,16 @@ And("사용자가 구매작품 탭의 하단 작품 리스트를 확인한다", 
   if (await tab.count() > 0) await tab.first().click({ timeout: 5000 });
   await page.waitForTimeout(500);
   const list = page.locator('a[href*="/content/"]').first();
-  await expect(list).toBeVisible({ timeout: 8000 }).catch(() => null);
+  await expect(list).toBeVisible({ timeout: 8000 });
 });
 
 Then("작품이 정렬 기준에 따라 올바르게 노출된다", async ({ page }) => {
   const list = page.locator('a[href*="/content/"]').first();
-  await expect(list).toBeVisible({ timeout: 5000 }).catch(() => null);
+  await expect(list).toBeVisible({ timeout: 5000 });
 });
 
 And("사용자가 해당 작품의 홈으로 이동한다", async ({ page }) => {
-  await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i, { timeout: 5000 }).catch(() => null);
+  await expect(page).toHaveURL(/\/content\/|\/landing\/series\//i, { timeout: 5000 });
 });
 
 // 동일 스텝은 kpa-031.steps.ts에만 정의 (중복 Given 방지)

@@ -35,12 +35,22 @@ And("사용자가 하단의 선택 항목 삭제 버튼을 클릭한다", async 
 });
 
 Then("선택 항목 삭제 버튼이 활성화된다", async ({ page }) => {
-  const deleteBtn = page.getByRole("button", { name: /선택\s*항목\s*삭제|삭제/i });
-  await expect(deleteBtn.first()).toBeVisible({ timeout: 5000 }).catch(() => null);
+  const deleteBtn = page.getByRole("button", { name: /선택\s*항목\s*삭제|삭제/i }).first();
+  const confirmPopup = page.getByText(/항목을?\s*삭제/i).first();
+  await expect(deleteBtn.or(confirmPopup)).toBeVisible({ timeout: 5000 });
 });
 
 And("선택한 작품이 삭제되어 좋아요 탭 리스트에서 더 이상 보이지 않는다", async ({ page }) => {
-  await page.waitForTimeout(500);
-  const list = page.locator('a[href*="/content/"]');
-  await expect(list.first()).toBeVisible({ timeout: 5000 }).catch(() => null);
+  // 확인 팝업이 아직 떠 있으면 "확인" 클릭
+  const confirmBtn = page.getByRole("button", { name: /^확인$/i }).first();
+  const hasConfirm = await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false);
+  if (hasConfirm) {
+    await confirmBtn.click({ timeout: 5000 });
+    await page.waitForTimeout(1500);
+  }
+  // 삭제 완료 후 토스트 또는 리스트 변화 확인
+  const toast = page.getByText(/삭제\s*되었|삭제\s*완료|항목.*삭제/i).first();
+  const remaining = page.locator('a[href*="/content/"]').first();
+  const emptyMsg = page.getByText(/좋아요.*없|좋아요.*작품이 없/i).first();
+  await expect(toast.or(remaining).or(emptyMsg)).toBeVisible({ timeout: 8000 });
 });

@@ -26,19 +26,10 @@ When("댓글 내역 메뉴를 클릭한다", async ({ page }) => {
 });
 
 Then("댓글 내역 페이지가 표시된다", async ({ page }) => {
-  const deadline = Date.now() + 20000;
-  let ok = false;
-  while (Date.now() < deadline) {
-    const hasTitle = await page.getByText(/댓글\s*내역/i).first().isVisible().catch(() => false);
-    const hasEmptyMessage = await page.getByText(/댓글\s*내역이\s*없습니다/).first().isVisible().catch(() => false);
-    const hasDeletedMessage = await page.getByText(/내가\s*삭제한\s*댓글/).first().isVisible().catch(() => false);
-    if (hasTitle || hasEmptyMessage || hasDeletedMessage) {
-      ok = true;
-      break;
-    }
-    await page.waitForTimeout(500);
-  }
-  expect(ok).toBe(true);
+  const heading = page.getByText("댓글 내역", { exact: true }).first();
+  const emptyMsg = page.getByText(/댓글\s*내역이\s*없습니다/).first();
+  const deletedMsg = page.getByText(/내가\s*삭제한\s*댓글/).first();
+  await expect(heading.or(emptyMsg).or(deletedMsg)).toBeVisible({ timeout: 20000 });
 });
 
 When("삭제할 댓글이 있으면 모두 삭제한다", async ({ page }) => {

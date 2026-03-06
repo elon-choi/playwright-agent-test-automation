@@ -34,7 +34,7 @@ When("사용자가 {string} 탭 하단의 작품 리스트를 확인한다", asy
     await page.waitForTimeout(500);
   }
   const list = page.locator('a[href*="/content/"]').or(page.getByRole("list").locator("li")).first();
-  await expect(list).toBeVisible({ timeout: 8000 }).catch(() => null);
+  await expect(list).toBeVisible({ timeout: 8000 });
 });
 
 And("사용자가 검색 아이콘을 클릭하고 임의의 작품을 검색한다", async ({ page }) => {

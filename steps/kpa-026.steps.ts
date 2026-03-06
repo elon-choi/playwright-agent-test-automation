@@ -107,9 +107,7 @@ And("더보기 메뉴를 이탈하여 대여권을 보유한 임의의 작품을
   throw new Error("작품홈 좌측 상단에 기다무/3다무 뱃지가 있는 작품 카드를 찾지 못했습니다.");
 });
 
-const PAID_INDICATOR = /구매|대여|소장|잠금|유료|\d+캐시|캐시\s*결제|대여권|소장권|결제/i;
-
-And("감상 이력이 없는 유료 회차를 클릭한 후 취소 버튼을 클릭한다", async ({ page }) => {
+And("기다무 뱃지가 달린 회차를 찾아 클릭한 후 취소 버튼을 클릭한다", async ({ page }) => {
   await page.waitForTimeout(1200);
   const sortLabel = page.getByText(/^최신순$|^최신\s*순$/).first();
   await sortLabel.waitFor({ state: "visible", timeout: 5000 }).catch(() => null);
@@ -124,55 +122,80 @@ And("감상 이력이 없는 유료 회차를 클릭한 후 취소 버튼을 클
     }
   };
 
-  const tryFindAndClickPaid = async (scope: Awaited<ReturnType<typeof getEpisodeListScope>>): Promise<boolean> => {
-    const rows = scope
+  // 기다무 뱃지가 달린 회차 찾기 (스크롤 포함)
+  const BADGE_SELECTOR = "img[alt*='기다무'], img[alt*='3다무'], img[alt*='시계'], img[alt*='기다무 뱃지']";
+  const MAX_SCROLL_ATTEMPTS = 15;
+
+  for (let scroll = 0; scroll <= MAX_SCROLL_ATTEMPTS; scroll++) {
+    const episodeScope = await getEpisodeListScope(page);
+
+    // 기다무 뱃지가 있는 회차 행 찾기
+    const rows = episodeScope
       .locator('[class*="item"], [class*="row"], [class*="episode"], [class*="Episode"], tr, li')
-      .filter({ hasNot: scope.locator(OTHER_WORK_CARD_MARKER) })
+      .filter({ hasNot: episodeScope.locator(OTHER_WORK_CARD_MARKER) })
       .filter({ has: page.locator('a[href*="/viewer/"]') });
+
     const rowCount = await rows.count();
     for (let i = 0; i < rowCount; i++) {
       const row = rows.nth(i);
-      const rowText = await row.textContent().catch(() => "") ?? "";
-      const hasFree = /무료/.test(rowText);
-      const hasPaid = PAID_INDICATOR.test(rowText);
-      if (hasFree && !hasPaid) continue;
+      // 기다무 뱃지 이미지가 있는지 확인
+      const hasBadge = await row.locator(BADGE_SELECTOR).count() > 0;
+      if (!hasBadge) continue;
+
       const link = row.locator('a[href*="/viewer/"]').first();
       if ((await link.count()) === 0) continue;
       const href = await link.getAttribute("href").catch(() => null);
       const path = href ? new URL(href, page.url()).pathname : "";
       if (!isLinkSameWork(path, currentContentId, page.url())) continue;
+
       await link.scrollIntoViewIfNeeded().catch(() => null);
       await link.click({ force: true });
+      console.log(`[KPA-026] 기다무 뱃지 회차 클릭 (row ${i}, scroll ${scroll})`);
       await page.waitForTimeout(800);
       await clickCancelIfPresent();
-      return true;
+      return;
     }
-    const scopeViewerLinks = scope.locator('a[href*="/viewer/"]');
-    const scopeLinkCount = await scopeViewerLinks.count();
-    for (let i = 0; i < scopeLinkCount; i++) {
-      const link = scopeViewerLinks.nth(i);
+
+    // 뱃지를 찾지 못하면 viewer 링크에서 직접 탐색
+    const viewerLinks = episodeScope.locator('a[href*="/viewer/"]');
+    const linkCount = await viewerLinks.count();
+    for (let i = 0; i < linkCount; i++) {
+      const link = viewerLinks.nth(i);
       const inOtherWork = await link.locator("xpath=ancestor::*[contains(@class,\"border-sp-thumb-line\")]").count() > 0;
       if (inOtherWork) continue;
       const href = await link.getAttribute("href").catch(() => null);
       const path = href ? new URL(href, page.url()).pathname : "";
       if (!isLinkSameWork(path, currentContentId, page.url())) continue;
-      const text = await link.innerText().catch(() => "");
-      if (/무료/.test(text) && !PAID_INDICATOR.test(text)) continue;
+
+      // 링크 주변에 기다무 뱃지가 있는지 확인
+      const parent = link.locator("xpath=ancestor::*[contains(@class,'item') or contains(@class,'row') or contains(@class,'episode') or contains(@class,'Episode') or self::li][1]");
+      const parentHasBadge = await parent.locator(BADGE_SELECTOR).count().catch(() => 0) > 0;
+      // 링크 내부에 뱃지가 있는 경우도 확인
+      const linkHasBadge = await link.locator(BADGE_SELECTOR).count().catch(() => 0) > 0;
+      if (!parentHasBadge && !linkHasBadge) continue;
+
       await link.scrollIntoViewIfNeeded().catch(() => null);
       await link.click({ force: true });
+      console.log(`[KPA-026] 기다무 뱃지 회차 클릭 (link ${i}, scroll ${scroll})`);
       await page.waitForTimeout(800);
       await clickCancelIfPresent();
-      return true;
+      return;
     }
-    return false;
-  };
 
-  let episodeScope = await getEpisodeListScope(page);
-  if (await tryFindAndClickPaid(episodeScope)) return;
-  await page.waitForTimeout(1500);
-  episodeScope = await getEpisodeListScope(page);
-  if (await tryFindAndClickPaid(episodeScope)) return;
-  throw new Error("회차 리스트 영역에서 감상 이력이 없는 유료 회차를 찾지 못했습니다. 최신순 정렬 후 리스트가 갱신되었는지 확인해 주세요.");
+    // 기다무 뱃지를 찾지 못하면 스크롤 다운
+    if (scroll < MAX_SCROLL_ATTEMPTS) {
+      console.log(`[KPA-026] 기다무 뱃지 미발견, 스크롤 다운 (${scroll + 1}/${MAX_SCROLL_ATTEMPTS})`);
+      await episodeScope.evaluate((el: HTMLElement) => {
+        el.scrollBy({ top: 400, behavior: "smooth" });
+      }).catch(async () => {
+        // episodeScope 스크롤 실패 시 페이지 전체 스크롤
+        await page.mouse.wheel(0, 400);
+      });
+      await page.waitForTimeout(800);
+    }
+  }
+
+  throw new Error("회차 리스트에서 기다무 뱃지가 달린 회차를 찾지 못했습니다. 스크롤 후에도 기다무 회차가 없습니다.");
 });
 
 Then("이용권 사용 확인 메뉴를 클릭할 때 다음과 같은 팝업이 노출된다:", async ({ page }, _dataTable?: unknown) => {

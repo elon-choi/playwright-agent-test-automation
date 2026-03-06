@@ -83,7 +83,7 @@ When("사용자가 팝업 내의 {string} 버튼을 클릭한다", async ({ page
 Then("더보기 레이어 팝업이 닫혀야 한다", async ({ page }) => {
   await page.waitForTimeout(400);
   const layer = page.getByRole("dialog").or(page.locator("[role='menu']"));
-  await expect(layer.first()).not.toBeVisible({ timeout: 5000 }).catch(() => null);
+  await expect(layer.first()).not.toBeVisible({ timeout: 5000 });
   const stillOpen = await page.getByText(/이용권\s*내역/).first().isVisible().catch(() => false);
   expect(stillOpen).toBe(false);
 });

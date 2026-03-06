@@ -51,6 +51,6 @@ And("보관함 > 최근 본 페이지로 이동한다", async ({ page }) => {
   const tab = page.getByRole("tab", { name: /최근\s*본/i }).or(page.getByText(/최근\s*본\s*작품/i));
   if (await tab.count() > 0) await tab.first().click({ timeout: 5000 });
   await page.waitForTimeout(500);
-  await expect(page.locator('a[href*="/content/"]').first()).toBeVisible({ timeout: 10000 }).catch(() => null);
-  expect(await page.locator('a[href*="/content/"]').count()).toBeGreaterThanOrEqual(0);
+  await expect(page.locator('a[href*="/content/"]').first()).toBeVisible({ timeout: 10000 });
+  expect(await page.locator('a[href*="/content/"]').count()).toBeGreaterThanOrEqual(1);
 });

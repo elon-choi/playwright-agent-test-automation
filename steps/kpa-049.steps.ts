@@ -45,7 +45,7 @@ And("사용자는 최근본 작품탭 하단의 작품 리스트를 확인한다
   const tab = page.getByRole("tab", { name: /최근\s*본/i }).or(page.getByText(/최근\s*본/i).first());
   if (await tab.count() > 0) await tab.first().click({ timeout: 5000 });
   await page.waitForTimeout(500);
-  await expect(page.locator('a[href*="/content/"]').first()).toBeVisible({ timeout: 8000 }).catch(() => null);
+  await expect(page.locator('a[href*="/content/"]').first()).toBeVisible({ timeout: 8000 });
 });
 
 And("사용자가 메인홈에서 웹툰 > 실시간 랭킹 > 1~ 20위 사이 작품을 랜덤 클릭하고, 트레일러 및 웹에서 감상 불가 회차를 제외한 무료 뱃지가 달린 임의의 회차를 감상한다", async ({ page }) => {

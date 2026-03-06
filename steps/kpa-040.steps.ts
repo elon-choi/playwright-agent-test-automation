@@ -9,7 +9,7 @@ When("사용자가 좋아요 탭 하단의 작품 리스트를 확인한다", as
   const likeTab = page.getByRole("tab", { name: /좋아요/i }).or(page.getByRole("link", { name: /좋아요/i }));
   if (await likeTab.count() > 0) { await likeTab.first().click({ timeout: 5000 }); await page.waitForTimeout(500); }
   const list = page.locator('a[href*="/content/"]').first();
-  await expect(list).toBeVisible({ timeout: 8000 }).catch(() => null);
+  await expect(list).toBeVisible({ timeout: 8000 });
 });
 
 And("사용자가 작품 리스트 상단의 정렬 영역을 클릭한다", async ({ page }) => {
@@ -39,5 +39,5 @@ Then("{string}, {string}, {string} 정렬 옵션이 노출된다", async ({ page
 And("선택한 정렬 기준으로 작품이 정렬되어 노출된다", async ({ page }) => {
   await page.waitForTimeout(400);
   const list = page.locator('a[href*="/content/"]').first();
-  await expect(list).toBeVisible({ timeout: 5000 }).catch(() => null);
+  await expect(list).toBeVisible({ timeout: 5000 });
 });

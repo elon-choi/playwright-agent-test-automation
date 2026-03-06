@@ -5,7 +5,7 @@ And("사용자가 이 작품과 함께보는 웹툰 작품을 확인한다", asy
   await page.waitForTimeout(400);
   const section =
     page.getByText(/함께보는|추천|이 작품/i).or(page.locator('a[href*="/content/"]'));
-  await expect(section.first()).toBeVisible({ timeout: 10000 }).catch(() => null);
+  await expect(section.first()).toBeVisible({ timeout: 10000 });
 });
 
 And("사용자가 추천 작품의 썸네일을 클릭한다", async ({ page }) => {

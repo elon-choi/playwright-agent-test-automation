@@ -7,7 +7,7 @@
     "pw:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install",
     "test": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test",
     "bddgen": "node scripts/run-bddgen.mjs",
-    "test:ui": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test --ui --project=chromium",
+    "test:ui": "rm -rf allure-results; PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test --ui --project=chromium",
     "last-failure": "npx ts-node --esm scripts/last-failure.ts",
     "notify-slack": "node scripts/notify-slack.mjs",
     "test:ci": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 playwright test; e=$?; TEST_EXIT_CODE=$e npm run notify-slack; exit $e",

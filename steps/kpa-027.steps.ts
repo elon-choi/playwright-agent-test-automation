@@ -35,7 +35,7 @@ And("임의의 텍스트를 입력하고 엔터 키를 누른다", async ({ page
 
 Then("검색 결과 화면이 표시된다", async ({ page }) => {
   await page.waitForLoadState("domcontentloaded").catch(() => null);
-  await expect(page).toHaveURL(/\/(search|통합검색|query|q=)/i, { timeout: 10000 }).catch(() => null);
+  await expect(page).toHaveURL(/\/(search|통합검색|query|q=)/i, { timeout: 10000 });
   const hasSearchResult = await page.getByText(/검색\s*결과|매칭|작품\s*리스트/i).count() > 0
     || await page.locator('a[href*="/content/"]').count() > 0;
   if (!hasSearchResult) {
