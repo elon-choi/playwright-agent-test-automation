@@ -72,8 +72,9 @@ function buildHtml(summaries) {
     .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
     .chart-box { background: #1a1d28; border-radius: 10px; padding: 1.25rem; border: 1px solid #2a2d3a; }
     .chart-box h3 { font-size: 0.9rem; color: #ccc; margin-bottom: 0.75rem; font-weight: 600; }
+    .chart-box canvas { max-height: 220px; }
     .chart-full { grid-column: 1 / -1; }
-    canvas { width: 100% !important; }
+    .chart-full canvas { max-height: 160px; }
 
     /* Table */
     .table-section { background: #1a1d28; border-radius: 10px; padding: 1.25rem; border: 1px solid #2a2d3a; }
@@ -131,15 +132,15 @@ function buildHtml(summaries) {
     <div class="charts">
       <div class="chart-box">
         <h3>통과 / 실패 추이</h3>
-        <canvas id="chartPassFail" height="200"></canvas>
+        <canvas id="chartPassFail"></canvas>
       </div>
       <div class="chart-box">
         <h3>성공률 추이 (%)</h3>
-        <canvas id="chartRate" height="200"></canvas>
+        <canvas id="chartRate"></canvas>
       </div>
       <div class="chart-box chart-full">
         <h3>소요 시간 추이 (분)</h3>
-        <canvas id="chartDuration" height="140"></canvas>
+        <canvas id="chartDuration"></canvas>
       </div>
     </div>
 
@@ -308,7 +309,7 @@ function renderCharts(data) {
 
   const commonOpts = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
     plugins: { legend: { labels: { color: '#aaa', font: { size: 11 } } } },
     scales: {
       x: { ticks: { color: '#888', font: { size: 10 } }, grid: { color: '#2a2d3a' } },
