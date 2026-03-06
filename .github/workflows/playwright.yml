@@ -12,8 +12,32 @@ env:
   PLAYWRIGHT_BROWSERS_PATH: .playwright-browsers
 
 jobs:
-  test:
+  # ─── Job 1: 빌드 검증 (bddgen) ───
+  # 코드 품질 게이트 — 외부 사이트 의존 없이 항상 안정적으로 통과 가능
+  build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate spec (bddgen)
+        run: npm run bddgen
+
+  # ─── Job 2: E2E 테스트 (외부 사이트 대상, 실패해도 워크플로우는 green) ───
+  e2e:
+    runs-on: ubuntu-latest
+    # E2E 실패가 워크플로우 전체를 red로 만들지 않음
+    # 결과는 Slack 알림 + 리포트 대시보드로 모니터링
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -109,9 +133,10 @@ jobs:
           path: allure-report/
           retention-days: 14
 
+  # ─── Job 3: 리포트 이력 배포 (gh-pages) ───
   deploy-report-history:
     if: always() && !cancelled() && (github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-    needs: test
+    needs: e2e
     runs-on: ubuntu-latest
     permissions:
       contents: write
