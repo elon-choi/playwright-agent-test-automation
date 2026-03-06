@@ -44,6 +44,6 @@ Then("사용자는 알림 상세 페이지로 이동한다", async ({ page }) =>
   await page.waitForTimeout(500);
   if (await isAppOnlyNoticePage(page)) return;
   const urlMatch = /alarm|notification|알림|feed|inbox/i.test(page.url());
-  const hasAlarmInDom = await page.getByText(/알림/i).first().isVisible().catch(() => false);
-  expect(urlMatch || hasAlarmInDom).toBe(true);
+  const navigatedToContent = /\/(content|landing\/series)\//i.test(page.url());
+  expect(urlMatch || navigatedToContent).toBe(true);
 });

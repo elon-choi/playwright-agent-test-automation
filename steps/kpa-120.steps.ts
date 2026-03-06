@@ -16,7 +16,5 @@ And("사용자가 베스트 댓글 영역을 클릭한다", async ({ page }) => 
 
 And("팝업창을 종료한 후 뷰어의 엔드 영역이 노출된다", async ({ page }) => {
   await page.waitForTimeout(500);
-  const hasViewerUrl = /\/viewer\//i.test(page.url());
-  const hasViewerEnd = (await page.getByText(/회차|다음화|댓글|작품홈|좋아요|별점/i).count()) > 0;
-  expect(hasViewerUrl || hasViewerEnd).toBe(true);
+  await expect(page).toHaveURL(/\/viewer\//i, { timeout: 8000 });
 });

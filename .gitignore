@@ -19,3 +19,5 @@ report-site/
 logs/
 .healthcheck.lock
 .fulltest.lock
+overnight-results.json
+overnight.log

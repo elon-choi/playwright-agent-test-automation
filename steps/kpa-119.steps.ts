@@ -21,9 +21,9 @@ And("사용자가 댓글 아이콘을 클릭한다", async ({ page }) => {
 Then("해당 회차의 Best 탭에 포커싱된 댓글 페이지로 이동한다.", async ({ page }) => {
   await page.waitForTimeout(600);
   const hasDialog = (await page.getByRole("dialog").count()) > 0;
-  const hasCommentUI = (await page.getByText(/댓글|Best|베스트|전체\s*탭|닉네임|작성/i).count()) > 0;
   const hasCommentArea = (await page.locator("[class*='comment'], [class*='Comment']").count()) > 0;
-  expect(hasDialog || hasCommentUI || hasCommentArea).toBe(true);
+  const hasBestTab = (await page.getByText(/Best|베스트/i).count()) > 0;
+  expect(hasDialog || hasCommentArea || hasBestTab).toBe(true);
 });
 
 And("사용자가 뒤로가기 아이콘을 클릭한다", async ({ page }) => {
@@ -38,7 +38,5 @@ And("사용자가 뒤로가기 아이콘을 클릭한다", async ({ page }) => {
 
 And("댓글 페이지에서 이탈 후 뷰어 엔드 영역이 노출된다", async ({ page }) => {
   await page.waitForTimeout(500);
-  const hasViewerUrl = /\/viewer\//i.test(page.url());
-  const hasViewerEnd = (await page.getByText(/회차|다음화|댓글|작품홈|좋아요|별점/i).count()) > 0;
-  expect(hasViewerUrl || hasViewerEnd).toBe(true);
+  await expect(page).toHaveURL(/\/viewer\//i, { timeout: 8000 });
 });

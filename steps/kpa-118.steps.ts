@@ -56,7 +56,7 @@ And("사용자가 회차 별점을 선택한 후 완료 버튼을 클릭한다",
 Then("회차 별점 남기기 팝업창이 노출된다", async ({ page }) => {
   await page.waitForTimeout(400);
   const hasDialog = (await page.getByRole("dialog").count()) > 0;
-  const hasStarPopup = (await page.getByText(/별점|완료|평가|별/i).count()) > 0;
+  const hasStarPopup = (await page.getByText(/별점|평가/i).count()) > 0;
   expect(hasDialog || hasStarPopup).toBe(true);
 });
 

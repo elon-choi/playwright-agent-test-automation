@@ -67,10 +67,6 @@ And("사용자가 뷰어 엔드 영역을 확인한다", async ({ page }) => {
   await endArea.waitFor({ state: "visible", timeout: 8000 }).catch(() => null);
 });
 
-Then("정주행 아이콘이 활성화되고, 뷰어 엔드 영역에 노출되던 메뉴들(배너, 베스트 댓글 등)이 노출되지 않는다", async ({ page }) => {
-  await assert정주행활성화및메뉴숨김(page);
-});
-
 Then("정주행 아이콘이 활성화되고, 뷰어 엔드 영역에 노출되던 메뉴들\\(배너, 베스트 댓글 등)이 노출되지 않는다", async ({ page }) => {
   await assert정주행활성화및메뉴숨김(page);
 });

@@ -7,8 +7,8 @@ const getBaseUrlFromEnv = (): string => {
 };
 
 export class LoginPage extends BasePage {
-  constructor(page: Page, browserName?: string) {
-    super(page, browserName);
+  constructor(page: Page) {
+    super(page);
   }
 
   async goto(url: string) {
@@ -102,11 +102,18 @@ export class LoginPage extends BasePage {
   }
 
   async ensureLoggedOut() {
+    // 이미 로그인 페이지에 있으면 비로그인 상태
+    if (/accounts\.kakao\.com\/login/i.test(this.page.url())) return;
+
     const loginForm = this.page.locator(
       ['input[name="loginId"]', "input#loginId--1", 'input[placeholder*="카카오메일"]'].join(", ")
     );
-    if (await loginForm.count()) {
-      return;
+    if (await loginForm.count()) return;
+
+    // 메인 페이지에서 로그인 CTA가 보이면 비로그인 상태
+    const baseUrl = (process.env.BASE_URL || "https://page.kakao.com/").replace(/\/+$/, "") + "/";
+    if (!/page\.kakao\.com/i.test(this.page.url())) {
+      await this.page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
     }
     const loginCtas = [
       this.page.getByRole("link", { name: /로그인/i }),
@@ -114,9 +121,12 @@ export class LoginPage extends BasePage {
       this.page.locator('a[href*="login"], a[href*="accounts.kakao.com"]')
     ];
     for (const locator of loginCtas) {
-      if (await locator.count()) {
-        return;
-      }
+      if (await locator.count()) return;
+    }
+    // 프로필 아이콘이 보이면 로그인된 상태
+    const profileIcon = this.page.getByLabel(/내 정보/i);
+    if ((await profileIcon.count()) > 0 && (await profileIcon.first().isVisible().catch(() => false))) {
+      throw new Error("현재 로그인 상태입니다. 비로그인 시나리오를 위해 로그아웃하거나 별도 storageState를 사용해 주세요.");
     }
   }
 

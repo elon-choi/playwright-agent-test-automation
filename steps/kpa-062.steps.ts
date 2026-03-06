@@ -85,7 +85,6 @@ Then("이벤트 메뉴 하단에 다음 요소들이 노출되어야 한다:", a
       }
     }
   }
-  await expect(page.locator("body")).toBeAttached({ timeout: 5000 });
 });
 
 And("사용자는 이벤트 전체 페이지로 이동해야 한다", async ({ page }) => {

@@ -292,11 +292,7 @@ export const test = base.extend<MyFixtures>({
     use: any,
     testInfo: any
   ) => {
-    const browserName =
-      testInfo.project.use?.defaultBrowserType ||
-      testInfo.project.use?.browserName ||
-      testInfo.project.name;
-    await use(new LoginPage(page, browserName));
+    await use(new LoginPage(page));
   },
   dumpOnFailure: [
     async ({ page }, use, testInfo) => {

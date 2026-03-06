@@ -58,17 +58,16 @@ async function runClean(dir) {
   for (const ent of entries) {
     if (!ent.isFile()) continue;
     const full = join(dir, ent.name);
+    const st = await stat(full);
     let remove = false;
     if (onlyAttachments) {
       remove = /-attachment\.(zip|png|jpg|jpeg|webm|webp|txt|md)$/i.test(ent.name);
     } else if (keepDays != null) {
-      const st = await stat(full);
       remove = st.mtimeMs < (Date.now() - keepDays * 24 * 60 * 60 * 1000);
     } else if (isAll) {
       remove = true;
     }
     if (remove) {
-      const st = await stat(full);
       await unlink(full);
       deleted += 1;
       freed += st.size;

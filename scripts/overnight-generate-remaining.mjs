@@ -9,43 +9,54 @@ import { execSync } from "child_process";
 const ROOT = join(process.cwd());
 const FEATURES_DIR = join(ROOT, "features");
 const STEPS_DIR = join(ROOT, "steps");
-const CONFIG_PATH = join(ROOT, "playwright.config.ts");
 const RESULTS_PATH = join(ROOT, "overnight-results.json");
 
-function getCurrentConfigEntries() {
-  const content = readFileSync(CONFIG_PATH, "utf-8");
-  const featuresMatch = content.match(/features:\s*\[([\s\S]*?)\]/);
-  const stepsMatch = content.match(/steps:\s*\[([\s\S]*?)\]/);
-  const features = featuresMatch
-    ? featuresMatch[1]
-        .split(",")
-        .map((s) => s.trim().replace(/["']/g, ""))
-        .filter(Boolean)
-    : [];
-  const steps = stepsMatch
-    ? stepsMatch[1]
-        .split(",")
-        .map((s) => s.trim().replace(/["']/g, ""))
-        .filter(Boolean)
-    : [];
-  return { features, steps };
+/** features/ 하위를 재귀 탐색하여 kpa-NNN 번호 추출 */
+function getAllFeatureNumbers() {
+  const numbers = [];
+  function walk(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) walk(join(dir, entry.name));
+      else {
+        const m = entry.name.match(/^kpa-(\d+)(?:-\d+)?\.feature$/);
+        if (m) numbers.push(parseInt(m[1], 10));
+      }
+    }
+  }
+  walk(FEATURES_DIR);
+  return [...new Set(numbers)].sort((a, b) => a - b);
 }
 
-function getFeatureNumbers() {
-  const files = readdirSync(FEATURES_DIR).filter((f) => f.match(/^kpa-\d+\.feature$/));
-  return files
-    .map((f) => parseInt(f.replace("kpa-", "").replace(".feature", ""), 10))
-    .sort((a, b) => a - b);
+/** step 파일이 존재하고 실제 구현이 있는 KPA 번호 집합 */
+function getImplementedKpaNumbers() {
+  const implemented = new Set();
+  const files = readdirSync(STEPS_DIR).filter((f) => f.endsWith(".steps.ts"));
+  for (const f of files) {
+    const m = f.match(/^kpa-(\d+)/);
+    if (!m) continue;
+    const content = readFileSync(join(STEPS_DIR, f), "utf-8");
+    if (!isStepsFileStubOnly(content)) implemented.add(parseInt(m[1], 10));
+  }
+  return implemented;
 }
 
-function getRemainingKpaNumbers(currentFeatures) {
-  const allNumbers = getFeatureNumbers();
-  const inConfig = new Set(
-    currentFeatures
-      .filter((p) => p.includes("kpa-"))
-      .map((p) => parseInt(p.match(/kpa-(\d+)/)?.[1] || "0", 10))
-  );
-  return allNumbers.filter((n) => !inConfig.has(n));
+function getRemainingKpaNumbers() {
+  const all = getAllFeatureNumbers();
+  const done = getImplementedKpaNumbers();
+  return all.filter((n) => !done.has(n));
+}
+
+/** features/ 하위를 재귀 탐색하여 kpa-NNN.feature 파일 경로 반환 */
+function findFeatureFile(dir, id) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      const found = findFeatureFile(join(dir, entry.name), id);
+      if (found) return found;
+    } else if (entry.name.startsWith(id) && entry.name.endsWith(".feature")) {
+      return join(dir, entry.name);
+    }
+  }
+  return null;
 }
 
 function normalizeStepPattern(text) {
@@ -125,15 +136,6 @@ function generateStepsFileContent(kpaNum, stepsToDefine) {
   return lines.join("\n").trimEnd();
 }
 
-function appendToConfig(newFeaturePath, newStepPath) {
-  let content = readFileSync(CONFIG_PATH, "utf-8");
-  const lastFeatureRe = /(    "features\/kpa-\d+\.feature")(\n)(  \],)/;
-  const lastStepRe = /(    "steps\/kpa-\d+\.steps\.ts")(\n)(  \])/;
-  content = content.replace(lastFeatureRe, `$1,$2    "${newFeaturePath}"$2$3`);
-  content = content.replace(lastStepRe, `$1,$2    "${newStepPath}"$2$3`);
-  writeFileSync(CONFIG_PATH, content);
-}
-
 function runBddgen() {
   try {
     execSync("npx bddgen", { cwd: ROOT, stdio: "pipe", timeout: 60000 });
@@ -158,8 +160,7 @@ function runTest(specPath) {
 
 function main() {
   const results = { started: new Date().toISOString(), scenarios: [] };
-  const { features: currentFeatures, steps: currentSteps } = getCurrentConfigEntries();
-  const remaining = getRemainingKpaNumbers(currentFeatures);
+  const remaining = getRemainingKpaNumbers();
   const limit = parseInt(process.env.OVERNIGHT_LIMIT || "0", 10);
   const toProcess = limit > 0 ? remaining.slice(0, limit) : remaining;
   const definedSteps = getAlreadyDefinedStepTexts();
@@ -170,11 +171,10 @@ function main() {
   for (const num of toProcess) {
     const id = `kpa-${String(num).padStart(3, "0")}`;
     try {
-      const featurePath = `features/${id}.feature`;
       const stepPath = `steps/${id}.steps.ts`;
-      const featureFullPath = join(ROOT, featurePath);
-
-      if (!existsSync(featureFullPath)) {
+      // features/ 하위를 재귀 탐색하여 해당 feature 파일 찾기
+      const featureFullPath = findFeatureFile(FEATURES_DIR, id);
+      if (!featureFullPath) {
         results.scenarios.push({ id, status: "skip", reason: "feature file not found" });
         continue;
       }
@@ -210,8 +210,7 @@ function main() {
         definedSteps.add(s.pattern);
       });
 
-      appendToConfig(featurePath, stepPath);
-
+      // auto-discovery (glob) 기반이므로 config 수정 불필요
       const bddResult = runBddgen();
       if (!bddResult.ok) {
         results.scenarios.push({

@@ -28,7 +28,7 @@ const stepCalls = steps
   .map((s) => {
     const fn = s.keyword === "Given" ? "Given" : s.keyword === "When" ? "When" : s.keyword === "Then" ? "Then" : "And";
     const arg = textToJsString(s.text);
-    return `    await ${fn}(${arg}, null, { ai, loginPage, page });`;
+    return `    await ${fn}(${arg}, null, { loginPage, page });`;
   })
   .join("\n");
 

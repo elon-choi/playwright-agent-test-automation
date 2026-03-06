@@ -43,6 +43,6 @@ Then("[첫 화 보기] 버튼이 화면에 표시된다", async ({ page }) => {
 
 And("첫 화 뷰어가 화면에 표시된다", async ({ page }) => {
   const onViewer = /\/viewer\//i.test(page.url());
-  const hasViewer = (await page.getByText(/회차|다음|이전/i).count()) > 0;
+  const hasViewer = (await page.locator("[class*='viewer'], [class*='Viewer']").count()) > 0;
   expect(onViewer || hasViewer).toBe(true);
 });

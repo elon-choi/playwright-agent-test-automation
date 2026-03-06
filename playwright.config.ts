@@ -17,12 +17,6 @@ const testDir = defineBddConfig({
   steps: "steps/*.ts"
 });
 
-// CTO 시연용: 스텁만 있는 시나리오 제외. 정상 구현된 시나리오만 UI 모드에서 실행되도록 함
-// 스텁(waitForTimeout 위주) 시나리오만 포함. 062,063,071,081,082,085,097,112 등 실제 구현 있는 번호는 제외
-const STUB_KPA_NUMBERS: number[] = [];
-const STUB_TEST_IGNORE = STUB_KPA_NUMBERS.map((n) =>
-  `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`
-);
 // Cursor/IDE에서 시스템 Chrome 사용 시 macOS에서 _RegisterApplication abort 크래시 발생
 // 로컬에서 시스템 Chrome 쓰려면 PLAYWRIGHT_USE_SYSTEM_CHROME=1 로 실행
 const useChannelChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1";
@@ -91,12 +85,11 @@ export default defineConfig({
     navigationTimeout: 35000,
     ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {})
   },
-  testIgnore: [],
   projects: [
     {
       name: "chromium",
       testMatch: ["**/pcw/**/*.feature.spec.js"],
-      testIgnore: ["**/adult/**", "**/00-login.feature.spec.js", ...STUB_TEST_IGNORE],
+      testIgnore: ["**/adult/**", "**/00-login.feature.spec.js"],
       dependencies: ["login"],
       use: chromeUse
     },
@@ -121,11 +114,6 @@ export default defineConfig({
     {
       name: "login",
       testMatch: ["**/00-login.feature.spec.js"],
-      use: chromeUse
-    },
-    {
-      name: "chromium-remaining",
-      testMatch: STUB_KPA_NUMBERS.map((n) => `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`),
       use: chromeUse
     },
     {

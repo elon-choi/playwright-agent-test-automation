@@ -28,16 +28,12 @@ And("사용자가 추천 작품의 썸네일을 클릭한다", async ({ page }) 
 });
 
 Then("추천 작품이 노출된다", async ({ page }) => {
-  const hasContent =
-    (await page.locator("main, [role='main']").count()) > 0 ||
-    (await page.getByText(/작품|웹툰|회차/i).count()) > 0;
+  const hasContent = (await page.getByText(/작품|웹툰|회차/i).count()) > 0;
   expect(hasContent).toBe(true);
 });
 
 And("작품 이미지, BM, 작품명이 노출된다", async ({ page }) => {
-  const hasInfo =
-    (await page.getByText(/작품|웹툰|작품명/i).count()) > 0 ||
-    (await page.locator("main").count()) > 0;
+  const hasInfo = (await page.getByText(/작품|웹툰|작품명/i).count()) > 0;
   expect(hasInfo).toBe(true);
 });
 

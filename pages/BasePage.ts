@@ -2,15 +2,9 @@ import type { Locator, Page } from "@playwright/test";
 
 export class BasePage {
   protected readonly page: Page;
-  protected readonly browserName: string;
 
-  constructor(page: Page, browserName?: string) {
+  constructor(page: Page) {
     this.page = page;
-    this.browserName = (browserName ?? "chromium").toLowerCase();
-  }
-
-  protected isChromium() {
-    return this.browserName === "chromium";
   }
 
   protected async smartClick(locator: Locator, description: string) {
