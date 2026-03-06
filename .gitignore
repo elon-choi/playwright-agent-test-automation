@@ -13,3 +13,6 @@ dom_dumps/
 dom_logs/
 .playwright-browsers/
 **/.DS_Store
+report-site/
+.cursor/
+.claude/
