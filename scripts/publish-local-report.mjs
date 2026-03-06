@@ -38,10 +38,11 @@ async function main() {
     // no gh-pages yet
   }
 
+  // git archive로 추출 — main의 index를 오염시키지 않음
   try {
-    run("git --work-tree=" + REPORT_SITE + " checkout origin/gh-pages -- . 2>/dev/null || true", { stdio: "pipe" });
+    execSync("git archive origin/gh-pages | tar -x -C " + REPORT_SITE, { cwd: ROOT, stdio: "pipe" });
   } catch {
-    // ignore
+    // no gh-pages yet — start fresh
   }
 
   await mkdir(REPORTS_DIR, { recursive: true });
@@ -83,7 +84,12 @@ async function main() {
   }
 
   try {
-    run("git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages");
+    // 원격 gh-pages에 맞춰 로컬 브랜치를 리셋 (CI force_orphan과 호환)
+    try {
+      run("git checkout -B gh-pages origin/gh-pages", { stdio: "pipe" });
+    } catch {
+      run("git checkout --orphan gh-pages", { stdio: "pipe" });
+    }
     const toCopy = ["index.html", "reports"];
     for (const name of toCopy) {
       const src = join(REPORT_SITE, name);
@@ -99,9 +105,20 @@ async function main() {
     }
     run("git push origin gh-pages");
   } finally {
-    run("git checkout " + currentBranch);
+    // 안전하게 원래 브랜치로 복원
+    try {
+      run("git checkout " + currentBranch, { stdio: "pipe" });
+    } catch {
+      // detached HEAD 등 예외 상황 — force checkout
+      run("git checkout -f " + currentBranch, { stdio: "pipe" });
+    }
+    // gh-pages 파일이 index에 남아 있을 수 있으므로 정리
+    try {
+      run("git reset HEAD -- . 2>/dev/null", { stdio: "pipe" });
+      run("git checkout -- . 2>/dev/null", { stdio: "pipe" });
+    } catch { /* ignore */ }
     if (hasChanges) {
-      run("git stash pop", { stdio: "pipe" });
+      try { run("git stash pop", { stdio: "pipe" }); } catch { /* ignore */ }
     }
   }
 
