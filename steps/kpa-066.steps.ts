@@ -49,8 +49,7 @@ Then("작가명이 올바르게 노출된다", async ({ page }) => {
       break;
     }
   }
-  const hasMain = (await page.locator("main, [role='main']").count()) > 0;
-  expect(onWork && (visible || hasMain)).toBe(true);
+  expect(onWork && visible).toBe(true);
 });
 
 When("사용자가 장르 영역을 확인한다", async ({ page }) => {
@@ -70,8 +69,7 @@ Then("장르가 올바르게 노출된다", async ({ page }) => {
       break;
     }
   }
-  const hasMain = (await page.locator("main, [role='main']").count()) > 0;
-  expect(onWork && (visible || hasMain)).toBe(true);
+  expect(onWork && visible).toBe(true);
 });
 
 When("사용자가 누적 열람 수와 좋아요 수를 확인한다", async ({ page }) => {
@@ -91,6 +89,5 @@ Then("누적 열람 수와 좋아요 수가 올바르게 노출된다", async ({
       break;
     }
   }
-  const hasMain = (await page.locator("main, [role='main']").count()) > 0;
-  expect(onWork && (visible || hasMain)).toBe(true);
+  expect(onWork && visible).toBe(true);
 });

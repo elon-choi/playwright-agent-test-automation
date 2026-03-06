@@ -1,3 +1,4 @@
+@핵심
 Feature: KPA-081 시나리오 검증
 
   Scenario: 이용권 구매 흐름 검증

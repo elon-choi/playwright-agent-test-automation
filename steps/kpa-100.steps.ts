@@ -18,7 +18,7 @@ Then("키워드가 검색 결과 페이지에 노출된다", async ({ page }) =>
   const hasSearch =
     /search|keyword|q=/i.test(page.url()) ||
     (await page.getByText(/검색|결과|키워드/i).count()) > 0;
-  expect(hasSearch || (await page.locator('a[href*="/content/"]').count()) > 0).toBe(true);
+  expect(hasSearch).toBe(true);
 });
 
 And("사용자가 작품 리스트를 확인할 수 있다", async ({ page }) => {
@@ -33,8 +33,7 @@ Then("사용자는 해당 작품의 상세 페이지로 이동한다", async ({ 
 });
 
 And("작품 이미지, BM, 장르, 작품명, 작가명이 상세 페이지에 노출된다", async ({ page }) => {
-  const hasDetail =
-    (await page.getByText(/장르|작품명|작가|작가명/i).count()) > 0 ||
-    (await page.locator("main, [role='main']").count()) > 0;
-  expect(hasDetail).toBe(true);
+  const hasDetail = (await page.getByText(/장르|작품명|작가|작가명/i).count()) > 0;
+  const hasTitle = (await page.locator("h1, h2, [class*='title'], [class*='Title']").count()) > 0;
+  expect(hasDetail || hasTitle).toBe(true);
 });

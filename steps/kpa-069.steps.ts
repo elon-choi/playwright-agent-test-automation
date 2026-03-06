@@ -35,9 +35,11 @@ When("사용자가 우측 상단의 [♡] 좋아요 버튼을 클릭한다", asy
 });
 
 Then("좋아요 버튼이 비활성화 상태로 변경된다", async ({ page }) => {
-  const inactivated = (await page.getByText(/보관함|좋아요/i).count()) > 0;
   const likeBtn = page.locator("[class*='like'], [aria-pressed]").first();
-  expect(inactivated || (await likeBtn.count()) >= 0).toBe(true);
+  const pressed = await likeBtn.getAttribute("aria-pressed").catch(() => null);
+  const inactivated = pressed === "false" || pressed === null;
+  const hasLikeText = (await page.getByText(/보관함|좋아요/i).count()) > 0;
+  expect(inactivated || hasLikeText).toBe(true);
 });
 
 And("좋아요 버튼 우측에 작품 알림 버튼이 노출되지 않는다", async ({ page }) => {
@@ -58,6 +60,8 @@ And("보관함의 좋아요 탭을 확인한다", async ({ page }) => {
 
 Then("해당 작품이 보관함의 좋아요 탭 하단에 노출되지 않는다", async ({ page }) => {
   await page.waitForTimeout(400);
-  const listCount = await page.locator('a[href*="/content/"]').count();
-  expect(listCount >= 0).toBe(true);
+  // 보관함 좋아요 탭이 로드되었는지 확인 (빈 상태 메시지 또는 리스트)
+  const hasEmptyMsg = (await page.getByText(/좋아요한 작품이 없|보관함|좋아요/i).count()) > 0;
+  const hasTab = (await page.getByRole("tab", { name: /좋아요/i }).count()) > 0;
+  expect(hasEmptyMsg || hasTab).toBe(true);
 });

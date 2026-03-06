@@ -16,6 +16,7 @@ const RUN_ID = process.env.RUN_ID || "";
 const ALLURE_RESULTS_DIR = process.env.ALLURE_RESULTS_DIR || "";
 const PROJECT = process.env.PROJECT || "카카오페이지";
 const PLATFORM = process.env.PLATFORM || "PCW";
+const TEST_TYPE = process.env.TEST_TYPE || "통합";
 
 if (!SUMMARY_JSON) {
   console.error("SUMMARY_JSON env required");
@@ -118,6 +119,7 @@ async function main() {
     runId: RUN_ID,
     project: PROJECT,
     platform: PLATFORM,
+    testType: TEST_TYPE,
     passed,
     failed,
     skipped,

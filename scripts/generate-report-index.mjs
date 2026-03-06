@@ -9,16 +9,36 @@ async function loadSummaries() {
   const entries = await readdir(REPORTS_DIR, { withFileTypes: true }).catch(() => []);
   const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
   const summaries = [];
+  // 이전 testType 값 → 새 값 매핑
+  const TYPE_MIGRATION = { "전체": "통합", "핵심": "코어" };
+
   for (const dir of dirs) {
     const p = join(REPORTS_DIR, dir, "summary.json");
     try {
       const raw = await readFile(p, "utf-8");
       const data = JSON.parse(raw);
-      summaries.push({ id: dir, project: "카카오페이지", platform: "PCW", ...data });
+      const entry = { id: dir, project: "카카오페이지", platform: "PCW", testType: "통합", ...data };
+      entry.testType = TYPE_MIGRATION[entry.testType] || entry.testType;
+      // 코어 데이터는 디렉토리 summary에서 제외 (healthcheck-history.json에서 로드)
+      if (entry.testType === "코어") continue;
+      summaries.push(entry);
     } catch {
       // skip
     }
   }
+
+  // healthcheck-history.json에서 코어 데이터 로드 (Heartbeat UI 전용)
+  const hcPath = join(REPORTS_DIR, "healthcheck-history.json");
+  try {
+    const raw = await readFile(hcPath, "utf-8");
+    const history = JSON.parse(raw);
+    for (const h of history) {
+      summaries.push({ id: h.runId || "hc", project: "카카오페이지", platform: "PCW", testType: "코어", ...h });
+    }
+  } catch {
+    // no healthcheck history yet
+  }
+
   summaries.sort((a, b) => (b.timestamp || b.id).localeCompare(a.timestamp || a.id));
   return summaries;
 }
@@ -90,10 +110,34 @@ function buildHtml(summaries) {
     a:hover { text-decoration: underline; }
     .empty-msg { text-align: center; padding: 3rem; color: #666; }
 
+    /* Heartbeat */
+    .heartbeat-section { background: #1a1d28; padding: 1.5rem 2rem; border-bottom: 1px solid #2a2d3a; }
+    .heartbeat-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .heartbeat-header h2 { font-size: 1.1rem; font-weight: 600; color: #ccc; }
+    .heartbeat-status { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 600; }
+    .heartbeat-status.up { color: #34d399; }
+    .heartbeat-status.down { color: #f87171; }
+    .heartbeat-status.unknown { color: #888; }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .pulse-dot.up { background: #34d399; box-shadow: 0 0 6px #34d399; animation: pulse 2s ease-in-out infinite; }
+    .pulse-dot.down { background: #f87171; box-shadow: 0 0 6px #f87171; }
+    .pulse-dot.unknown { background: #555; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .heartbeat-timeline { display: flex; align-items: flex-end; gap: 2px; height: 40px; }
+    .hb-bar { width: 6px; min-height: 4px; border-radius: 1px; cursor: pointer; transition: opacity 0.15s; position: relative; }
+    .hb-bar:hover { opacity: 0.7; }
+    .hb-bar.pass { background: #34d399; }
+    .hb-bar.fail { background: #f87171; }
+    .hb-bar.partial { background: linear-gradient(to top, #f87171 0%, #f87171 var(--fail-pct), #34d399 var(--fail-pct), #34d399 100%); }
+    .hb-tooltip { display: none; position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); background: #252836; color: #e0e0e0; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.7rem; white-space: nowrap; z-index: 10; border: 1px solid #3a3d4a; pointer-events: none; }
+    .hb-bar:hover .hb-tooltip { display: block; }
+    .heartbeat-meta { display: flex; gap: 1.5rem; margin-top: 0.75rem; font-size: 0.8rem; color: #666; }
+
     @media (max-width: 768px) {
       .charts { grid-template-columns: 1fr; }
       .filters { padding: 0.75rem 1rem; }
       .content { padding: 1rem; }
+      .heartbeat-section { padding: 0.75rem 1rem; }
     }
   </style>
 </head>
@@ -103,6 +147,8 @@ function buildHtml(summaries) {
     <span class="badge">LIVE</span>
   </div>
 
+  <div class="heartbeat-section" id="heartbeatSection"></div>
+
   <div class="filters">
     <div class="filter-group">
       <label>프로젝트</label>
@@ -111,6 +157,10 @@ function buildHtml(summaries) {
     <div class="filter-group">
       <label>플랫폼</label>
       <select id="filterPlatform"></select>
+    </div>
+    <div class="filter-group">
+      <label>타입</label>
+      <select id="filterType"></select>
     </div>
     <div class="filter-group" style="margin-left:1rem;">
       <label>년</label>
@@ -155,6 +205,7 @@ function buildHtml(summaries) {
               <th>Run</th>
               <th>프로젝트</th>
               <th>플랫폼</th>
+              <th>타입</th>
               <th>총계</th>
               <th>통과</th>
               <th>실패</th>
@@ -194,6 +245,7 @@ function dateKey(iso) { return iso ? iso.slice(0, 10) : ''; }
 // ── Filters ──
 const $proj = document.getElementById('filterProject');
 const $plat = document.getElementById('filterPlatform');
+const $type = document.getElementById('filterType');
 const $year = document.getElementById('filterYear');
 const $month = document.getElementById('filterMonth');
 const $day = document.getElementById('filterDay');
@@ -203,8 +255,12 @@ function unique(arr) { return [...new Set(arr)].sort(); }
 function initFilters() {
   const projects = unique(ALL_DATA.map(d => d.project || '카카오페이지'));
   const platforms = unique(ALL_DATA.map(d => d.platform || 'PCW'));
+  const types = unique(ALL_DATA.map(d => d.testType || '통합').filter(t => t !== '코어'));
   fillSelect($proj, projects, '전체');
   fillSelect($plat, platforms, '전체');
+  fillSelect($type, types, '전체');
+  // 타입이 1개뿐이면 필터 숨김
+  $type.closest('.filter-group').style.display = types.length <= 1 ? 'none' : '';
   populateDateFilters();
 }
 
@@ -239,6 +295,12 @@ function getProjectPlatformFiltered() {
   return ALL_DATA.filter(d => {
     if ($proj.value && (d.project || '카카오페이지') !== $proj.value) return false;
     if ($plat.value && (d.platform || 'PCW') !== $plat.value) return false;
+    const dtype = d.testType || '통합';
+    if ($type.value) {
+      if (dtype !== $type.value) return false;
+    } else {
+      if (dtype === '코어') return false;
+    }
     return true;
   });
 }
@@ -247,6 +309,13 @@ function getFiltered() {
   return ALL_DATA.filter(d => {
     if ($proj.value && (d.project || '카카오페이지') !== $proj.value) return false;
     if ($plat.value && (d.platform || 'PCW') !== $plat.value) return false;
+    // 타입 필터: 기본(빈값)일 때 코어 헬스체크는 제외 (상단 심장박동 UI에서 표시)
+    const dtype = d.testType || '통합';
+    if ($type.value) {
+      if (dtype !== $type.value) return false;
+    } else {
+      if (dtype === '코어') return false;
+    }
     const iso = d.date || d.timestamp || '';
     if ($year.value && !iso.startsWith($year.value)) return false;
     if ($month.value && iso.slice(5, 7) !== $month.value) return false;
@@ -255,7 +324,7 @@ function getFiltered() {
   });
 }
 
-[$proj, $plat].forEach(el => el.addEventListener('change', () => { populateDateFilters(); render(); }));
+[$proj, $plat, $type].forEach(el => el.addEventListener('change', () => { populateDateFilters(); render(); }));
 [$year].forEach(el => el.addEventListener('change', () => { populateDateFilters(); render(); }));
 [$month].forEach(el => el.addEventListener('change', () => { populateDateFilters(); render(); }));
 [$day].forEach(el => el.addEventListener('change', () => { render(); }));
@@ -355,7 +424,7 @@ function renderCharts(data) {
 function renderTable(data) {
   const tbody = document.getElementById('tableBody');
   if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="11" class="empty-msg">필터 조건에 맞는 실행 이력이 없습니다.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" class="empty-msg">필터 조건에 맞는 실행 이력이 없습니다.</td></tr>';
     return;
   }
   tbody.innerHTML = data.map(s => '<tr>' +
@@ -364,6 +433,7 @@ function renderTable(data) {
     '<td><a href="reports/' + s.id + '/index.html">' + s.id + '</a></td>' +
     '<td>' + (s.project || '카카오페이지') + '</td>' +
     '<td>' + (s.platform || 'PCW') + '</td>' +
+    '<td>' + (s.testType || '통합') + '</td>' +
     '<td>' + (s.total ?? '-') + '</td>' +
     '<td class="pass">' + (s.passed ?? 0) + '</td>' +
     '<td class="fail">' + (s.failed ?? 0) + '</td>' +
@@ -371,6 +441,65 @@ function renderTable(data) {
     '<td>' + fmtRate(s.passed, s.total) + '</td>' +
     '<td>' + fmtDuration(s.durationSeconds) + '</td>' +
     '</tr>').join('');
+}
+
+// ── Heartbeat ──
+function renderHeartbeat() {
+  const hbData = ALL_DATA.filter(d => (d.testType || '통합') === '코어').sort((a, b) => (a.timestamp || a.id).localeCompare(b.timestamp || b.id));
+  const section = document.getElementById('heartbeatSection');
+
+  if (hbData.length === 0) {
+    section.innerHTML = '<div class="heartbeat-header"><h2>Healthcheck</h2><span class="heartbeat-status unknown"><span class="pulse-dot unknown"></span> 데이터 없음</span></div><div style="font-size:0.8rem;color:#666;">코어 시나리오 실행 결과가 아직 없습니다.</div>';
+    return;
+  }
+
+  const last = hbData[hbData.length - 1];
+  const isUp = last.failed === 0;
+  const statusClass = isUp ? 'up' : 'down';
+  const statusText = isUp ? 'UP' : 'DOWN';
+  const lastTime = fmtDate(last.date) + ' ' + fmtTime(last.date);
+
+  // 최근 60건만 표시 (5분 간격이면 ~5시간)
+  const recent = hbData.slice(-60);
+  const maxTotal = Math.max(...recent.map(d => d.total || 1), 1);
+
+  const bars = recent.map(d => {
+    const total = d.total || 0;
+    const passed = d.passed || 0;
+    const failed = d.failed || 0;
+    const height = Math.max(4, Math.round((total / maxTotal) * 28));
+    const rate = total > 0 ? (passed / total * 100).toFixed(0) : '0';
+    const time = fmtTime(d.date || d.timestamp);
+    const date = (d.date || d.timestamp || '').slice(5, 10);
+
+    let cls = 'pass';
+    let style = 'height:' + height + 'px';
+    if (failed > 0 && passed > 0) {
+      const failPct = Math.round(failed / total * 100);
+      cls = 'partial';
+      style += ';--fail-pct:' + failPct + '%';
+    } else if (failed > 0) {
+      cls = 'fail';
+    }
+
+    return '<div class="hb-bar ' + cls + '" style="' + style + '"><div class="hb-tooltip">' + date + ' ' + time + '<br>' + rate + '% (' + passed + '/' + total + ')</div></div>';
+  }).join('');
+
+  const totalRuns = hbData.length;
+  const passRuns = hbData.filter(d => d.failed === 0).length;
+  const uptime = totalRuns > 0 ? (passRuns / totalRuns * 100).toFixed(1) : '0.0';
+
+  section.innerHTML =
+    '<div class="heartbeat-header">' +
+      '<h2>Healthcheck</h2>' +
+      '<span class="heartbeat-status ' + statusClass + '"><span class="pulse-dot ' + statusClass + '"></span> ' + statusText + '</span>' +
+    '</div>' +
+    '<div class="heartbeat-timeline">' + bars + '</div>' +
+    '<div class="heartbeat-meta">' +
+      '<span>최근 실행: ' + lastTime + '</span>' +
+      '<span>가동률: ' + uptime + '% (' + passRuns + '/' + totalRuns + ')</span>' +
+      '<span>성공률: ' + fmtRate(last.passed, last.total) + '</span>' +
+    '</div>';
 }
 
 // ── Render ──
@@ -381,6 +510,7 @@ function render() {
   renderTable(data);
 }
 
+renderHeartbeat();
 initFilters();
 render();
 </script>

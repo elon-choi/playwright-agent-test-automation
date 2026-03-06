@@ -20,9 +20,10 @@ And("사용자의 계정에 회차 감상 이력이 없다", async ({ page }) =>
 });
 
 Then("플로팅 버튼이 화면에 표시된다", async ({ page }) => {
+  const hasFloatingText = (await page.getByText(/첫\s*화\s*보기|이어보기/i).count()) > 0;
   const floating = page.locator("[class*='floating'], [class*='Floating'], button").filter({ hasText: /첫\s*화|이어보기|보기/i }).first();
-  const anyBtn = (await page.getByRole("button").count()) > 0 || (await page.getByText(/첫\s*화\s*보기|이어보기/i).count()) > 0;
-  expect(anyBtn || (await floating.count()) > 0).toBe(true);
+  const hasFloating = (await floating.count()) > 0 && (await floating.isVisible().catch(() => false));
+  expect(hasFloatingText || hasFloating).toBe(true);
 });
 
 When("사용자가 플로팅 버튼을 클릭한다", async ({ page }) => {

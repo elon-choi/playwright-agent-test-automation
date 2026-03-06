@@ -22,6 +22,6 @@ And("사용자가 탭 영역 하단 배너를 클릭한다", async ({ page }) =>
 
 Then("사용자는 해당 배너의 랜딩 URL로 이동한다", async ({ page }) => {
   const url = page.url();
-  const isLanding = /\/event\/|\/landing\/|\/open\/|page\.kakao\.com/i.test(url);
-  expect(isLanding || url.length > 10).toBe(true);
+  const isLanding = /\/event\/|\/landing\/|\/open\/|\/content\/|page\.kakao\.com/i.test(url);
+  expect(isLanding).toBe(true);
 });

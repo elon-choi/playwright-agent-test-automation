@@ -95,6 +95,8 @@ When("사용자가 특정 무료 뱃지가 표시된 [회차]를 클릭한다", 
 
 Then("해당 회차의 뷰어 페이지로 이동한다", async ({ page }) => {
   await expect(page).toHaveURL(/\/viewer\//i, { timeout: 15000 });
-  const hasViewer = (await page.getByText(/회차|화|다음|이전/i).count()) > 0 || (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;
-  expect(hasViewer || /\/viewer\//i.test(page.url())).toBe(true);
+  // toHaveURL이 이미 뷰어 URL을 검증하므로 추가 확인은 뷰어 콘텐츠에 집중
+  const hasViewer = (await page.getByText(/회차|화|다음|이전/i).count()) > 0
+    || (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;
+  expect(hasViewer).toBe(true);
 });

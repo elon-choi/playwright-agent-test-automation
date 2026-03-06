@@ -18,7 +18,7 @@ And("사용자가 기다무 작품 BM을 선택하고, 해당 작품이 {string}
   await page.waitForTimeout(400);
   await ensureOnWorkHome(page);
   const hasGidamu = (await page.getByText(/기다무|대여권|충전/i).count()) > 0;
-  expect(hasGidamu || (await page.locator("main").count()) > 0).toBe(true);
+  expect(hasGidamu).toBe(true);
 });
 
 And("기다무 충전 영역에는 {string} 또는 {string}, {string}과 같은 정보가 표시되어야 한다", async ({ page }, _a: string, _b: string, _c: string) => {

@@ -16,7 +16,7 @@ Then("이미지 여백이 흰색으로 변경된다.", async ({ page }) => {
   await page.waitForTimeout(500);
   const hasWhite = (await page.locator('[class*="white"], [class*="White"], [data-theme*="white"], [style*="background.*white"], [style*="background.*#fff"]').count()) > 0
     || (await page.getByText(/흰색\s*여백/i).count()) > 0;
-  expect(hasWhite || /\/viewer\//i.test(page.url())).toBe(true);
+  expect(hasWhite).toBe(true);
 });
 
 And("여백 옵션을 검정 여백으로 변경 후 상단의 x 아이콘을 클릭한다.", async ({ page }) => {
@@ -33,5 +33,5 @@ Then("이미지 여백이 검정으로 변경된다.", async ({ page }) => {
   await page.waitForTimeout(500);
   const hasBlack = (await page.locator('[class*="black"], [class*="Black"], [data-theme*="black"], [style*="background.*black"], [style*="background.*#000"]').count()) > 0
     || (await page.getByText(/검정\s*여백/i).count()) > 0;
-  expect(hasBlack || /\/viewer\//i.test(page.url())).toBe(true);
+  expect(hasBlack).toBe(true);
 });

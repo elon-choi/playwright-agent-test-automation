@@ -27,7 +27,6 @@ And("뷰어 이미지 영역을 클릭한다", async ({ page }) => {
 Then("우측 하단에 자동 스크롤 버튼이 노출된다", async ({ page }) => {
   const hasAutoScroll =
     (await page.getByText(/자동\s*스크롤|스크롤/i).count()) > 0 ||
-    (await page.locator("[class*='scroll'], [class*='Scroll']").count()) > 0 ||
-    (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;
-  expect(hasAutoScroll || /\/viewer\//i.test(page.url())).toBe(true);
+    (await page.locator("[class*='scroll'], [class*='Scroll']").count()) > 0;
+  expect(hasAutoScroll).toBe(true);
 });

@@ -71,7 +71,7 @@ Then("이용권 사용 확인 팝업이 화면에 노출된다", async ({ page }
     (await page.getByText(/회차|화/i).count()) > 0 ||
     (await page.locator('a[href*="/viewer/"]').count()) > 0 ||
     /\/viewer\//i.test(page.url());
-  expect(hasPopup || hasEpisodeOrViewer).toBe(true);
+  expect(hasPopup).toBe(true);
 });
 
 And("팝업에는 On, Off, 취소 버튼이 포함되어 있다", async ({ page }) => {
@@ -80,7 +80,7 @@ And("팝업에는 On, Off, 취소 버튼이 포함되어 있다", async ({ page 
   const hasDialog = (await page.getByRole("dialog").count()) > 0;
   const hasEpisodeOrViewer =
     (await page.getByText(/회차|화/i).count()) > 0 || /\/viewer\//i.test(page.url());
-  expect(hasOnOff || (hasCancel && hasDialog) || hasEpisodeOrViewer).toBe(true);
+  expect(hasOnOff || (hasCancel && hasDialog)).toBe(true);
 });
 
 When("사용자가 팝업에서 취소 버튼을 클릭한다", async ({ page }) => {

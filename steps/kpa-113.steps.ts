@@ -39,6 +39,5 @@ And("댓글창이 종료되며, 사용자는 뷰어로 이동한다", async ({ p
   await page.waitForTimeout(400);
   const onViewer = /\/viewer\//i.test(page.url());
   const onKakao = /page\.kakao\.com/i.test(page.url());
-  const hasContent = (await page.locator("main, body").count()) > 0;
-  expect(onViewer || (onKakao && hasContent)).toBe(true);
+  expect(onViewer || onKakao).toBe(true);
 });

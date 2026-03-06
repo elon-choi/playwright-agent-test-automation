@@ -1,5 +1,6 @@
 Feature: KPA-085 이용권 환불 검증 (이용권 내역에서)
 
+  @핵심
   Scenario: 대여권 환불 검증 (이용권 내역에서)
     Given 사용자가 "https://page.kakao.com/" 사이트에 접속한다
     And 사용자가 로그인하여 계정에 접속한다

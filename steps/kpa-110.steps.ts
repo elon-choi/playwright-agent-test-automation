@@ -139,8 +139,8 @@ Then("이미지 뷰어 방식이 스크롤 뷰어 타입으로 변경된다.", a
   await page.waitForTimeout(400);
   const hasScrollView =
     (await page.locator('[class*="scroll"], [class*="Scroll"]').count()) > 0 ||
-    (await page.locator('main, [class*="viewer"]').count()) > 0;
-  expect(hasScrollView || /\/viewer\//i.test(page.url())).toBe(true);
+    (await page.locator('[class*="viewer"], [class*="Viewer"]').count()) > 0;
+  expect(hasScrollView).toBe(true);
 });
 
 And("이미지에 좌 \\/ 후에 < \\/ > 아이콘이 노출된다", async ({ page }) => {

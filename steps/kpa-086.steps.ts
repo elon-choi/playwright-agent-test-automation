@@ -28,8 +28,7 @@ And("사용자가 기다무 충전 영역을 확인한다", async ({ page }) => 
 
 Then("기다무 충전 영역이 화면에 노출되어야 한다", async ({ page }) => {
   const hasGidamu = (await page.getByText(/기다무|대여권|충전/i).count()) > 0;
-  const hasContent = (await page.locator("main, [role='main']").count()) > 0;
-  expect(hasGidamu || hasContent).toBe(true);
+  expect(hasGidamu).toBe(true);
 });
 
 And("기다무 대여권 1장이 {string} 동안 사용 가능하다는 메시지가 표시되어야 한다", async ({ page }, _param: string) => {

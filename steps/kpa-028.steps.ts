@@ -49,9 +49,9 @@ And("검색창 하단의 임의의 최근 검색어를 클릭한다", async ({ p
 
 Then("자동 완성 검색어가 노출된다", async ({ page }) => {
   await page.waitForTimeout(500);
-  const hasSuggest = await page.getByText(/검색|자동\s*완성|추천/i).count() > 0
-    || await page.locator('a[href*="/content/"]').count() > 0;
-  expect(hasSuggest || await page.locator("body").count() > 0).toBe(true);
+  const hasSuggest = (await page.getByText(/검색|자동\s*완성|추천/i).count()) > 0;
+  const hasContent = (await page.locator('a[href*="/content/"]').count()) > 0;
+  expect(hasSuggest || hasContent).toBe(true);
 });
 
 And("해당 검색어에 해당되는 검색 결과가 노출된다", async ({ page }) => {

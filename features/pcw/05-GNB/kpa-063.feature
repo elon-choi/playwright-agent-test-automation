@@ -1,3 +1,4 @@
+@핵심
 Feature: KPA-063 시나리오 검증
 
   Scenario: 웹툰 GNB 메뉴 및 요일 서브탭 기능 검증

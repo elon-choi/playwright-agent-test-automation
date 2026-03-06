@@ -27,9 +27,9 @@ And("사용자가 검색 입력란에 {string}를 입력하고 엔터 키를 누
 
 Then("사용자는 검색 결과 페이지로 이동한다", async ({ page }) => {
   await page.waitForLoadState("domcontentloaded").catch(() => null);
-  const onSearch = await page.locator('a[href*="/content/"]').count() >= 0
-    || await page.getByText(/검색|결과|없습니다/i).count() > 0;
-  expect(onSearch || page.url().length > 0).toBe(true);
+  const hasResults = (await page.locator('a[href*="/content/"]').count()) > 0;
+  const hasSearchText = (await page.getByText(/검색|결과|없습니다/i).count()) > 0;
+  expect(hasResults || hasSearchText).toBe(true);
 });
 
 And("화면 중간에 {string}라는 텍스트가 노출된다", async ({ page }, text: string) => {

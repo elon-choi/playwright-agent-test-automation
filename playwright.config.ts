@@ -14,133 +14,7 @@ const { pcwPaths, mwPaths } = require("./scripts/generated-feature-paths.json");
 // BDD 설정: feature 경로는 pcw/mw 기능별 폴더 구조 기준 (00-login 선두 유지)
 const testDir = defineBddConfig({
   features: [...pcwPaths, ...mwPaths],
-  steps: [
-    "steps/fixtures.ts",
-    "steps/common.navigation.steps.ts",
-    "steps/common.auth.steps.ts",
-    "steps/login.steps.ts",
-    "steps/common.episode.steps.ts",
-    "steps/kpa-002.steps.ts",
-    "steps/kpa-003.steps.ts",
-    "steps/kpa-004.steps.ts",
-    "steps/kpa-005.steps.ts",
-    "steps/kpa-006-1.steps.ts",
-    "steps/kpa-016.steps.ts",
-    "steps/kpa-018.steps.ts",
-    "steps/kpa-019.steps.ts",
-    "steps/kpa-020.steps.ts",
-    "steps/kpa-021.steps.ts",
-    "steps/kpa-022.steps.ts",
-    "steps/kpa-024.steps.ts",
-    "steps/kpa-008.steps.ts",
-    "steps/kpa-009.steps.ts",
-    "steps/kpa-010.steps.ts",
-    "steps/kpa-011.steps.ts",
-    "steps/kpa-012.steps.ts",
-    "steps/kpa-013.steps.ts",
-    "steps/kpa-048.steps.ts",
-    "steps/kpa-059.steps.ts",
-    "steps/kpa-061.steps.ts",
-    "steps/kpa-065.steps.ts",
-    "steps/kpa-091.steps.ts",
-    "steps/kpa-092.steps.ts",
-    "steps/kpa-099.steps.ts",
-    "steps/kpa-101.steps.ts",
-    "steps/kpa-103.steps.ts",
-    "steps/kpa-026.steps.ts",
-    "steps/kpa-027.steps.ts",
-    "steps/kpa-028.steps.ts",
-    "steps/kpa-029.steps.ts",
-    "steps/kpa-030.steps.ts",
-    "steps/kpa-031.steps.ts",
-    "steps/kpa-032.steps.ts",
-    "steps/kpa-033.steps.ts",
-    "steps/kpa-034.steps.ts",
-    "steps/kpa-035.steps.ts",
-    "steps/kpa-036.steps.ts",
-    "steps/kpa-037.steps.ts",
-    "steps/kpa-038.steps.ts",
-    "steps/kpa-039.steps.ts",
-    "steps/kpa-040.steps.ts",
-    "steps/kpa-041.steps.ts",
-    "steps/kpa-042.steps.ts",
-    "steps/kpa-043.steps.ts",
-    "steps/kpa-044.steps.ts",
-    "steps/kpa-044-1.steps.ts",
-    "steps/kpa-045.steps.ts",
-    "steps/kpa-046.steps.ts",
-    "steps/kpa-049.steps.ts",
-    "steps/kpa-051.steps.ts",
-    "steps/kpa-052.steps.ts",
-    "steps/kpa-054.steps.ts",
-    "steps/kpa-055.steps.ts",
-    "steps/kpa-057.steps.ts",
-    "steps/kpa-058.steps.ts",
-    "steps/kpa-060.steps.ts",
-    "steps/kpa-062.steps.ts",
-    "steps/kpa-063.steps.ts",
-    "steps/kpa-064.steps.ts",
-    "steps/kpa-066.steps.ts",
-    "steps/kpa-067.steps.ts",
-    "steps/kpa-068.steps.ts",
-    "steps/kpa-069.steps.ts",
-    "steps/kpa-070.steps.ts",
-    "steps/kpa-071.steps.ts",
-    "steps/kpa-072.steps.ts",
-    "steps/kpa-073.steps.ts",
-    "steps/kpa-074.steps.ts",
-    "steps/kpa-075.steps.ts",
-    "steps/kpa-076.steps.ts",
-    "steps/kpa-077.steps.ts",
-    "steps/kpa-078.steps.ts",
-    "steps/kpa-079.steps.ts",
-    "steps/kpa-081.steps.ts",
-    "steps/kpa-082.steps.ts",
-    "steps/kpa-085.steps.ts",
-    "steps/kpa-086.steps.ts",
-    "steps/kpa-087.steps.ts",
-    "steps/kpa-088.steps.ts",
-    "steps/kpa-089.steps.ts",
-    "steps/kpa-090.steps.ts",
-    "steps/kpa-093.steps.ts",
-    "steps/kpa-097.steps.ts",
-    "steps/kpa-098.steps.ts",
-    "steps/kpa-100.steps.ts",
-    "steps/kpa-102.steps.ts",
-    "steps/kpa-104.steps.ts",
-    "steps/kpa-105.steps.ts",
-    "steps/kpa-106.steps.ts",
-    "steps/kpa-107.steps.ts",
-    "steps/kpa-108.steps.ts",
-    "steps/kpa-109.steps.ts",
-    "steps/kpa-110.steps.ts",
-    "steps/kpa-111.steps.ts",
-    "steps/kpa-112.steps.ts",
-    "steps/kpa-113.steps.ts",
-    "steps/kpa-114.steps.ts",
-    "steps/kpa-115.steps.ts",
-    "steps/kpa-116.steps.ts",
-    "steps/kpa-117.steps.ts",
-    "steps/kpa-118.steps.ts",
-    "steps/kpa-119.steps.ts",
-    "steps/kpa-120.steps.ts",
-    "steps/kpa-121.steps.ts",
-    "steps/kpa-122.steps.ts",
-    "steps/kpa-123.steps.ts",
-    "steps/kpa-124.steps.ts",
-    "steps/kpa-125.steps.ts",
-    "steps/kpa-126.steps.ts",
-    "steps/kpa-127.steps.ts",
-    "steps/kpa-128.steps.ts",
-    "steps/kpa-130.steps.ts",
-    "steps/kpa-131.steps.ts",
-    "steps/kpa-132.steps.ts",
-    "steps/kpa-133.steps.ts",
-    "steps/kpa-134.steps.ts",
-    "steps/kpa-135.steps.ts",
-    "steps/kpa-136.steps.ts",
-    "steps/kpa-137.steps.ts"
-  ]
+  steps: "steps/*.ts"
 });
 
 // CTO 시연용: 스텁만 있는 시나리오 제외. 정상 구현된 시나리오만 UI 모드에서 실행되도록 함
@@ -155,7 +29,6 @@ const useChannelChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1";
 // 프로젝트에 chrome-mac-arm64만 설치된 경우 Node가 x64로 동작하면 Playwright가 x64 경로를 찾음.
 // Apple Silicon에서 프로젝트 브라우저만 사용할 때는 PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64 권장.
 const fs = require("node:fs");
-const projectRoot = process.cwd();
 const browsersDir = process.env.PLAYWRIGHT_BROWSERS_PATH
   ? path.resolve(process.cwd(), process.env.PLAYWRIGHT_BROWSERS_PATH)
   : path.join(__dirname, ".playwright-browsers");
@@ -178,6 +51,16 @@ function findBundledChromium(baseDir: string): string | null {
 
 const bundledChromiumPath = findBundledChromium(browsersDir);
 const useBundledChromiumPath = !!bundledChromiumPath;
+
+// 모든 프로젝트에서 공유하는 Chrome 설정
+const chromeUse = {
+  ...devices["Desktop Chrome"],
+  ...(useChannelChrome ? { channel: "chrome" as const } : {}),
+  ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
+  launchOptions: {
+    args: ["--disable-features=LocalNetworkAccess"]
+  }
+};
 
 export default defineConfig({
   // BDD 설정을 테스트 디렉터리로 연결
@@ -215,14 +98,7 @@ export default defineConfig({
       testMatch: ["**/pcw/**/*.feature.spec.js"],
       testIgnore: ["**/adult/**", "**/00-login.feature.spec.js", ...STUB_TEST_IGNORE],
       dependencies: ["login"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
-        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
+      use: chromeUse
     },
     {
       name: "chromium-ci",
@@ -240,64 +116,29 @@ export default defineConfig({
         "**/kpa-111.feature.spec.js",  // 뷰어 - 여백 옵션
       ],
       dependencies: ["login"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
-        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
+      use: chromeUse
     },
     {
       name: "login",
       testMatch: ["**/00-login.feature.spec.js"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
-        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
+      use: chromeUse
     },
     {
       name: "chromium-remaining",
       testMatch: STUB_KPA_NUMBERS.map((n) => `**/kpa-${String(n).padStart(3, "0")}.feature.spec.js`),
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
-        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
+      use: chromeUse
     },
     {
       name: "chromium-mw",
       testMatch: ["**/mw/**/*.feature.spec.js"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
-        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
+      use: chromeUse
     },
     {
       name: "chromium-085",
       testMatch: ["**/pcw/06-콘텐츠홈/kpa-085.feature.spec.js"],
       timeout: 300000,
       dependencies: ["login"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(useChannelChrome ? { channel: "chrome" as const } : {}),
-        ...(useBundledChromiumPath ? { executablePath: bundledChromiumPath } : {}),
-        launchOptions: {
-          args: ["--disable-features=LocalNetworkAccess"]
-        }
-      }
+      use: chromeUse
     }
   ]
 });

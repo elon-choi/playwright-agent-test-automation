@@ -35,9 +35,10 @@ And("사용자가 하단의 선택 항목 삭제 버튼을 클릭한다", async 
 });
 
 Then("선택 항목 삭제 버튼이 활성화된다", async ({ page }) => {
+  // 삭제 버튼 클릭 직후 확인 팝업이 뜰 수 있으므로 팝업의 "확인" 버튼도 성공 조건에 포함
   const deleteBtn = page.getByRole("button", { name: /선택\s*항목\s*삭제|삭제/i }).first();
-  const confirmPopup = page.getByText(/항목을?\s*삭제/i).first();
-  await expect(deleteBtn.or(confirmPopup)).toBeVisible({ timeout: 5000 });
+  const popupConfirmBtn = page.getByRole("button", { name: /^확인$/i }).first();
+  await expect(deleteBtn.or(popupConfirmBtn)).toBeVisible({ timeout: 5000 });
 });
 
 And("선택한 작품이 삭제되어 좋아요 탭 리스트에서 더 이상 보이지 않는다", async ({ page }) => {

@@ -49,9 +49,8 @@ Then("첫 화 보기 탭이 노출되고, 연재 정보와 줄거리, 압축 해
 
 And("[뷰어로 보기] 버튼이 계속해서 노출된다", async ({ page }) => {
   const onViewer = /\/viewer\//i.test(page.url());
-  const hasContent = (await page.locator("main, [role='main']").count()) > 0;
   const hasBtn = (await page.getByText(/뷰어로\s*보기|회차|다음/i).count()) > 0;
-  expect(onViewer || hasContent || hasBtn).toBe(true);
+  expect(onViewer || hasBtn).toBe(true);
 });
 
 And("감상 중인 회차의 뷰어가 화면에 노출된다", async ({ page }) => {

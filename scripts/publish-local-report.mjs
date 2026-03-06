@@ -12,7 +12,7 @@
  * 5) generate-report-index로 index.html 갱신
  * 6) gh-pages 브랜치로 체크아웃 후 report-site 내용 푸시
  */
-import { mkdir, readdir, cp, writeFile } from "node:fs/promises";
+import { mkdir, readdir, cp, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
@@ -21,6 +21,9 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const ROOT = join(__dirname, "..");
 const REPORT_SITE = join(ROOT, "report-site");
 const REPORTS_DIR = join(REPORT_SITE, "reports");
+const HEALTHCHECK_HISTORY = join(REPORTS_DIR, "healthcheck-history.json");
+const TEST_TYPE = process.env.TEST_TYPE || "";
+const RETENTION_DAYS = 7;
 
 function run(cmd, opts = {}) {
   return execSync(cmd, { cwd: ROOT, stdio: "inherit", ...opts });
@@ -47,31 +50,67 @@ async function main() {
 
   await mkdir(REPORTS_DIR, { recursive: true });
 
-  const runDir = join(REPORTS_DIR, runId);
-  await mkdir(runDir, { recursive: true });
+  const isHealthcheck = TEST_TYPE === "코어";
 
-  const playwrightReport = join(ROOT, "playwright-report");
-  const hasReport = await readdir(playwrightReport).then(() => true).catch(() => false);
-  if (hasReport) {
-    await cp(playwrightReport, runDir, { recursive: true });
-    console.log("Copied playwright-report to", runDir);
+  if (isHealthcheck) {
+    // 핵심: HTML 복사 없이 summary만 생성 후 healthcheck-history.json에 append
+    const tmpSummary = join(ROOT, "test-results", "hc-summary.json");
+    const env = {
+      ...process.env,
+      RESULTS_JSON: join(ROOT, "test-results", "results.json"),
+      SUMMARY_JSON: tmpSummary,
+      RUN_DATE_ISO: runDateIso,
+      RUN_ID: runId,
+      ALLURE_RESULTS_DIR: join(ROOT, "allure-results")
+    };
+    execSync("node scripts/write-report-summary.mjs", { cwd: ROOT, env, stdio: "inherit" });
+
+    // summary를 읽고 healthcheck-history.json에 append
+    const summaryRaw = await readFile(tmpSummary, "utf-8");
+    const summaryData = JSON.parse(summaryRaw);
+
+    let history = [];
+    try {
+      const histRaw = await readFile(HEALTHCHECK_HISTORY, "utf-8");
+      history = JSON.parse(histRaw);
+    } catch { /* 첫 실행 시 빈 배열 */ }
+
+    history.push(summaryData);
+
+    // 7일 이상 된 데이터 정리
+    const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
+    history = history.filter(h => new Date(h.date || h.timestamp).getTime() > cutoff);
+
+    await writeFile(HEALTHCHECK_HISTORY, JSON.stringify(history, null, 2), "utf-8");
+    console.log("Appended healthcheck result to", HEALTHCHECK_HISTORY, "(" + history.length + " entries)");
   } else {
-    await writeFile(
-      join(runDir, "index.html"),
-      "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>No report</title></head><body><p>No report for this run (local).</p></body></html>",
-      "utf-8"
-    );
-  }
+    // 전체: 기존 방식 — HTML 리포트를 reports/{runId}/에 복사
+    const runDir = join(REPORTS_DIR, runId);
+    await mkdir(runDir, { recursive: true });
 
-  const env = {
-    ...process.env,
-    RESULTS_JSON: join(ROOT, "test-results", "results.json"),
-    SUMMARY_JSON: join(runDir, "summary.json"),
-    RUN_DATE_ISO: runDateIso,
-    RUN_ID: runId,
-    ALLURE_RESULTS_DIR: join(ROOT, "allure-results")
-  };
-  execSync("node scripts/write-report-summary.mjs", { cwd: ROOT, env, stdio: "inherit" });
+    const playwrightReport = join(ROOT, "playwright-report");
+    const hasReport = await readdir(playwrightReport).then(() => true).catch(() => false);
+    if (hasReport) {
+      await cp(playwrightReport, runDir, { recursive: true });
+      console.log("Copied playwright-report to", runDir);
+    } else {
+      await writeFile(
+        join(runDir, "index.html"),
+        "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>No report</title></head><body><p>No report for this run (local).</p></body></html>",
+        "utf-8"
+      );
+    }
+
+    const env = {
+      ...process.env,
+      RESULTS_JSON: join(ROOT, "test-results", "results.json"),
+      SUMMARY_JSON: join(runDir, "summary.json"),
+      RUN_DATE_ISO: runDateIso,
+      RUN_ID: runId,
+      ALLURE_RESULTS_DIR: join(ROOT, "allure-results")
+    };
+    execSync("node scripts/write-report-summary.mjs", { cwd: ROOT, env, stdio: "inherit" });
+  }
 
   execSync("REPORT_SITE=report-site node scripts/generate-report-index.mjs", { cwd: ROOT, stdio: "inherit" });
 
@@ -98,10 +137,11 @@ async function main() {
     }
     run("git add index.html reports");
     run("git status");
+    const commitLabel = isHealthcheck ? "Healthcheck" : "Report";
     try {
-      run("git commit -m \"Report: add local run " + runId + "\"");
+      run("git commit -m \"" + commitLabel + ": " + runId + "\"");
     } catch {
-      run("git commit -m \"Report: add local run " + runId + "\" --allow-empty");
+      run("git commit -m \"" + commitLabel + ": " + runId + "\" --allow-empty");
     }
     run("git push origin gh-pages");
   } finally {

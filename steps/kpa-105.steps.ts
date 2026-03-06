@@ -84,7 +84,7 @@ And("각 댓글에는 닉네임, 작성일자, 댓글 내용, 좋아요 수, 싫
   const hasReplyFromStructure = (await likeReplyBlocks.count()) >= 2;
   const hasReply = hasReplyButton || hasReplyText || hasReplyLink || hasReplyAria || hasReplyTitle || hasReplyFromStructure;
 
-  expect(hasNickname || hasContent).toBe(true);
+  expect(hasNickname).toBe(true);
   expect(hasDate).toBe(true);
   expect(hasLike).toBe(true);
   expect(hasReply).toBe(true);

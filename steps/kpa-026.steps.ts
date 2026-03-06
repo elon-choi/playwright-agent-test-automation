@@ -213,7 +213,7 @@ Then("이용권 사용 확인 메뉴를 클릭할 때 다음과 같은 팝업이
     page.getByText(/이용권\s*사용\s*확인.*다시\s*보지\s*않기|다시\s*보지\s*않기/i)
   );
   if (await onOffOrCheckbox.count() > 0) {
-    await expect(onOffOrCheckbox.first()).toBeVisible({ timeout: 3000 }).catch(() => null);
+    await expect(onOffOrCheckbox.first()).toBeVisible({ timeout: 3000 });
   }
 });
 

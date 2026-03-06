@@ -16,3 +16,6 @@ dom_logs/
 report-site/
 .cursor/
 .claude/
+logs/
+.healthcheck.lock
+.fulltest.lock

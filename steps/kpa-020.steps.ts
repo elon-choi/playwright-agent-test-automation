@@ -26,10 +26,12 @@ When("댓글 내역 메뉴를 클릭한다", async ({ page }) => {
 });
 
 Then("댓글 내역 페이지가 표시된다", async ({ page }) => {
-  const heading = page.getByText("댓글 내역", { exact: true }).first();
+  // '댓글 내역' exact match의 .first()가 사이드바 nav의 hidden 요소를 매칭하므로
+  // 댓글 페이지 고유 콘텐츠로 검증
+  const commentActions = page.getByText(/좋아요|댓글\s*달기/).first();
   const emptyMsg = page.getByText(/댓글\s*내역이\s*없습니다/).first();
   const deletedMsg = page.getByText(/내가\s*삭제한\s*댓글/).first();
-  await expect(heading.or(emptyMsg).or(deletedMsg)).toBeVisible({ timeout: 20000 });
+  await expect(commentActions.or(emptyMsg).or(deletedMsg)).toBeVisible({ timeout: 20000 });
 });
 
 When("삭제할 댓글이 있으면 모두 삭제한다", async ({ page }) => {
