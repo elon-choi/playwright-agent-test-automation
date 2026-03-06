@@ -3,7 +3,7 @@
  * 1) allure-results/*-result.json 집계 (ALLURE_RESULTS_DIR 설정 시)
  * 2) test-results/results.json
  * 3) report-site/reports/$RUN_ID/report.json (HTML 리포터)
- * env: RESULTS_JSON, SUMMARY_JSON, RUN_DATE_ISO, RUN_ID, ALLURE_RESULTS_DIR
+ * env: RESULTS_JSON, SUMMARY_JSON, RUN_DATE_ISO, RUN_ID, ALLURE_RESULTS_DIR, PROJECT, PLATFORM
  */
 
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
@@ -14,6 +14,8 @@ const SUMMARY_JSON = process.env.SUMMARY_JSON;
 const RUN_DATE_ISO = process.env.RUN_DATE_ISO || new Date().toISOString();
 const RUN_ID = process.env.RUN_ID || "";
 const ALLURE_RESULTS_DIR = process.env.ALLURE_RESULTS_DIR || "";
+const PROJECT = process.env.PROJECT || "카카오페이지";
+const PLATFORM = process.env.PLATFORM || "PCW";
 
 if (!SUMMARY_JSON) {
   console.error("SUMMARY_JSON env required");
@@ -114,6 +116,8 @@ async function main() {
     date: RUN_DATE_ISO,
     timestamp: RUN_DATE_ISO,
     runId: RUN_ID,
+    project: PROJECT,
+    platform: PLATFORM,
     passed,
     failed,
     skipped,
