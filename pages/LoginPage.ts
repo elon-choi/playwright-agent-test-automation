@@ -115,6 +115,10 @@ export class LoginPage extends BasePage {
     if (!/page\.kakao\.com/i.test(this.page.url())) {
       await this.page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
     }
+    // 비로그인 상태: data-test="header-login-button" 속성이 프로필 버튼에 존재
+    // 로그인 상태: 해당 속성 없이 프로필 이미지(img[alt="프로필"])가 표시됨
+    const headerLoginBtn = this.page.locator('[data-test="header-login-button"]');
+    if (await headerLoginBtn.count()) return;
     const loginCtas = [
       this.page.getByRole("link", { name: /로그인/i }),
       this.page.getByRole("button", { name: /로그인/i }),
@@ -123,9 +127,9 @@ export class LoginPage extends BasePage {
     for (const locator of loginCtas) {
       if (await locator.count()) return;
     }
-    // 프로필 아이콘이 보이면 로그인된 상태
-    const profileIcon = this.page.getByLabel(/내 정보/i);
-    if ((await profileIcon.count()) > 0 && (await profileIcon.first().isVisible().catch(() => false))) {
+    // 프로필 이미지가 있으면 로그인된 상태
+    const profileImg = this.page.locator('img[alt="프로필"]');
+    if (await profileImg.count()) {
       throw new Error("현재 로그인 상태입니다. 비로그인 시나리오를 위해 로그아웃하거나 별도 storageState를 사용해 주세요.");
     }
   }

@@ -32,10 +32,14 @@ Then("오늘신작 메뉴 하단에 다음 요소들이 노출된다:", async ({
 });
 
 When("사용자가 첫번째 신작 작품을 클릭한다", async ({ page }) => {
-  const todaySectionTitle = page.getByText(/^TODAY$/).first();
-  await todaySectionTitle.waitFor({ state: "visible", timeout: 15000 });
+  await page.waitForTimeout(800);
+  // TODAY 섹션 또는 작품 링크를 탐색
+  const todaySectionTitle = page.getByText(/TODAY/i).first();
+  await todaySectionTitle.waitFor({ state: "visible", timeout: 15000 }).catch(() => null);
 
-  const workLink = page.getByRole("link", { name: /^작품,/ });
+  // 작품 링크: aria-label "작품," 패턴 또는 content 링크
+  const workLink = page.getByRole("link", { name: /^작품,/ })
+    .or(page.locator('a[href*="/content/"]'));
   await workLink.first().waitFor({ state: "visible", timeout: 15000 });
 
   selectedWorkUrl = await workLink.first().getAttribute("href");

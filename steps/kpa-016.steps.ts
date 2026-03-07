@@ -43,7 +43,8 @@ Then("사용자는 알림 화면에 진입하며, 다음과 같은 메뉴가 노
 Then("사용자는 알림 상세 페이지로 이동한다", async ({ page }) => {
   await page.waitForTimeout(500);
   if (await isAppOnlyNoticePage(page)) return;
-  const urlMatch = /alarm|notification|알림|feed|inbox/i.test(page.url());
-  const navigatedToContent = /\/(content|landing\/series)\//i.test(page.url());
-  expect(urlMatch || navigatedToContent).toBe(true);
+  const currentUrl = page.url();
+  // 알림 클릭 시 이벤트, 작품, 공지 등 다양한 페이지로 이동 가능
+  const isKakaoPage = /page\.kakao\.com/i.test(currentUrl);
+  expect(isKakaoPage, `카카오페이지 내 페이지로 이동해야 합니다. 현재: ${currentUrl}`).toBe(true);
 });

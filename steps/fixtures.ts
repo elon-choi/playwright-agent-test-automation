@@ -226,6 +226,7 @@ export const test = base.extend<MyFixtures>({
       testInfo.title.includes("공통 로그인 시나리오") ||
       (testInfo.file && testInfo.file.includes("login.feature"));
     const skipAuthByTitle =
+      testInfo.title.includes("KPA-002") ||
       testInfo.title.includes("KPA-061") ||
       testInfo.title.includes("KPA-008") ||
       testInfo.title.includes("KPA-009") ||
@@ -237,7 +238,8 @@ export const test = base.extend<MyFixtures>({
       testInfo.title.includes("KPA-059");
     const skipAuthByFile =
       testInfo.file &&
-      (testInfo.file.includes("kpa-061") ||
+      (testInfo.file.includes("kpa-002") ||
+        testInfo.file.includes("kpa-061") ||
         testInfo.file.includes("kpa-008") ||
         testInfo.file.includes("kpa-009") ||
         testInfo.file.includes("kpa-010") ||

@@ -52,8 +52,10 @@ And("사용자가 {string} 웹툰 작품을 검색 후 클릭한다 {string}", a
 });
 
 And("사용자가 구매회차 메뉴를 클릭한다", async ({ page }) => {
-  const menu = page.getByRole("tab", { name: /구매\s*회차|구매회차/i }).or(page.getByText(/구매\s*회차|구매회차/i).first());
-  if ((await menu.count()) > 0) await menu.first().click({ timeout: 6000 });
+  const menu = page.getByRole("tab", { name: /구매\s*회차|구매회차/i })
+    .or(page.getByRole("checkbox", { name: /구매\s*회차|구매회차/i }))
+    .or(page.getByText(/구매\s*회차|구매회차/i).first());
+  await menu.first().click({ timeout: 8000 });
   await page.waitForTimeout(500);
 });
 

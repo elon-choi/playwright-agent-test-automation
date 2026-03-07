@@ -1,7 +1,7 @@
 /**
  * Run별 summary.json 생성. 우선순위:
- * 1) allure-results/*-result.json 집계 (ALLURE_RESULTS_DIR 설정 시)
- * 2) test-results/results.json
+ * 1) test-results/results.json (Playwright 네이티브 — 시나리오 단위 정확)
+ * 2) allure-results/*-result.json 집계 (스텝 단위라 건수 부풀림 가능)
  * 3) report-site/reports/$RUN_ID/report.json (HTML 리포터)
  * env: RESULTS_JSON, SUMMARY_JSON, RUN_DATE_ISO, RUN_ID, ALLURE_RESULTS_DIR, PROJECT, PLATFORM
  */
@@ -66,7 +66,21 @@ async function main() {
   let durationSeconds = null;
   let source = "none";
 
-  if (ALLURE_RESULTS_DIR) {
+  try {
+    const raw = await readFile(RESULTS_JSON, "utf-8");
+    const data = JSON.parse(raw);
+    const stats = data.stats ?? {};
+    passed = stats.expected ?? 0;
+    failed = stats.unexpected ?? 0;
+    skipped = stats.skipped ?? 0;
+    flaky = stats.flaky ?? 0;
+    if (typeof data.stats?.duration === "number") durationSeconds = data.stats.duration / 1000;
+    source = "results.json";
+  } catch (e) {
+    console.warn("Could not read results.json:", e.message);
+  }
+
+  if (source === "none" && ALLURE_RESULTS_DIR) {
     const agg = await aggregateAllureResults(ALLURE_RESULTS_DIR);
     if (agg.total > 0) {
       passed = agg.passed;
@@ -75,22 +89,6 @@ async function main() {
       flaky = agg.flaky;
       durationSeconds = agg.durationSeconds;
       source = "allure-results";
-    }
-  }
-
-  if (source === "none") {
-    try {
-      const raw = await readFile(RESULTS_JSON, "utf-8");
-      const data = JSON.parse(raw);
-      const stats = data.stats ?? {};
-      passed = stats.expected ?? 0;
-      failed = stats.unexpected ?? 0;
-      skipped = stats.skipped ?? 0;
-      flaky = stats.flaky ?? 0;
-      if (typeof data.stats?.duration === "number") durationSeconds = data.stats.duration / 1000;
-      source = "results.json";
-    } catch (e) {
-      console.warn("Could not read results.json:", e.message);
     }
   }
 
