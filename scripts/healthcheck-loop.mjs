@@ -10,6 +10,7 @@
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { isLocked, acquire, release, lockInfo } from "./test-lock.mjs";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -46,7 +47,15 @@ function killZombieChromium() {
 }
 
 async function runHealthcheck() {
+  // 다른 테스트가 실행 중이면 이번 사이클 스킵
+  if (isLocked()) {
+    const info = lockInfo();
+    console.log(`\n[${ timestamp() }] 락 감지 (owner: ${info?.owner ?? "?"}) → 이번 사이클 스킵`);
+    return true;
+  }
+
   console.log(`\n[${ timestamp() }] === 핵심 헬스체크 시작 ===`);
+  acquire("healthcheck");
 
   // 1. 좀비 Chromium 프로세스 정리
   killZombieChromium();
@@ -69,6 +78,7 @@ async function runHealthcheck() {
   // 4. 리포트 발행 (실패해도 계속)
   run("node scripts/publish-local-report.mjs");
 
+  release();
   console.log(`[${ timestamp() }] === 핵심 헬스체크 완료 ===`);
   return passed;
 }
