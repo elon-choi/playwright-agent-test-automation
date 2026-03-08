@@ -111,7 +111,7 @@ function buildHtml(summaries) {
     .empty-msg { text-align: center; padding: 3rem; color: #666; }
 
     /* Heartbeat */
-    .heartbeat-section { background: #1a1d28; padding: 1.5rem 2rem; border-bottom: 1px solid #2a2d3a; }
+    .heartbeat-section { background: #1a1d28; padding: 1.5rem 2rem; padding-top: 2.5rem; border-bottom: 1px solid #2a2d3a; overflow: visible; position: relative; z-index: 10; }
     .heartbeat-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
     .heartbeat-header h2 { font-size: 1.1rem; font-weight: 600; color: #ccc; }
     .heartbeat-status { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 600; }
@@ -123,14 +123,13 @@ function buildHtml(summaries) {
     .pulse-dot.down { background: #f87171; box-shadow: 0 0 6px #f87171; }
     .pulse-dot.unknown { background: #555; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .heartbeat-timeline { display: flex; align-items: flex-end; gap: 2px; height: 40px; }
-    .hb-bar { width: 6px; min-height: 4px; border-radius: 1px; cursor: pointer; transition: opacity 0.15s; position: relative; }
+    .heartbeat-timeline { display: flex; align-items: flex-end; gap: 1px; height: 60px; overflow-x: auto; overflow-y: visible; }
+    .hb-bar { width: 3px; min-width: 3px; min-height: 4px; border-radius: 1px; cursor: pointer; transition: opacity 0.15s; position: relative; }
     .hb-bar:hover { opacity: 0.7; }
     .hb-bar.pass { background: #34d399; }
     .hb-bar.fail { background: #f87171; }
     .hb-bar.partial { background: linear-gradient(to top, #f87171 0%, #f87171 var(--fail-pct), #34d399 var(--fail-pct), #34d399 100%); }
-    .hb-tooltip { display: none; position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); background: #252836; color: #e0e0e0; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.7rem; white-space: nowrap; z-index: 10; border: 1px solid #3a3d4a; pointer-events: none; }
-    .hb-bar:hover .hb-tooltip { display: block; }
+    .hb-tooltip { display: none; position: fixed; background: #252836; color: #e0e0e0; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.75rem; white-space: nowrap; z-index: 9999; border: 1px solid #3a3d4a; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
     .heartbeat-meta { display: flex; gap: 1.5rem; margin-top: 0.75rem; font-size: 0.8rem; color: #666; }
 
     @media (max-width: 768px) {
@@ -459,15 +458,15 @@ function renderHeartbeat() {
   const statusText = isUp ? 'UP' : 'DOWN';
   const lastTime = fmtDate(last.date) + ' ' + fmtTime(last.date);
 
-  // 최근 60건만 표시 (5분 간격이면 ~5시간)
-  const recent = hbData.slice(-60);
+  // 최근 288건 표시 (5분 간격 × 288 = 24시간)
+  const recent = hbData.slice(-288);
   const maxTotal = Math.max(...recent.map(d => d.total || 1), 1);
 
   const bars = recent.map(d => {
     const total = d.total || 0;
     const passed = d.passed || 0;
     const failed = d.failed || 0;
-    const height = Math.max(4, Math.round((total / maxTotal) * 28));
+    const height = Math.max(6, Math.round((total / maxTotal) * 52));
     const rate = total > 0 ? (passed / total * 100).toFixed(0) : '0';
     const time = fmtTime(d.date || d.timestamp);
     const date = (d.date || d.timestamp || '').slice(5, 10);
@@ -482,7 +481,7 @@ function renderHeartbeat() {
       cls = 'fail';
     }
 
-    return '<div class="hb-bar ' + cls + '" style="' + style + '"><div class="hb-tooltip">' + date + ' ' + time + '<br>' + rate + '% (' + passed + '/' + total + ')</div></div>';
+    return '<div class="hb-bar ' + cls + '" style="' + style + '" data-tip="' + date + ' ' + time + ' — ' + rate + '% (' + passed + '/' + total + ')"></div>';
   }).join('');
 
   const totalRuns = hbData.length;
@@ -494,12 +493,34 @@ function renderHeartbeat() {
       '<h2>Healthcheck</h2>' +
       '<span class="heartbeat-status ' + statusClass + '"><span class="pulse-dot ' + statusClass + '"></span> ' + statusText + '</span>' +
     '</div>' +
-    '<div class="heartbeat-timeline">' + bars + '</div>' +
+    '<div class="heartbeat-timeline" id="hb-timeline">' + bars + '</div>' +
+    '<div class="hb-tooltip" id="hb-tip"></div>' +
     '<div class="heartbeat-meta">' +
       '<span>최근 실행: ' + lastTime + '</span>' +
       '<span>가동률: ' + uptime + '% (' + passRuns + '/' + totalRuns + ')</span>' +
       '<span>성공률: ' + fmtRate(last.passed, last.total) + '</span>' +
     '</div>';
+
+  // 공유 툴팁 마우스 이벤트
+  const timeline = document.getElementById('hb-timeline');
+  const tip = document.getElementById('hb-tip');
+  if (timeline && tip) {
+    timeline.addEventListener('mouseover', function(e) {
+      const bar = e.target.closest('.hb-bar');
+      if (!bar || !bar.dataset.tip) { tip.style.display = 'none'; return; }
+      tip.textContent = bar.dataset.tip;
+      tip.style.display = 'block';
+      const rect = bar.getBoundingClientRect();
+      tip.style.left = Math.max(8, rect.left + rect.width / 2 - tip.offsetWidth / 2) + 'px';
+      tip.style.top = (rect.bottom + 8) + 'px';
+    });
+    timeline.addEventListener('mouseout', function(e) {
+      if (!e.target.closest('.hb-bar')) tip.style.display = 'none';
+    });
+    timeline.addEventListener('mouseleave', function() {
+      tip.style.display = 'none';
+    });
+  }
 }
 
 // ── Render ──

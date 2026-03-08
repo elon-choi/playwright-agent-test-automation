@@ -63,10 +63,11 @@ async function runHealthcheck() {
   // 2. allure 결과 초기화
   run("rm -rf allure-results");
 
-  // 3. 핵심 시나리오 실행
+  // 3. 핵심 시나리오 실행 (hc-results.json에 별도 저장 → 전체 테스트 results.json 보호)
   const testCmd = [
     "CI=true",
     "TEST_TYPE=코어",
+    "PW_JSON_OUTPUT=test-results/hc-results.json",
     "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers",
     "PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=mac15-arm64",
     "playwright test --project=chromium --grep @핵심"

@@ -22,3 +22,4 @@ logs/
 .test-lock
 overnight-results.json
 overnight.log
+.gh-pages-worktree/

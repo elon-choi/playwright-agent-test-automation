@@ -65,7 +65,7 @@ export default defineConfig({
   reporter: [
     ["html", { open: "never" }],
     ["list"],
-    ["json", { outputFile: "test-results/results.json" }],
+    ["json", { outputFile: process.env.PW_JSON_OUTPUT || "test-results/results.json" }],
     [
       "allure-playwright",
       {

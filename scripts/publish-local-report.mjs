@@ -57,7 +57,7 @@ async function main() {
     const tmpSummary = join(ROOT, "test-results", "hc-summary.json");
     const env = {
       ...process.env,
-      RESULTS_JSON: join(ROOT, "test-results", "results.json"),
+      RESULTS_JSON: join(ROOT, "test-results", "hc-results.json"),
       SUMMARY_JSON: tmpSummary,
       RUN_DATE_ISO: runDateIso,
       RUN_ID: runId,
@@ -114,52 +114,45 @@ async function main() {
 
   execSync("REPORT_SITE=report-site node scripts/generate-report-index.mjs", { cwd: ROOT, stdio: "inherit" });
 
-  const currentBranch = execSync("git rev-parse --abbrev-ref HEAD", { cwd: ROOT, encoding: "utf-8" }).trim();
+  // git worktree를 사용하여 메인 브랜치 파일에 영향 없이 gh-pages에 푸시
+  const WORKTREE_DIR = join(ROOT, ".gh-pages-worktree");
 
-  // 미커밋 변경사항이 있으면 stash 후 복원
-  const hasChanges = execSync("git status --porcelain", { cwd: ROOT, encoding: "utf-8" }).trim().length > 0;
-  if (hasChanges) {
-    run("git stash push -m \"publish-local-report auto-stash\"", { stdio: "pipe" });
-  }
+  // 이전 worktree 잔재 정리
+  try { execSync(`git worktree remove --force "${WORKTREE_DIR}" 2>/dev/null`, { cwd: ROOT, stdio: "pipe" }); } catch { /* ignore */ }
+  try { execSync(`rm -rf "${WORKTREE_DIR}"`, { cwd: ROOT, stdio: "pipe" }); } catch { /* ignore */ }
 
   try {
-    // 원격 gh-pages에 맞춰 로컬 브랜치를 리셋 (CI force_orphan과 호환)
+    // gh-pages 브랜치를 별도 디렉토리에 체크아웃
     try {
-      run("git checkout -B gh-pages origin/gh-pages", { stdio: "pipe" });
+      execSync("git fetch origin gh-pages 2>/dev/null", { cwd: ROOT, stdio: "pipe" });
+      execSync(`git worktree add "${WORKTREE_DIR}" origin/gh-pages`, { cwd: ROOT, stdio: "pipe" });
     } catch {
-      run("git checkout --orphan gh-pages", { stdio: "pipe" });
+      // gh-pages가 없으면 orphan으로 생성
+      execSync(`git worktree add --detach "${WORKTREE_DIR}"`, { cwd: ROOT, stdio: "pipe" });
+      execSync("git checkout --orphan gh-pages", { cwd: WORKTREE_DIR, stdio: "pipe" });
+      execSync("git rm -rf . 2>/dev/null || true", { cwd: WORKTREE_DIR, stdio: "pipe" });
     }
+
+    // report-site 내용을 worktree로 복사
     const toCopy = ["index.html", "reports"];
     for (const name of toCopy) {
       const src = join(REPORT_SITE, name);
-      const dest = join(ROOT, name);
+      const dest = join(WORKTREE_DIR, name);
       await cp(src, dest, { recursive: true });
     }
-    run("git add index.html reports");
-    run("git status");
+
     const commitLabel = isHealthcheck ? "Healthcheck" : "Report";
+    execSync("git add index.html reports", { cwd: WORKTREE_DIR, stdio: "inherit" });
     try {
-      run("git commit -m \"" + commitLabel + ": " + runId + "\"");
+      execSync(`git commit -m "${commitLabel}: ${runId}"`, { cwd: WORKTREE_DIR, stdio: "inherit" });
     } catch {
-      run("git commit -m \"" + commitLabel + ": " + runId + "\" --allow-empty");
+      execSync(`git commit -m "${commitLabel}: ${runId}" --allow-empty`, { cwd: WORKTREE_DIR, stdio: "inherit" });
     }
-    run("git push origin gh-pages");
+    execSync("git push origin HEAD:gh-pages", { cwd: WORKTREE_DIR, stdio: "inherit" });
   } finally {
-    // 안전하게 원래 브랜치로 복원
-    try {
-      run("git checkout " + currentBranch, { stdio: "pipe" });
-    } catch {
-      // detached HEAD 등 예외 상황 — force checkout
-      run("git checkout -f " + currentBranch, { stdio: "pipe" });
-    }
-    // gh-pages 파일이 index에 남아 있을 수 있으므로 정리
-    try {
-      run("git reset HEAD -- . 2>/dev/null", { stdio: "pipe" });
-      run("git checkout -- . 2>/dev/null", { stdio: "pipe" });
-    } catch { /* ignore */ }
-    if (hasChanges) {
-      try { run("git stash pop", { stdio: "pipe" }); } catch { /* ignore */ }
-    }
+    // worktree 정리 (메인 브랜치에 영향 없음)
+    try { execSync(`git worktree remove --force "${WORKTREE_DIR}" 2>/dev/null`, { cwd: ROOT, stdio: "pipe" }); } catch { /* ignore */ }
+    try { execSync(`rm -rf "${WORKTREE_DIR}"`, { cwd: ROOT, stdio: "pipe" }); } catch { /* ignore */ }
   }
 
   console.log("Done. See https://elon-choi.github.io/playwright-agent-test-automation/");
