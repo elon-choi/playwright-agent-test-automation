@@ -1,0 +1,246 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - generic [ref=e7]:
+      - img "이전" [ref=e9] [cursor=pointer]
+      - generic [ref=e13]:
+        - generic [ref=e15] [cursor=pointer]:
+          - img "동일작 보기" [ref=e17]
+          - generic [ref=e19]: 이 작품을 '웹툰'으로 보기
+          - img [ref=e20]
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - generic [ref=e23]:
+              - generic [ref=e24] [cursor=pointer]:
+                - generic [ref=e25]: 로드 오브 머니
+                - img
+              - generic [ref=e27]: 무장
+            - generic [ref=e28]:
+              - img [ref=e29] [cursor=pointer]
+              - img [ref=e30] [cursor=pointer]
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - img
+                - generic [ref=e34]: "9.7"
+                - generic [ref=e35]: 972명
+              - generic [ref=e36] [cursor=pointer]:
+                - generic [ref=e37]: 별점
+                - img
+            - generic [ref=e38]:
+              - generic [ref=e40]:
+                - img
+                - generic [ref=e41]: "626"
+              - generic [ref=e42] [cursor=pointer]:
+                - generic [ref=e43]: 댓글
+                - img
+          - generic [ref=e44] [cursor=pointer]:
+            - img [ref=e46]
+            - generic [ref=e47]:
+              - generic [ref=e49]: BEST
+              - generic [ref=e50]: 김정아~서은&서희♥
+            - generic [ref=e52]: 가셨네요 나름 그분도 죽음에서 회귀 했는데 회귀자중 가장 짧은 삶을 사셨네요 눈물을 마시는 새!! 소설 제목 궁금 마실까봐요^^
+        - generic [ref=e54] [cursor=pointer]:
+          - img "작품 썸네일" [ref=e57]
+          - generic [ref=e59]:
+            - generic [ref=e61]: 다음화 보기
+            - generic [ref=e63]: 로드 오브 머니 6화
+          - generic [ref=e64]:
+            - img
+        - generic [ref=e65]:
+          - generic [ref=e68]:
+            - generic [ref=e69]: 이 작품과 함께보는 웹소설
+            - img [ref=e70] [cursor=pointer]
+          - generic [ref=e71]:
+            - list [ref=e72]:
+              - listitem [ref=e73]:
+                - link "작품, 격투의 신, 기다무, 현판, 조회수 1,352.9만, 버튼" [ref=e74] [cursor=pointer]:
+                  - /url: /content/49369721
+                  - generic "작품, 격투의 신, 기다무, 현판, 조회수 1,352.9만, 버튼" [ref=e76]:
+                    - generic [ref=e77]:
+                      - img [ref=e79]
+                      - img [ref=e81]
+                    - generic [ref=e83]:
+                      - generic [ref=e84]: 격투의 신
+                      - generic [ref=e86]:
+                        - text: 현판
+                        - img [ref=e87]
+                        - text: 1,352.9만
+              - listitem [ref=e88]:
+                - link "작품, 형사의 게임 [단행본], 현판, 조회수 20.3만, 버튼" [ref=e89] [cursor=pointer]:
+                  - /url: /content/56765062
+                  - generic "작품, 형사의 게임 [단행본], 현판, 조회수 20.3만, 버튼" [ref=e91]:
+                    - img [ref=e94]
+                    - generic [ref=e96]:
+                      - generic [ref=e97]: 형사의 게임 [단행본]
+                      - generic [ref=e99]:
+                        - text: 현판
+                        - img [ref=e100]
+                        - text: 20.3만
+              - listitem [ref=e101]:
+                - link "작품, 더 블랙, 기다무, 현판, 조회수 855.1만, 버튼" [ref=e102] [cursor=pointer]:
+                  - /url: /content/66294147
+                  - generic "작품, 더 블랙, 기다무, 현판, 조회수 855.1만, 버튼" [ref=e104]:
+                    - generic [ref=e105]:
+                      - img [ref=e107]
+                      - img [ref=e109]
+                    - generic [ref=e111]:
+                      - generic [ref=e112]: 더 블랙
+                      - generic [ref=e114]:
+                        - text: 현판
+                        - img [ref=e115]
+                        - text: 855.1만
+              - listitem [ref=e116]:
+                - link "작품, 어게인 마이 라이프, 기다무, 현판, 조회수 6,989.8만, 버튼" [ref=e117] [cursor=pointer]:
+                  - /url: /content/48568779
+                  - generic "작품, 어게인 마이 라이프, 기다무, 현판, 조회수 6,989.8만, 버튼" [ref=e119]:
+                    - generic [ref=e120]:
+                      - img [ref=e122]
+                      - img [ref=e124]
+                    - generic [ref=e126]:
+                      - generic [ref=e127]: 어게인 마이 라이프
+                      - generic [ref=e129]:
+                        - text: 현판
+                        - img [ref=e130]
+                        - text: 6,989.8만
+              - listitem [ref=e131]:
+                - 'link "작품, 더 프레지던트: 트레저헌터, 기다무, 현판, 조회수 347.7만, 버튼" [ref=e132] [cursor=pointer]':
+                  - /url: /content/48173121
+                  - 'generic "작품, 더 프레지던트: 트레저헌터, 기다무, 현판, 조회수 347.7만, 버튼" [ref=e134]':
+                    - generic [ref=e135]:
+                      - img [ref=e137]
+                      - img [ref=e139]
+                    - generic [ref=e141]:
+                      - generic [ref=e142]: "더 프레지던트: 트레저헌터"
+                      - generic [ref=e144]:
+                        - text: 현판
+                        - img [ref=e145]
+                        - text: 347.7만
+              - listitem [ref=e146]:
+                - link "작품, 블랙 듀티, 기다무, 현판, 조회수 1,562.3만, 버튼" [ref=e147] [cursor=pointer]:
+                  - /url: /content/48240206
+                  - generic "작품, 블랙 듀티, 기다무, 현판, 조회수 1,562.3만, 버튼" [ref=e149]:
+                    - generic [ref=e150]:
+                      - img [ref=e152]
+                      - img [ref=e154]
+                    - generic [ref=e156]:
+                      - generic [ref=e157]: 블랙 듀티
+                      - generic [ref=e159]:
+                        - text: 현판
+                        - img [ref=e160]
+                        - text: 1,562.3만
+              - listitem [ref=e161]:
+                - link "작품, 그라운드의 지배자, 기다무, 현판, 조회수 3,042.5만, 버튼" [ref=e162] [cursor=pointer]:
+                  - /url: /content/47944978
+                  - generic "작품, 그라운드의 지배자, 기다무, 현판, 조회수 3,042.5만, 버튼" [ref=e164]:
+                    - generic [ref=e165]:
+                      - img [ref=e167]
+                      - img [ref=e169]
+                    - generic [ref=e171]:
+                      - generic [ref=e172]: 그라운드의 지배자
+                      - generic [ref=e174]:
+                        - text: 현판
+                        - img [ref=e175]
+                        - text: 3,042.5만
+              - listitem [ref=e176]:
+                - link "작품, 어게인 마이 라이프 [단행본], 현판, 조회수 3.6만, 버튼" [ref=e177] [cursor=pointer]:
+                  - /url: /content/65112495
+                  - generic "작품, 어게인 마이 라이프 [단행본], 현판, 조회수 3.6만, 버튼" [ref=e179]:
+                    - img [ref=e182]
+                    - generic [ref=e184]:
+                      - generic [ref=e185]: 어게인 마이 라이프 [단행본]
+                      - generic [ref=e187]:
+                        - text: 현판
+                        - img [ref=e188]
+                        - text: 3.6만
+              - listitem [ref=e189]:
+                - link "작품, 대망, 기다무, 현판, 조회수 2,085.8만, 버튼" [ref=e190] [cursor=pointer]:
+                  - /url: /content/48644821
+                  - generic "작품, 대망, 기다무, 현판, 조회수 2,085.8만, 버튼" [ref=e192]:
+                    - generic [ref=e193]:
+                      - img [ref=e195]
+                      - img [ref=e197]
+                    - generic [ref=e199]:
+                      - generic [ref=e200]: 대망
+                      - generic [ref=e202]:
+                        - text: 현판
+                        - img [ref=e203]
+                        - text: 2,085.8만
+              - listitem [ref=e204]:
+                - link "작품, 시바의 후예, 기다무, 현판, 조회수 807.7만, 버튼" [ref=e205] [cursor=pointer]:
+                  - /url: /content/50006858
+                  - generic "작품, 시바의 후예, 기다무, 현판, 조회수 807.7만, 버튼" [ref=e207]:
+                    - generic [ref=e208]:
+                      - img [ref=e210]
+                      - img [ref=e212]
+                    - generic [ref=e214]:
+                      - generic [ref=e215]: 시바의 후예
+                      - generic [ref=e217]:
+                        - text: 현판
+                        - img [ref=e218]
+                        - text: 807.7만
+            - img [ref=e221] [cursor=pointer]
+      - generic:
+        - img "다음"
+    - generic [ref=e223]:
+      - generic [ref=e224] [cursor=pointer]:
+        - img
+      - generic [ref=e225] [cursor=pointer]:
+        - img
+    - generic [ref=e227]:
+      - generic [ref=e228]:
+        - generic [ref=e229]: 테마, 글꼴, 글자 크기를 변경해보세요!
+        - img [ref=e230] [cursor=pointer]
+      - img "툴팁" [ref=e231]
+  - alert [ref=e232]: 로드 오브 머니 5화 | 카카오페이지
+  - iframe [ref=e233]:
+    
+  - generic:
+    - generic:
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+    - generic:
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 4b933f616da94dc786687b1c03979076
+    - generic:
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+    - generic:
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+    - generic:
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 4b933f616da94dc786687b1c03979076
+    - generic:
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+    - generic:
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+    - generic:
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 4b933f616da94dc786687b1c03979076
+    - generic:
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+    - generic:
+      - generic: 4b933f616da94dc786687b1c03979076
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+      - generic: 85b547fd5f2a16f2f4430b5be6eb55b8
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic: 좋아하는 작품으로 설정했습니다. 작품이 업데이트 되면 알림을 드립니다.
+```

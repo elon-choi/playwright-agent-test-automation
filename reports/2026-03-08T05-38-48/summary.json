@@ -1,0 +1,14 @@
+{
+  "date": "2026-03-08T05:38:48.102Z",
+  "timestamp": "2026-03-08T05:38:48.102Z",
+  "runId": "2026-03-08T05-38-48",
+  "project": "카카오페이지",
+  "platform": "PCW",
+  "testType": "통합",
+  "passed": 106,
+  "failed": 4,
+  "skipped": 0,
+  "flaky": 0,
+  "total": 110,
+  "durationSeconds": 1185.053821
+}
