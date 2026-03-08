@@ -6550,5 +6550,19 @@
     "flaky": 0,
     "total": 5,
     "durationSeconds": 70.09364099999999
+  },
+  {
+    "date": "2026-03-08T08:06:11.375Z",
+    "timestamp": "2026-03-08T08:06:11.375Z",
+    "runId": "2026-03-08T08-06-11",
+    "project": "카카오페이지",
+    "platform": "PCW",
+    "testType": "코어",
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "total": 5,
+    "durationSeconds": 69.28872199999999
   }
 ]
